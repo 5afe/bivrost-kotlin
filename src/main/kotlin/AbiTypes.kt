@@ -1,4 +1,5 @@
 import java.lang.Exception
+import java.lang.reflect.Executable
 import java.math.BigInteger
 
 object Solidity {
@@ -37,6 +38,16 @@ object Solidity {
             } else {
                 value.toString(16).padStartMultiple(PADDED_LENGTH, '0')
             }
+        }
+    }
+
+    class FixedBytes(private val byteArray: ByteArray) : Type {
+        init {
+            if (byteArray.size > 32) throw Exception()
+        }
+
+        override fun encode(): String {
+            return byteArray.toHex().padEnd(PADDED_LENGTH, '0')
         }
     }
 
