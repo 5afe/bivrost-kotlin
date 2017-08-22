@@ -24,6 +24,9 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     testCompile group: 'junit', name: 'junit', version: '4.12'
+
+    implementation 'com.squareup.moshi:moshi:1.5.0'
+    implementation 'com.squareup:kotlinpoet:0.4.0'
 }
 
 compileKotlin {
