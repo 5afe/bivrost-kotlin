@@ -3,6 +3,9 @@ import kotlin.experimental.and
 fun String.padStartMultiple(multiple: Int, padChar: Char = ' ') =
         this.padStart(if (this.length % multiple != 0) this.length + multiple - this.length % multiple else 0, padChar)
 
+fun String.padEndMultiple(multiple: Int, padChar: Char = ' ') =
+        this.padEnd(if (this.length % multiple != 0) this.length + multiple - this.length % multiple else 0, padChar)
+
 
 private val hexArray = "0123456789ABCDEF".toCharArray()
 
