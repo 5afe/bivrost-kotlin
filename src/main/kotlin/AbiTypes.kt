@@ -1,5 +1,4 @@
 import java.lang.Exception
-import java.math.BigDecimal
 import java.math.BigInteger
 
 object Solidity {
@@ -17,7 +16,9 @@ object Solidity {
         fun encodeParts(): Parts
     }
 
-    abstract class UInt(private val value: BigInteger, private val bitLength: kotlin.Int) : Type {
+    interface StaticType : Type
+
+    abstract class UInt(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0 || value.bitLength() > bitLength || value.signum() == -1) throw Exception()
         }
@@ -29,7 +30,7 @@ object Solidity {
 
     }
 
-    abstract class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : Type {
+    abstract class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0) throw Exception()
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
@@ -49,7 +50,7 @@ object Solidity {
         }
     }
 
-    class FixedBytes(private val byteArray: ByteArray) : Type {
+    class FixedBytes(private val byteArray: ByteArray) : StaticType {
         init {
             if (byteArray.size > BYTES_PAD) throw Exception()
         }
@@ -76,9 +77,30 @@ object Solidity {
         }
     }
 
+    class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
+        init {
+            if (BigInteger(items.size.toString(10)) > BigInteger.valueOf(2).pow(BITS_PAD)) throw Exception()
+        }
+
+        override fun encode(): String {
+            val parts = encodeParts()
+            return parts.static + parts.dynamic
+        }
+
+        override fun encodeParts(): DynamicType.Parts {
+            val length = items.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
+            val stringBuilder = StringBuilder()
+            items.forEach {
+                stringBuilder.append(it.encode())
+            }
+            return DynamicType.Parts(length, stringBuilder.toString())
+        }
+    }
+
     class UInt256(value: BigInteger) : UInt(value, 256)
     open class UInt160(value: BigInteger) : UInt(value, 160)
     open class UInt8(value: BigInteger) : UInt(value, 8)
+    open class UInt32(value: BigInteger) : UInt(value, 32)
 
     class Address(value: BigInteger) : UInt160(value)
     class Boolean(value: kotlin.Boolean) : UInt8(if (value) BigInteger.ONE else BigInteger.ZERO)
