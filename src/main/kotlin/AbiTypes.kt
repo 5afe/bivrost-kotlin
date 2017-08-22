@@ -1,5 +1,6 @@
 import java.lang.Exception
 import java.math.BigInteger
+import java.util.*
 
 object Solidity {
     const val BYTES_PAD = 32
@@ -77,7 +78,7 @@ object Solidity {
         }
     }
 
-    class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
+    open class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
         init {
             if (BigInteger(items.size.toString(10)) > BigInteger.valueOf(2).pow(BITS_PAD)) throw Exception()
         }
@@ -95,6 +96,26 @@ object Solidity {
             }
             return DynamicType.Parts(length, stringBuilder.toString())
         }
+    }
+
+    fun encodeFunctionArguments(vararg args: Type): String {
+        val sizeOfStaticBlock = args.size * BYTES_PAD
+        val staticArgsBuilder = StringBuilder()
+        val dynamicArgsBuilder = StringBuilder()
+        val locations = ArrayDeque<kotlin.Int>()
+        args.filter { it is DynamicType }.forEach {
+            locations.add(sizeOfStaticBlock + dynamicArgsBuilder.length / 2)
+            dynamicArgsBuilder.append(it.encode())
+        }
+        args.forEach {
+            if (it is DynamicType) {
+                staticArgsBuilder.append(locations.removeFirst().toString(16).padStart(PADDED_HEX_LENGTH, '0'))
+            } else {
+                staticArgsBuilder.append(it.encode())
+            }
+        }
+
+        return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
     class UInt256(value: BigInteger) : UInt(value, 256)
