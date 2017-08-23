@@ -1,6 +1,8 @@
+import org.bouncycastle.jcajce.provider.digest.Keccak
 import java.lang.Exception
 import java.math.BigInteger
 import java.util.*
+import kotlin.experimental.and
 
 object Solidity {
     const val BYTES_PAD = 32
@@ -116,6 +118,16 @@ object Solidity {
         }
 
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
+    }
+
+    fun getMethodId(methodSignature: String) : String {
+        val sha3 = Keccak.Digest256()
+        sha3.update(methodSignature.toByteArray())
+        val buff = StringBuffer()
+        for (b in sha3.digest()) {
+            buff.append(String.format("%02x", b and 0xFF.toByte()))
+        }
+        return buff.toString().substring(0..7)
     }
 
     class UInt256(value: BigInteger) : UInt(value, 256)

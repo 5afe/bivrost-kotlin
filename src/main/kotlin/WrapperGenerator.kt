@@ -1,8 +1,5 @@
 import com.squareup.kotlinpoet.*
-import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import model.AbiElementJson
 import model.AbiRoot
 import kotlin.reflect.KClass
 
@@ -18,7 +15,7 @@ fun generateWrapper(abi: String) {
     abiRoot?.abi?.filter { it.type == "function" }?.forEach { function ->
         val f = FunSpec.builder(function.name)
         function.inputs.forEachIndexed { index, parameter ->
-            val name = if (parameter.name.isNullOrEmpty()) "arg${index + 1}" else parameter.name
+            val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
             if (parameter.type.contains("[]")) {
                 val p = parameter.type.removeSuffix("[]")
                 val tvn = ParameterizedTypeName.get(Solidity.ArrayOfStatic::class, getTypeWithName(p))
@@ -27,7 +24,16 @@ fun generateWrapper(abi: String) {
                 f.addParameter(name, getTypeWithName(parameter.type))
             }
         }
-        kotlinFile.addFun(f.build())
+
+        val funWithParams = f.build()
+        val finalFun = funWithParams.toBuilder().returns(String::class)
+        finalFun.addStatement("val methodId = \"${Solidity.getMethodId(funWithParams.name + funWithParams.parameters.joinToString(",") { it.name })}\"")
+        if (funWithParams.parameters.isEmpty()) {
+            finalFun.addStatement("return methodId")
+        } else {
+            finalFun.addStatement("return methodId + encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})")
+        }
+        kotlinFile.addFun(finalFun.build())
     }
     kotlinFile.build().writeTo(System.out)
 }
