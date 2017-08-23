@@ -28,7 +28,7 @@ fun generateWrapper(abi: String) {
 
         val funWithParams = funSpec.build()
         val finalFun = funWithParams.toBuilder().returns(String::class)
-        val methodId = Solidity.getMethodId("${funWithParams.name}(${function.inputs.joinToString(",") { it.type }})")
+        val methodId = Solidity.getMethodId("${function.name}(${function.inputs.joinToString(",") { it.type }})")
         val constName = "${function.name.toUpperCase()}_METHOD_ID"
         companionObject.addProperty(PropertySpec.builder(constName, String::class, KModifier.CONST).initializer("\"$methodId\"").build())
         finalFun.addStatement("return \"0x\" + ${constName +
