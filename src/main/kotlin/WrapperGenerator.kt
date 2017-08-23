@@ -11,6 +11,7 @@ fun generateWrapper(abi: String) {
 
     val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
     val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
+    val companionObject = TypeSpec.companionObjectBuilder()
 
     abiRoot.abi.filter { it.type == "function" }.forEach { function ->
         val funSpec = FunSpec.builder(function.name)
@@ -28,14 +29,16 @@ fun generateWrapper(abi: String) {
         val funWithParams = funSpec.build()
         val finalFun = funWithParams.toBuilder().returns(String::class)
         val methodId = Solidity.getMethodId(funWithParams.name + funWithParams.parameters.joinToString(",") { it.name })
-        finalFun.addStatement("return \"0x$methodId\"${
-        if (funWithParams.parameters.isNotEmpty()) {
-            " + Solidity.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
-        } else ""}")
-
+        val constName = "${function.name.toUpperCase()}_METHOD_ID"
+        companionObject.addProperty(PropertySpec.builder(constName, String::class, KModifier.CONST).initializer("\"$methodId\"").build())
+        finalFun.addStatement("return \"0x\" + ${constName +
+                if (funWithParams.parameters.isNotEmpty()) {
+                    " + Solidity.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
+                } else ""}")
 
         kotlinClass.addFun(finalFun.build())
     }
+    kotlinClass.addType(companionObject.build())
     kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
 }
 
