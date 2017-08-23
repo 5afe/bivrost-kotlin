@@ -7,35 +7,36 @@ fun generateWrapper(abi: String) {
     val moshi = Moshi.Builder().build()
 
     val jsonAdapter = moshi.adapter(AbiRoot::class.java)
-    val abiRoot = jsonAdapter.fromJson(abi)
+    val abiRoot = jsonAdapter.fromJson(abi) ?: return
 
-    val testClass = ClassName("", "TestWrapper")
-    val kotlinFile = KotlinFile.builder("", "TestWrapper")
+    val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
+    val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
 
-    abiRoot?.abi?.filter { it.type == "function" }?.forEach { function ->
-        val f = FunSpec.builder(function.name)
+    abiRoot.abi.filter { it.type == "function" }.forEach { function ->
+        val funSpec = FunSpec.builder(function.name)
         function.inputs.forEachIndexed { index, parameter ->
             val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-            if (parameter.type.contains("[]")) {
+            if (parameter.type.contains("[]")) { //TODO: Fixed size array
                 val p = parameter.type.removeSuffix("[]")
                 val tvn = ParameterizedTypeName.get(Solidity.ArrayOfStatic::class, getTypeWithName(p))
-                f.addParameter(ParameterSpec.builder(name, tvn).build())
+                funSpec.addParameter(ParameterSpec.builder(name, tvn).build())
             } else {
-                f.addParameter(name, getTypeWithName(parameter.type))
+                funSpec.addParameter(name, getTypeWithName(parameter.type))
             }
         }
 
-        val funWithParams = f.build()
+        val funWithParams = funSpec.build()
         val finalFun = funWithParams.toBuilder().returns(String::class)
-        finalFun.addStatement("val methodId = \"${Solidity.getMethodId(funWithParams.name + funWithParams.parameters.joinToString(",") { it.name })}\"")
-        if (funWithParams.parameters.isEmpty()) {
-            finalFun.addStatement("return methodId")
-        } else {
-            finalFun.addStatement("return methodId + encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})")
-        }
-        kotlinFile.addFun(finalFun.build())
+        val methodId = Solidity.getMethodId(funWithParams.name + funWithParams.parameters.joinToString(",") { it.name })
+        finalFun.addStatement("return \"0x$methodId\" ${
+        if (funWithParams.parameters.isNotEmpty()) {
+            " + encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
+        } else ""}")
+
+
+        kotlinClass.addFun(finalFun.build())
     }
-    kotlinFile.build().writeTo(System.out)
+    kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
 }
 
 fun getTypeWithName(name: String): KClass<*> {
