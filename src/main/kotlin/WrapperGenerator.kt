@@ -28,9 +28,9 @@ fun generateWrapper(abi: String) {
         val funWithParams = funSpec.build()
         val finalFun = funWithParams.toBuilder().returns(String::class)
         val methodId = Solidity.getMethodId(funWithParams.name + funWithParams.parameters.joinToString(",") { it.name })
-        finalFun.addStatement("return \"0x$methodId\" ${
+        finalFun.addStatement("return \"0x$methodId\"${
         if (funWithParams.parameters.isNotEmpty()) {
-            " + encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
+            " + Solidity.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
         } else ""}")
 
 
