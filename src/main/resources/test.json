@@ -6,7 +6,7 @@
       "inputs": [
         {
           "name": "",
-          "type": "address[]"
+          "type": "uint256"
         }
       ],
       "name": "owners",
