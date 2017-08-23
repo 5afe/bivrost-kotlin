@@ -1,8 +1,6 @@
-import org.bouncycastle.jcajce.provider.digest.Keccak
 import java.lang.Exception
 import java.math.BigInteger
 import java.util.*
-import kotlin.experimental.and
 
 object Solidity {
     const val BYTES_PAD = 32
@@ -21,7 +19,7 @@ object Solidity {
 
     interface StaticType : Type
 
-    abstract class UInt(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
+    abstract class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0 || value.bitLength() > bitLength || value.signum() == -1) throw Exception()
         }
@@ -120,20 +118,11 @@ object Solidity {
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
-    fun getMethodId(methodSignature: String) : String {
-        val sha3 = Keccak.Digest256()
-        sha3.update(methodSignature.toByteArray())
-        val buff = StringBuffer()
-        for (b in sha3.digest()) {
-            buff.append(String.format("%02x", b and 0xFF.toByte()))
-        }
-        return buff.toString().substring(0..7)
-    }
 
     class UInt256(value: BigInteger) : UInt(value, 256)
     open class UInt160(value: BigInteger) : UInt(value, 160)
     open class UInt8(value: BigInteger) : UInt(value, 8)
-    open class UInt32(value: BigInteger) : UInt(value, 32)
+    class UInt32(value: BigInteger) : UInt(value, 32)
 
     class Address(value: BigInteger) : UInt160(value)
     class Boolean(value: kotlin.Boolean) : UInt8(if (value) BigInteger.ONE else BigInteger.ZERO)

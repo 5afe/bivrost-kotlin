@@ -1,3 +1,4 @@
+import org.bouncycastle.jcajce.provider.digest.Keccak
 import kotlin.experimental.and
 
 fun String.padStartMultiple(multiple: Int, padChar: Char = ' ') =
@@ -17,4 +18,14 @@ fun ByteArray.toHex(): String {
         hexChars[j * 2 + 1] = hexArray[v and 0x0F]
     }
     return String(hexChars)
+}
+
+fun String.generateSolidityMethodId(): String {
+    val sha3 = Keccak.Digest256()
+    sha3.update(this.toByteArray())
+    val buff = StringBuffer()
+    for (b in sha3.digest()) {
+        buff.append(String.format("%02x", b and 0xFF.toByte()))
+    }
+    return buff.toString().substring(0..7)
 }
