@@ -23,6 +23,21 @@ class SolidityTypeGenerator {
         kotlinFile.build().writeTo(System.out)
     }
 
+    fun generateInts() {
+        val kotlinFile = KotlinFile.builder("", "")
+        (8..256 step 8).forEach {
+            val uintClass = TypeSpec.classBuilder("Int$it")
+                    .superclass(Solidity.Int::class)
+                    .addSuperclassConstructorParameter("%1L, %2L", "value", it)
+                    .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                            ParameterSpec.builder("value", BigInteger::class).build()).build())
+                    .build()
+            kotlinFile.addType(uintClass)
+        }
+
+        kotlinFile.build().writeTo(System.out)
+    }
+
     fun generateStaticBytes() {
         val kotlinFile = KotlinFile.builder("", "")
         (1..32).forEach {
