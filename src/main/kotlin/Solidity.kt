@@ -50,7 +50,7 @@ object Solidity {
         }
     }
 
-    class FixedBytes(private val byteArray: ByteArray) : StaticType {
+    class FixedBytes(val byteArray: ByteArray) : StaticType {
         init {
             if (byteArray.size > BYTES_PAD) throw Exception()
         }
@@ -60,7 +60,7 @@ object Solidity {
         }
     }
 
-    class Bytes(private val bytes: ByteArray) : DynamicType {
+    class Bytes(val bytes: ByteArray) : DynamicType {
         init {
             if (BigInteger(bytes.size.toString(10)) > BigInteger.valueOf(2).pow(BITS_PAD)) throw Exception()
         }
@@ -128,27 +128,51 @@ object Solidity {
 
 
     class Int8(value: BigInteger) : Int(value, 8)
-    data class Int256(val value: BigInteger)
+    class Int256(value: BigInteger) : Int(value, 256)
 
-    fun partitionFunctionResult(data: String): List<String>? {
+    fun partitionData(data: String): List<String>? {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(64) != 0) return null
+        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) return null
         val properties = arrayListOf<String>()
 
-        while (noPrefix.length >= 64) {
-            properties.add(noPrefix.subSequence(0, 64).toString())
-            noPrefix = noPrefix.removeRange(0..63)
+        while (noPrefix.length >= PADDED_HEX_LENGTH) {
+            properties.add(noPrefix.subSequence(0, PADDED_HEX_LENGTH).toString())
+            noPrefix = noPrefix.removeRange(0 until PADDED_HEX_LENGTH)
         }
         return properties
     }
 
     fun decodeUInt(data: String, bitLength: kotlin.Int): UInt {
         val value = BigInteger(data, 16)
-        return when(bitLength) {
+        return when (bitLength) {
             8 -> UInt8(value)
             32 -> UInt32(value)
             160 -> UInt160(value)
+            256 -> UInt256(value)
             else -> throw Exception()
         }
+    }
+
+    fun decodeInt(data: String, bitLength: kotlin.Int): Int {
+        val value = BigInteger(data, 16)
+        return when (bitLength) {
+            8 -> Int8(value)
+            256 -> Int256(value)
+            else -> throw Exception()
+        }
+    }
+
+    fun decodeFixedBytes(data: String): FixedBytes {
+        return FixedBytes(BigInteger(data, 16).toByteArray())
+    }
+
+    fun decodeBytes(data: String): Bytes {
+        val params = partitionData(data)
+        if (params === null || params.isEmpty()) throw Exception()
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return Bytes(byteArrayOf(0))
+        val contents = params.subList(1, params.size).joinToString("")
+        val bytes = (0 until contentSize step 2).map { contents.substring(it..it+1).toByte() }.toList()
+        return Bytes(bytes.toByteArray())
     }
 }
