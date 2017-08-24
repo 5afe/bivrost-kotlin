@@ -22,7 +22,22 @@ class SolidityTypeGenerator {
 
         kotlinFile.build().writeTo(System.out)
     }
-    
+
+    fun generateStaticBytes() {
+        val kotlinFile = KotlinFile.builder("", "")
+        (1..32).forEach {
+            val staticBytesClass = TypeSpec.classBuilder("Bytes$it")
+                    .superclass(Solidity.StaticBytes::class)
+                    .addSuperclassConstructorParameter("%1L, %2L", "byteArray", it)
+                    .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                            ParameterSpec.builder("byteArray", ByteArray::class).build()).build())
+                    .build()
+            kotlinFile.addType(staticBytesClass)
+        }
+
+        kotlinFile.build().writeTo(System.out)
+    }
+
     fun generateArrays() {
         val kotlinFile = KotlinFile.builder("", "")
         val solidityGeneratedObject = TypeSpec.objectBuilder("SolidityGenerated")

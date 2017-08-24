@@ -50,9 +50,9 @@ object Solidity {
         }
     }
 
-    class FixedBytes(val byteArray: ByteArray) : StaticType {
+    abstract class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
         init {
-            if (byteArray.size > BYTES_PAD) throw Exception()
+            if (byteArray.size > nBytes) throw Exception()
         }
 
         override fun encode(): String {
@@ -162,9 +162,9 @@ object Solidity {
         }
     }
 
-    fun decodeFixedBytes(data: String): FixedBytes {
-        return FixedBytes(BigInteger(data, 16).toByteArray())
-    }
+    /*fun decodeStaticBytes(data: String, nBytes: kotlin.Int): StaticBytes {
+        return StaticBytes(BigInteger(data, 16).toByteArray(), nBytes)
+    }*/
 
     fun decodeBytes(data: String): Bytes {
         val params = partitionData(data)
