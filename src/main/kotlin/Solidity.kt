@@ -1,4 +1,3 @@
-import java.lang.Exception
 import java.math.BigInteger
 import java.util.*
 
@@ -130,4 +129,26 @@ object Solidity {
 
     class Int8(value: BigInteger) : Int(value, 8)
     data class Int256(val value: BigInteger)
+
+    fun partitionFunctionResult(data: String): List<String>? {
+        var noPrefix = data.removePrefix("0x")
+        if (noPrefix.isEmpty() || noPrefix.length.rem(64) != 0) return null
+        val properties = arrayListOf<String>()
+
+        while (noPrefix.length >= 64) {
+            properties.add(noPrefix.subSequence(0, 64).toString())
+            noPrefix = noPrefix.removeRange(0..63)
+        }
+        return properties
+    }
+
+    fun decodeUInt(data: String, bitLength: kotlin.Int): UInt {
+        val value = BigInteger(data, 16)
+        return when(bitLength) {
+            8 -> UInt8(value)
+            32 -> UInt32(value)
+            160 -> UInt160(value)
+            else -> throw Exception()
+        }
+    }
 }
