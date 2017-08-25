@@ -1,6 +1,7 @@
 import com.squareup.kotlinpoet.*
 import com.squareup.moshi.Moshi
 import model.AbiRoot
+import model.Solidity
 import kotlin.reflect.KClass
 
 class AbiParser {
@@ -17,12 +18,8 @@ class AbiParser {
             val funSpec = FunSpec.builder(function.name)
             function.inputs.forEachIndexed { index, parameter ->
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                if (parameter.type.contains("[]")) { //TODO: Fixed size array
-                    val p = parameter.type.removeSuffix("[]")
-                    val tvn = ParameterizedTypeName.get(SolidityBase.ArrayOfStatic::class, getTypeWithName(p))
-                    funSpec.addParameter(ParameterSpec.builder(name, tvn).build())
-                } else {
-                    funSpec.addParameter(name, getTypeWithName(parameter.type))
+                Solidity.map[parameter.type]?.let {
+                    funSpec.addParameter(name, it)
                 }
             }
 
@@ -44,9 +41,6 @@ class AbiParser {
 
     private fun getTypeWithName(name: String): KClass<*> {
         return when (name) {
-            "uint256" -> SolidityBase.UInt256::class
-            "address" -> SolidityBase.Address::class
-            "bool" -> SolidityBase.Boolean::class
             "bytes" -> SolidityBase.Bytes::class
             else -> throw Exception()
         }

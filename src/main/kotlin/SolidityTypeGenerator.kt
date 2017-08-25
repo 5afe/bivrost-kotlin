@@ -4,16 +4,20 @@ import java.math.BigInteger
 class SolidityTypeGenerator {
     fun generate() {
         val kotlinFile = KotlinFile.builder("", "")
-        val solidityGeneratedObject = TypeSpec.objectBuilder("SolidityGenerated")
+        val solidityGeneratedObject = TypeSpec.objectBuilder("Solidity")
 
         //Generate types
         val uInts = generateUInts()
         val ints = generateInts()
         val staticBytes = generateStaticBytes()
+        val address = generateAddress()
+        val bool = generateBool()
 
         val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
         val arraysOfUInt = uInts.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
         val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
+        val arrayOfAddress = generateArrayClass(ClassName("", address.name!!))
+        val arrayOfBool = generateArrayClass(ClassName("", bool.name!!))
 
         //Add types to object
         solidityGeneratedObject.addTypes(uInts)
@@ -22,9 +26,13 @@ class SolidityTypeGenerator {
         solidityGeneratedObject.addTypes(arraysOfInt)
         solidityGeneratedObject.addTypes(arraysOfUInt)
         solidityGeneratedObject.addTypes(arraysOfStaticBytes)
+        solidityGeneratedObject.addType(address)
+        solidityGeneratedObject.addType(arrayOfAddress)
+        solidityGeneratedObject.addType(bool)
+        solidityGeneratedObject.addType(arrayOfBool)
 
         //Generate map
-        val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes)
+        val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address + arrayOfAddress + bool + arrayOfBool)
                 .map { it.name?.toLowerCase() to it.name }
                 .map {
                     if (it.first!!.startsWith("arrayof")) {
@@ -56,6 +64,22 @@ class SolidityTypeGenerator {
                         ParameterSpec.builder("value", BigInteger::class).build()).build())
                 .build()
     }.toList()
+
+    private fun generateAddress(): TypeSpec =
+            TypeSpec.classBuilder("Address")
+                    .superclass(SolidityBase.UInt::class)
+                    .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
+                    .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                            ParameterSpec.builder("value", BigInteger::class).build()).build())
+                    .build()
+
+    private fun generateBool(): TypeSpec =
+            TypeSpec.classBuilder("Bool")
+                    .superclass(SolidityBase.UInt::class)
+                    .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
+                    .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                            ParameterSpec.builder("value", Boolean::class).build()).build())
+                    .build()
 
     private fun generateInts() = (8..256 step 8).map {
         TypeSpec.classBuilder("Int$it")

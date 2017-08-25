@@ -118,12 +118,6 @@ object SolidityBase {
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
-    class UInt256(value: BigInteger) : UInt(value, 256)
-    class UInt32(value: BigInteger) : UInt(value, 32)
-
-    class Address(value: BigInteger) : UInt(value, 160)
-    class Boolean(value: kotlin.Boolean) : UInt(if (value) BigInteger.ONE else BigInteger.ZERO, 8)
-
     fun partitionData(data: String): List<String>? {
         var noPrefix = data.removePrefix("0x")
         if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) return null
