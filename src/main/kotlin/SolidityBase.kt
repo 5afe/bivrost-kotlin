@@ -1,7 +1,7 @@
 import java.math.BigInteger
 import java.util.*
 
-object Solidity {
+object SolidityBase {
     const val BYTES_PAD = 32
     const val BITS_PAD = BYTES_PAD * 8
     const val PADDED_HEX_LENGTH = BYTES_PAD * 2

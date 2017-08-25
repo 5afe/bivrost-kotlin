@@ -19,7 +19,7 @@ class AbiParser {
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
                 if (parameter.type.contains("[]")) { //TODO: Fixed size array
                     val p = parameter.type.removeSuffix("[]")
-                    val tvn = ParameterizedTypeName.get(Solidity.ArrayOfStatic::class, getTypeWithName(p))
+                    val tvn = ParameterizedTypeName.get(SolidityBase.ArrayOfStatic::class, getTypeWithName(p))
                     funSpec.addParameter(ParameterSpec.builder(name, tvn).build())
                 } else {
                     funSpec.addParameter(name, getTypeWithName(parameter.type))
@@ -33,7 +33,7 @@ class AbiParser {
             companionObject.addProperty(PropertySpec.builder(constName, String::class, KModifier.CONST).initializer("\"$methodId\"").build())
             finalFun.addStatement("return \"0x\" + ${constName +
                     if (funWithParams.parameters.isNotEmpty()) {
-                        " + Solidity.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
+                        " + SolidityBase.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
                     } else ""}")
 
             kotlinClass.addFun(finalFun.build())
@@ -44,10 +44,10 @@ class AbiParser {
 
     private fun getTypeWithName(name: String): KClass<*> {
         return when (name) {
-            "uint256" -> Solidity.UInt256::class
-            "address" -> Solidity.Address::class
-            "bool" -> Solidity.Boolean::class
-            "bytes" -> Solidity.Bytes::class
+            "uint256" -> SolidityBase.UInt256::class
+            "address" -> SolidityBase.Address::class
+            "bool" -> SolidityBase.Boolean::class
+            "bytes" -> SolidityBase.Bytes::class
             else -> throw Exception()
         }
     }
