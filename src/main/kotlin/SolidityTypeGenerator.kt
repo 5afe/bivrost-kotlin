@@ -6,6 +6,7 @@ class SolidityTypeGenerator {
         val kotlinFile = KotlinFile.builder("", "")
         val solidityGeneratedObject = TypeSpec.objectBuilder("SolidityGenerated")
 
+        //Generate types
         val uInts = generateUInts()
         val ints = generateInts()
         val staticBytes = generateStaticBytes()
@@ -14,6 +15,7 @@ class SolidityTypeGenerator {
         val arraysOfUInt = uInts.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
         val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
 
+        //Add types to object
         solidityGeneratedObject.addTypes(uInts)
         solidityGeneratedObject.addTypes(ints)
         solidityGeneratedObject.addTypes(staticBytes)
@@ -21,6 +23,28 @@ class SolidityTypeGenerator {
         solidityGeneratedObject.addTypes(arraysOfUInt)
         solidityGeneratedObject.addTypes(arraysOfStaticBytes)
 
+        //Generate map
+        val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes)
+                .map { it.name?.toLowerCase() to it.name }
+                .map {
+                    if (it.first!!.startsWith("arrayof")) {
+                        it.first!!.removePrefix("arrayof") + "[]"
+                    } else {
+                        it.first!!.toLowerCase()
+                    } to it.second
+                }.joinToString(",\n") { "\"${it.first}\" to ${it.second}::class" }
+
+        val mapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$mapContent)"))
+
+        //Add map to object
+        val mapClassName = ClassName("kotlin.collections", "Map")
+        val stringClassName = ClassName("kotlin", "String")
+        val kClassName = ClassName("kotlin.reflect", "KClass")
+        val kclassType = ParameterizedTypeName.get(kClassName, WildcardTypeName.subtypeOf(Any::class))
+        val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, kclassType)
+        solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
+
+        //Write object file
         kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(System.out)
     }
 

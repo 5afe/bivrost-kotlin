@@ -10,15 +10,16 @@ object SolidityBase {
         fun encode(): String
     }
 
+    interface StaticType : Type
+
     interface DynamicType : Type {
         data class Parts(val static: String, val dynamic: String)
 
         fun encodeParts(): Parts
     }
 
-    interface StaticType : Type
 
-    abstract class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
+    open class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0 || value.bitLength() > bitLength || value.signum() == -1) throw Exception()
         }
@@ -30,7 +31,7 @@ object SolidityBase {
 
     }
 
-    abstract class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
+    open class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0) throw Exception()
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
@@ -50,7 +51,7 @@ object SolidityBase {
         }
     }
 
-    abstract class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
+    open class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
         init {
             if (byteArray.size > nBytes) throw Exception()
         }
@@ -117,18 +118,11 @@ object SolidityBase {
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
-
     class UInt256(value: BigInteger) : UInt(value, 256)
-    open class UInt160(value: BigInteger) : UInt(value, 160)
-    open class UInt8(value: BigInteger) : UInt(value, 8)
     class UInt32(value: BigInteger) : UInt(value, 32)
 
-    class Address(value: BigInteger) : UInt160(value)
-    class Boolean(value: kotlin.Boolean) : UInt8(if (value) BigInteger.ONE else BigInteger.ZERO)
-
-
-    class Int8(value: BigInteger) : Int(value, 8)
-    class Int256(value: BigInteger) : Int(value, 256)
+    class Address(value: BigInteger) : UInt(value, 160)
+    class Boolean(value: kotlin.Boolean) : UInt(if (value) BigInteger.ONE else BigInteger.ZERO, 8)
 
     fun partitionData(data: String): List<String>? {
         var noPrefix = data.removePrefix("0x")
@@ -144,27 +138,17 @@ object SolidityBase {
 
     fun decodeUInt(data: String, bitLength: kotlin.Int): UInt {
         val value = BigInteger(data, 16)
-        return when (bitLength) {
-            8 -> UInt8(value)
-            32 -> UInt32(value)
-            160 -> UInt160(value)
-            256 -> UInt256(value)
-            else -> throw Exception()
-        }
+        return UInt(value, bitLength)
     }
 
     fun decodeInt(data: String, bitLength: kotlin.Int): Int {
         val value = BigInteger(data, 16)
-        return when (bitLength) {
-            8 -> Int8(value)
-            256 -> Int256(value)
-            else -> throw Exception()
-        }
+        return Int(value, bitLength)
     }
 
-    /*fun decodeStaticBytes(data: String, nBytes: kotlin.Int): StaticBytes {
+    fun decodeStaticBytes(data: String, nBytes: kotlin.Int): StaticBytes {
         return StaticBytes(BigInteger(data, 16).toByteArray(), nBytes)
-    }*/
+    }
 
     fun decodeBytes(data: String): Bytes {
         val params = partitionData(data)
@@ -172,7 +156,7 @@ object SolidityBase {
         val contentSize = BigInteger(params[0]).intValueExact() * 2
         if (contentSize == 0) return Bytes(byteArrayOf(0))
         val contents = params.subList(1, params.size).joinToString("")
-        val bytes = (0 until contentSize step 2).map { contents.substring(it..it+1).toByte() }.toList()
+        val bytes = (0 until contentSize step 2).map { contents.substring(it..it + 1).toByte() }.toList()
         return Bytes(bytes.toByteArray())
     }
 }
