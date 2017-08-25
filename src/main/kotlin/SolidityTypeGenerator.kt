@@ -6,13 +6,18 @@ class SolidityTypeGenerator {
         val kotlinFile = KotlinFile.builder("", "")
         val solidityGeneratedObject = TypeSpec.objectBuilder("Solidity")
 
+        kotlinFile.addStaticImport("utils", "padEndMultiple", "toHex")
+        solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
+
         //Generate types
         val uInts = generateUInts()
         val ints = generateInts()
         val staticBytes = generateStaticBytes()
         val address = generateAddress()
         val bool = generateBool()
+        val dynamicBytes = generateDynamicBytes()
 
+        //Arrays of dynamic types not supported (only static types)
         val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
         val arraysOfUInt = uInts.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
         val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
@@ -30,9 +35,11 @@ class SolidityTypeGenerator {
         solidityGeneratedObject.addType(arrayOfAddress)
         solidityGeneratedObject.addType(bool)
         solidityGeneratedObject.addType(arrayOfBool)
+        solidityGeneratedObject.addType(dynamicBytes)
 
         //Generate map
-        val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address + arrayOfAddress + bool + arrayOfBool)
+        val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address +
+                arrayOfAddress + bool + arrayOfBool + dynamicBytes)
                 .map { it.name?.toLowerCase() to it.name }
                 .map {
                     if (it.first!!.startsWith("arrayof")) {
@@ -109,4 +116,33 @@ class SolidityTypeGenerator {
                         ParameterSpec.builder("items", className, KModifier.VARARG).build()).build())
                 .build()
     }
+
+    private fun generateDynamicBytes() =
+            TypeSpec.classBuilder("Bytes")
+                    .addSuperinterface(SolidityBase.DynamicType::class)
+                    .primaryConstructor(FunSpec.constructorBuilder()
+                            .addParameter("bytes", ByteArray::class)
+                            .build())
+                    .addProperty(PropertySpec.builder("bytes", ByteArray::class).initializer("bytes").build())
+                    .addInitializerBlock(CodeBlock.builder()
+                            .addStatement("if (%1T(bytes.size.toString(10)) > %1T.valueOf(2).pow(256)) throw %2T()", BigInteger::class, Exception::class)
+                            .build())
+                    .addFun(FunSpec.builder("encode")
+                            .addModifiers(KModifier.OVERRIDE)
+                            .returns(String::class)
+                            .addCode(CodeBlock.builder()
+                                    .addStatement("val parts = encodeParts()")
+                                    .addStatement("return parts.static + parts.dynamic")
+                                    .build())
+                            .build())
+                    .addFun(FunSpec.builder("encodeParts")
+                            .addModifiers(KModifier.OVERRIDE)
+                            .returns(SolidityBase.DynamicType.Parts::class)
+                            .addCode(CodeBlock.builder()
+                                    .addStatement("val length = bytes.size.toString(16).padStart(64, '0')")
+                                    .addStatement("val contents = bytes.toHex().padEndMultiple(64, '0')")
+                                    .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
+                                    .build())
+                            .build())
+                    .build()
 }

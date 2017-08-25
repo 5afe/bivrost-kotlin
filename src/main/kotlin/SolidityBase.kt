@@ -1,3 +1,6 @@
+import model.Solidity
+import utils.padStartMultiple
+import utils.toHex
 import java.math.BigInteger
 import java.util.*
 
@@ -18,7 +21,6 @@ object SolidityBase {
         fun encodeParts(): Parts
     }
 
-
     open class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0 || value.bitLength() > bitLength || value.signum() == -1) throw Exception()
@@ -28,7 +30,6 @@ object SolidityBase {
             val string = value.toString(16)
             return string.padStartMultiple(PADDED_HEX_LENGTH, '0')
         }
-
     }
 
     open class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
@@ -58,23 +59,6 @@ object SolidityBase {
 
         override fun encode(): String {
             return byteArray.toHex().padEnd(PADDED_HEX_LENGTH, '0')
-        }
-    }
-
-    class Bytes(val bytes: ByteArray) : DynamicType {
-        init {
-            if (BigInteger(bytes.size.toString(10)) > BigInteger.valueOf(2).pow(BITS_PAD)) throw Exception()
-        }
-
-        override fun encode(): String {
-            val parts = encodeParts()
-            return parts.static + parts.dynamic
-        }
-
-        override fun encodeParts(): DynamicType.Parts {
-            val length = bytes.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
-            val contents = bytes.toHex().padEndMultiple(PADDED_HEX_LENGTH, '0')
-            return DynamicType.Parts(length, contents)
         }
     }
 
@@ -144,13 +128,13 @@ object SolidityBase {
         return StaticBytes(BigInteger(data, 16).toByteArray(), nBytes)
     }
 
-    fun decodeBytes(data: String): Bytes {
+    fun decodeBytes(data: String): Solidity.Bytes {
         val params = partitionData(data)
         if (params === null || params.isEmpty()) throw Exception()
         val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return Bytes(byteArrayOf(0))
+        if (contentSize == 0) return Solidity.Bytes(byteArrayOf(0))
         val contents = params.subList(1, params.size).joinToString("")
         val bytes = (0 until contentSize step 2).map { contents.substring(it..it + 1).toByte() }.toList()
-        return Bytes(bytes.toByteArray())
+        return Solidity.Bytes(bytes.toByteArray())
     }
 }

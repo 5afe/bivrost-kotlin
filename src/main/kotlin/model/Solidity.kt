@@ -1,12 +1,18 @@
 package model
 
+import java.lang.Exception
 import java.math.BigInteger
 import kotlin.Boolean
 import kotlin.ByteArray
 import kotlin.String
 import kotlin.collections.Map
 import kotlin.reflect.KClass
+import utils.padEndMultiple
+import utils.toHex
 
+/**
+ * Generated code. Do not modify
+ */
 object Solidity {
     val map: Map<String, KClass<*>> = mapOf(
             "uint8" to UInt8::class,
@@ -204,7 +210,8 @@ object Solidity {
             "address" to Address::class,
             "address[]" to ArrayOfAddress::class,
             "bool" to Bool::class,
-            "bool[]" to ArrayOfBool::class)
+            "bool[]" to ArrayOfBool::class,
+            "bytes" to Bytes::class)
 
     class UInt8(value: BigInteger) : SolidityBase.UInt(value, 8)
 
@@ -597,4 +604,21 @@ object Solidity {
     class Bool(value: Boolean) : SolidityBase.UInt(if (value) BigInteger.ONE else BigInteger.ZERO, 8)
 
     class ArrayOfBool(vararg items: Bool) : SolidityBase.ArrayOfStatic<Bool>(*items)
+
+    class Bytes(val bytes: ByteArray) : SolidityBase.DynamicType {
+        init {
+            if (BigInteger(bytes.size.toString(10)) > BigInteger.valueOf(2).pow(256)) throw Exception()
+        }
+
+        override fun encode(): String {
+            val parts = encodeParts()
+            return parts.static + parts.dynamic
+        }
+
+        override fun encodeParts(): SolidityBase.DynamicType.Parts {
+            val length = bytes.size.toString(16).padStart(64, '0')
+            val contents = bytes.toHex().padEndMultiple(64, '0')
+            return SolidityBase.DynamicType.Parts(length, contents)
+        }
+    }
 }

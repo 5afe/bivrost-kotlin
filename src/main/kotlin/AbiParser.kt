@@ -2,7 +2,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.moshi.Moshi
 import model.AbiRoot
 import model.Solidity
-import kotlin.reflect.KClass
+import utils.generateSolidityMethodId
 
 class AbiParser {
     private val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -37,12 +37,5 @@ class AbiParser {
         }
         kotlinClass.addType(companionObject.build())
         kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
-    }
-
-    private fun getTypeWithName(name: String): KClass<*> {
-        return when (name) {
-            "bytes" -> SolidityBase.Bytes::class
-            else -> throw Exception()
-        }
     }
 }
