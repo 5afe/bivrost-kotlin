@@ -3,6 +3,9 @@ import com.squareup.moshi.Moshi
 import model.AbiRoot
 import model.Solidity
 import utils.generateSolidityMethodId
+import java.math.BigInteger
+import java.util.regex.Pattern
+import kotlin.reflect.KClass
 
 class AbiParser {
     private val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -38,4 +41,54 @@ class AbiParser {
         kotlinClass.addType(companionObject.build())
         kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
     }
+
+    fun generateDecoder(abi: String) {
+        val abiRoot = jsonAdapter.fromJson(abi) ?: return
+
+        val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
+        val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
+        val companionObject = TypeSpec.companionObjectBuilder()
+
+        abiRoot.abi.filter { it.type == "function" }.forEach { function ->
+            if (function.outputs.isNotEmpty()) {
+                val funSpec = FunSpec.builder("decode${function.name.capitalize()}")
+
+                val returnContainer = TypeSpec.classBuilder("${function.name.toLowerCase()}Result")
+                        .addModifiers(KModifier.DATA)
+
+                function.outputs.forEachIndexed { index, output ->
+                    val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
+                    val abiRawType = output.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
+                    if (output.type.contains("[]")) {
+                        val kotlinType = typeMapper[abiRawType]
+                        val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
+                        returnContainer.addProperty(name, parameterizedTypeName)
+                    } else {
+                        println("$abiRawType  ${output.type}")
+                        returnContainer.addProperty(name, typeMapper[abiRawType]!!)
+                    }
+                }
+                kotlinFile.addType(returnContainer.build())
+            }
+        }
+        kotlinFile.build().writeTo(System.out)
+    }
+
+    val typeDecoderMap = mapOf<String, (String) -> Any>(
+            "uint" to SolidityBase::decodeUInt,
+            "int" to SolidityBase::decodeInt,
+            "address" to SolidityBase::decodeUInt,
+            "bool" to SolidityBase::decodeBool,
+            "bytes" to SolidityBase::decodeBytes,
+            "bytesN" to SolidityBase::decodeStaticBytes
+    )
+
+    val typeMapper = mapOf<String, KClass<*>>(
+            "uint" to BigInteger::class,
+            "int" to BigInteger::class,
+            "address" to BigInteger::class,
+            "bool" to Boolean::class,
+            "bytes" to ByteArray::class,
+            "bytesN" to ByteArray::class
+    )
 }
