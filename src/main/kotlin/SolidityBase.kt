@@ -137,4 +137,27 @@ object SolidityBase {
         val bytes = (0 until contentSize step 2).map { contents.substring(it..it + 1).toByte() }.toList()
         return Solidity.Bytes(bytes.toByteArray())
     }
+
+    fun decodeUIntArray(data: String): Array<BigInteger> {
+        val params = partitionData(data)
+        if (params == null || params.isEmpty()) throw Exception()
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return emptyArray()
+        return (1 until params.size).map { BigInteger(params[it]) }.toTypedArray()
+    }
+
+    fun decodeBoolArray(data: String): Array<Boolean> {
+        val params = partitionData(data)
+        if (params == null || params.isEmpty()) throw Exception()
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return emptyArray()
+        return (1 until params.size).map {
+            val value = BigInteger(params[it])
+            when (value) {
+                BigInteger.ZERO -> false
+                BigInteger.ONE -> true
+                else -> throw Exception()
+            }
+        }.toTypedArray()
+    }
 }
