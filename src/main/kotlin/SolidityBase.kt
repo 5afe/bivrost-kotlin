@@ -1,4 +1,3 @@
-import model.Solidity
 import utils.padStartMultiple
 import utils.toHex
 import java.math.BigInteger
@@ -147,45 +146,21 @@ object SolidityBase {
         return BigInteger(data, 16).toByteArray()
     }
 
-    fun decodeBytes(data: String): Solidity.Bytes {
+    fun decodeBytes(data: String): ByteArray {
         val params = partitionData(data)
         if (params === null || params.isEmpty()) throw Exception()
         val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return Solidity.Bytes(byteArrayOf(0))
+        if (contentSize == 0) return byteArrayOf(0)
         val contents = params.subList(1, params.size).joinToString("")
         val bytes = (0 until contentSize step 2).map { contents.substring(it..it + 1).toByte() }.toList()
-        return Solidity.Bytes(bytes.toByteArray())
+        return bytes.toByteArray()
     }
 
-    fun decodeUIntArray(data: String): Array<BigInteger> {
+    fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {
         val params = partitionData(data)
         if (params == null || params.isEmpty()) throw Exception()
         val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return emptyArray()
-        return (1 until params.size).map { decodeUInt(params[it]) }.toTypedArray()
-    }
-
-    fun decodeIntArray(data: String): Array<BigInteger> {
-        val params = partitionData(data)
-        if (params == null || params.isEmpty()) throw Exception()
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return emptyArray()
-        return (1 until params.size).map { decodeInt(params[it]) }.toTypedArray()
-    }
-
-    fun decodeBoolArray(data: String): Array<Boolean> {
-        val params = partitionData(data)
-        if (params == null || params.isEmpty()) throw Exception()
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return emptyArray()
-        return (1 until params.size).map { decodeBool(params[it]) }.toTypedArray()
-    }
-
-    fun decodeStaticBytesArray(data: String): Array<ByteArray> {
-        val params = partitionData(data)
-        if (params == null || params.isEmpty()) throw Exception()
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return emptyArray()
-        return (1 until params.size).map { decodeStaticBytes(params[it]) }.toTypedArray()
+        if (contentSize == 0) return emptyList()
+        return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
     }
 }
