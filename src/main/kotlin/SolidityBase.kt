@@ -127,9 +127,20 @@ object SolidityBase {
         }
     }
 
-    fun decodeInt(data: String, bitLength: kotlin.Int): Int {
+    fun decodeInt(data: String): BigInteger {
         val value = BigInteger(data, 16)
-        return Int(value, bitLength)
+        if (data.startsWith("8") ||
+                data.startsWith("9") ||
+                data.startsWith("A", true) ||
+                data.startsWith("B", true) ||
+                data.startsWith("C", true) ||
+                data.startsWith("D", true) ||
+                data.startsWith("E", true) ||
+                data.startsWith("F", true)) {
+            val x = value.toString(2).map { if (it == '0') '1' else '0' }.joinToString("")
+            return BigInteger(x, 2).add(BigInteger.ONE).multiply(BigInteger("-1"))
+        }
+        return value
     }
 
     fun decodeStaticBytes(data: String): ByteArray {
@@ -152,6 +163,14 @@ object SolidityBase {
         val contentSize = BigInteger(params[0]).intValueExact() * 2
         if (contentSize == 0) return emptyArray()
         return (1 until params.size).map { decodeUInt(params[it]) }.toTypedArray()
+    }
+
+    fun decodeIntArray(data: String): Array<BigInteger> {
+        val params = partitionData(data)
+        if (params == null || params.isEmpty()) throw Exception()
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return emptyArray()
+        return (1 until params.size).map { decodeInt(params[it]) }.toTypedArray()
     }
 
     fun decodeBoolArray(data: String): Array<Boolean> {
