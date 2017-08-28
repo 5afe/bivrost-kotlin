@@ -4,7 +4,6 @@ import model.AbiRoot
 import model.Solidity
 import utils.generateSolidityMethodId
 import java.math.BigInteger
-import java.util.regex.Pattern
 import kotlin.reflect.KClass
 
 class AbiParser {
@@ -49,38 +48,72 @@ class AbiParser {
         val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
         val companionObject = TypeSpec.companionObjectBuilder()
 
-        abiRoot.abi.filter { it.type == "function" }.forEach { function ->
-            if (function.outputs.isNotEmpty()) {
-                val funSpec = FunSpec.builder("decode${function.name.capitalize()}")
+        abiRoot.abi.filter { it.type == "function" }.filter { it.outputs.isNotEmpty() }.forEach { function ->
+            val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}")
+                    .addParameter("data", String::class)
+            val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Result")
+                    .addModifiers(KModifier.DATA)
 
-                val returnContainer = TypeSpec.classBuilder("${function.name.toLowerCase()}Result")
-                        .addModifiers(KModifier.DATA)
-
-                function.outputs.forEachIndexed { index, output ->
-                    val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
-                    val abiRawType = output.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
-                    if (output.type.contains("[]")) {
-                        val kotlinType = typeMapper[abiRawType]
-                        val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
-                        returnContainer.addProperty(name, parameterizedTypeName)
-                    } else {
-                        println("$abiRawType  ${output.type}")
-                        returnContainer.addProperty(name, typeMapper[abiRawType]!!)
-                    }
+            function.outputs.forEachIndexed { index, output ->
+                val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
+                val abiRawType = output.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
+                if (output.type.contains("[]")) {
+                    val kotlinType = typeMapper[abiRawType]
+                    val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
+                    returnContainerBuilder.addProperty(name, parameterizedTypeName)
+                } else {
+                    returnContainerBuilder.addProperty(name, typeMapper[abiRawType]!!)
                 }
-                kotlinFile.addType(returnContainer.build())
             }
+
+            val returnContainer = returnContainerBuilder.build()
+            val typeName = ClassName("", returnContainer.name!!)
+            funSpecBuilder.returns(typeName)
+
+            funSpecBuilder.addStatement("val partitions = SolidityBase.partitionData(data)")
+
+            val locationArgs = ArrayList<Pair<String, String>>()
+
+            funSpecBuilder.addStatement("")
+            funSpecBuilder.addComment("Decode arguments")
+            function.outputs.forEachIndexed { index, outputJson ->
+                val abiRawType = outputJson.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
+                if (isStaticType(outputJson.type)) {
+                    funSpecBuilder.addStatement("val arg$index = ${typeDecoderMap[abiRawType]}(partitions[$index])")
+                } else {
+                    locationArgs.add("locationArg$index" to abiRawType)
+                    funSpecBuilder.addStatement("val locationArg$index = %1T(partitions[$index], 16)", BigInteger::class)
+                }
+            }
+
+            (0 until locationArgs.size).forEach {
+                val locationReference = locationArgs[it].first
+                val dynamicValName = locationReference.removePrefix("location").decapitalize()
+                val decoderFunction = if (locationArgs[it].second == "bytes") "SolidityBase.decodeBytes" else "SolidityBase.decodeArray"
+
+                funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
+                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}, data.length))"
+                } else {
+                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}, ${locationArgs[it + 1].first}))"
+                })
+            }
+
+            funSpecBuilder.addStatement("")
+            funSpecBuilder.addStatement("return ${returnContainer.name}(${(0 until function.outputs.size).map { "arg$it" }.joinToString(", ")})")
+
+            kotlinFile.addType(returnContainer)
+            kotlinFile.addFun(funSpecBuilder.build())
         }
+
         kotlinFile.build().writeTo(System.out)
     }
 
-    val typeDecoderMap = mapOf<String, (String) -> Any>(
-            "uint" to SolidityBase::decodeUInt,
-            "int" to SolidityBase::decodeInt,
-            "address" to SolidityBase::decodeUInt,
-            "bool" to SolidityBase::decodeBool,
-            "bytes" to SolidityBase::decodeBytes,
-            "bytesN" to SolidityBase::decodeStaticBytes
+    val typeDecoderMap = mapOf(
+            "uint" to "SolidityBase.decodeUInt",
+            "int" to "SolidityBase.decodeInt",
+            "address" to "SolidityBase.decodeUInt",
+            "bool" to "SolidityBase.decodeBool",
+            "bytes" to "SolidityBase.decodeStaticBytes"
     )
 
     val typeMapper = mapOf<String, KClass<*>>(
@@ -91,4 +124,6 @@ class AbiParser {
             "bytes" to ByteArray::class,
             "bytesN" to ByteArray::class
     )
+
+    fun isStaticType(type: String) = type != "bytes" && !type.endsWith("[]")
 }
