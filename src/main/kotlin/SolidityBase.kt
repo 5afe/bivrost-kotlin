@@ -1,3 +1,4 @@
+import utils.hexToByteArray
 import utils.padStartMultiple
 import utils.toHex
 import java.math.BigInteger
@@ -149,11 +150,10 @@ object SolidityBase {
     fun decodeBytes(data: String): ByteArray {
         val params = partitionData(data)
         if (params === null || params.isEmpty()) throw Exception()
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        val contentSize = BigInteger(params[0], 16).intValueExact() * 2
         if (contentSize == 0) return byteArrayOf(0)
         val contents = params.subList(1, params.size).joinToString("")
-        val bytes = (0 until contentSize step 2).map { contents.substring(it..it + 1).toByte() }.toList()
-        return bytes.toByteArray()
+        return contents.substring(0, contentSize).hexToByteArray()
     }
 
     fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {

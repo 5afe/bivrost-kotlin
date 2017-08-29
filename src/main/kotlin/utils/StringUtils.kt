@@ -22,6 +22,18 @@ fun ByteArray.toHex(): String {
     return String(hexChars)
 }
 
+fun String.hexToByteArray(): ByteArray {
+    val s = this.removePrefix("0x")
+    val len = s.length
+    val data = ByteArray(len / 2)
+    var i = 0
+    while (i < len) {
+        data[i / 2] = ((Character.digit(s[i], 16) shl 4) + Character.digit(s[i + 1], 16)).toByte()
+        i += 2
+    }
+    return data
+}
+
 fun String.generateSolidityMethodId(): String {
     val sha3 = Keccak.Digest256()
     sha3.update(this.toByteArray())
