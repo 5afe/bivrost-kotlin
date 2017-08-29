@@ -1,6 +1,8 @@
 import com.squareup.kotlinpoet.*
 import com.squareup.moshi.Moshi
+import model.AbiElementJson
 import model.AbiRoot
+import model.OutputJson
 import model.Solidity
 import utils.generateSolidityMethodId
 import java.math.BigInteger
@@ -41,85 +43,97 @@ class AbiParser {
         kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
     }
 
+    companion object {
+        const val DECODER_FUN_ARG_NAME = "data"
+        const val DECODER_VAR_PARTITIONS_NAME = "partitions"
+        const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
+        const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
+    }
+
     fun generateDecoder(abi: String) {
         val abiRoot = jsonAdapter.fromJson(abi) ?: return
 
         val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
         val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
-        val companionObject = TypeSpec.companionObjectBuilder()
 
         abiRoot.abi.filter { it.type == "function" }.filter { it.outputs.isNotEmpty() }.forEach { function ->
-            val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}")
-                    .addParameter("data", String::class)
-            val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Result")
-                    .addModifiers(KModifier.DATA)
-            val returnContainerConstructor = FunSpec.constructorBuilder()
+            val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}").addParameter(DECODER_FUN_ARG_NAME, String::class)
+            val dataClass = generateDataClassResult(function)
 
-            function.outputs.forEachIndexed { index, output ->
-                val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
-                val abiRawType = output.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
-                if (output.type.contains("[]")) {
-                    val kotlinType = typeMapper[abiRawType]
-                    val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
-                    returnContainerConstructor.addParameter(name, parameterizedTypeName)
-                    returnContainerBuilder.addProperty(PropertySpec.builder(name, parameterizedTypeName).initializer(name).build())
-                } else {
-                    returnContainerConstructor.addParameter(name, typeMapper[abiRawType]!!)
-                    returnContainerBuilder.addProperty(PropertySpec.builder(name, typeMapper[abiRawType]!!).initializer(name).build())
-                }
-            }
-            returnContainerBuilder.primaryConstructor(returnContainerConstructor.build())
-
-            val returnContainer = returnContainerBuilder.build()
-            val typeName = ClassName("", returnContainer.name!!)
+            //Set function return
+            val typeName = ClassName("", dataClass.name!!)
             funSpecBuilder.returns(typeName)
 
-            funSpecBuilder.addStatement("val partitions = SolidityBase.partitionData(data)")
+            funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
 
+            //Generate decodings
             val locationArgs = ArrayList<Pair<String, String>>()
+            generateStaticArgDecoding(function.outputs, funSpecBuilder, locationArgs)
+            generateDynamicArgDecoding(locationArgs, funSpecBuilder)
 
             funSpecBuilder.addStatement("")
-            funSpecBuilder.addComment("Decode arguments")
-            function.outputs.forEachIndexed { index, outputJson ->
-                val abiRawType = outputJson.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
-                if (isStaticType(outputJson.type)) {
-                    funSpecBuilder.addStatement("val arg$index = %1T.${typeDecoderMap[abiRawType]}(partitions[$index])", SolidityBase::class)
-                } else {
-                    locationArgs.add("locationArg$index" to outputJson.type)
-                    funSpecBuilder.addStatement("val locationArg$index = %1T(partitions[$index], 16)", BigInteger::class)
-                }
-            }
+            funSpecBuilder.addStatement("return ${dataClass.name}(${(0 until function.outputs.size).joinToString(", ") { "arg$it" }})")
 
-            (0 until locationArgs.size).forEach {
-                val locationReference = locationArgs[it].first
-                val dynamicValName = locationReference.removePrefix("location").decapitalize()
-                if (locationArgs[it].second == "bytes") {
-                    funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
-                        "val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length))"
-                    } else {
-                        "val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2))"
-                    }, SolidityBase::class)
-                } else if (locationArgs[it].second.endsWith("[]")) {
-                    val abiRawType = locationArgs[it].second.replace(Regex(pattern = "[^A-Za-z]+"), "")
-                    funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
-                        "val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length), %1T::${typeDecoderMap[abiRawType]})"
-                    } else {
-                        "val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2), %1T::${typeDecoderMap[locationArgs[it].second.removeSuffix("[]")]})"
-                    }, SolidityBase::class)
-                }
-            }
-
-            funSpecBuilder.addStatement("")
-            funSpecBuilder.addStatement("return ${returnContainer.name}(${(0 until function.outputs.size).map { "arg$it" }.joinToString(", ")})")
-
-            kotlinFile.addType(returnContainer)
+            kotlinFile.addType(dataClass)
             kotlinFile.addFun(funSpecBuilder.build())
         }
 
         kotlinFile.build().writeTo(System.out)
     }
 
-    val typeDecoderMap = mapOf(
+    private fun generateDataClassResult(function: AbiElementJson): TypeSpec {
+        val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Result").addModifiers(KModifier.DATA)
+        val returnContainerConstructor = FunSpec.constructorBuilder()
+
+        function.outputs.forEachIndexed { index, output ->
+            val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
+            val abiRawType = solidityRawType(output.type)
+            if (output.type.contains("[]")) {
+                val kotlinType = typeMapper[abiRawType]
+                val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
+                returnContainerConstructor.addParameter(name, parameterizedTypeName)
+                returnContainerBuilder.addProperty(PropertySpec.builder(name, parameterizedTypeName).initializer(name).build())
+            } else {
+                returnContainerConstructor.addParameter(name, typeMapper[abiRawType]!!)
+                returnContainerBuilder.addProperty(PropertySpec.builder(name, typeMapper[abiRawType]!!).initializer(name).build())
+            }
+        }
+
+        return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
+    }
+
+    private fun generateStaticArgDecoding(outputs: List<OutputJson>, function: FunSpec.Builder, locationArgs: MutableCollection<Pair<String, String>>) {
+        function.addStatement("")
+        function.addComment("Decode arguments")
+        outputs.forEachIndexed { index, outputJson ->
+            val abiRawType = solidityRawType(outputJson.type)
+            if (isStaticType(outputJson.type)) {
+                function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${typeDecoderMap[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index])", SolidityBase::class)
+            } else {
+                locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
+                function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
+            }
+        }
+    }
+
+    private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, String>>, function: FunSpec.Builder) {
+        (0 until locationArgs.size).forEach {
+            val locationReference = locationArgs[it].first
+            val type = locationArgs[it].second
+            val dynamicValName = locationReference.removePrefix("location").decapitalize()
+            val upperLimit = if (it == locationArgs.size - 1) "data.length" else "${locationArgs[it + 1].first}.intValueExact() * 2)"
+            if (isBytes(type)) {
+                function.addStatement("val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, $upperLimit))", SolidityBase::class)
+            } else if (isArray(type)) {
+                val abiRawType = solidityRawType(type)
+                function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, $upperLimit), %1T::${typeDecoderMap[abiRawType]})", SolidityBase::class)
+            }
+        }
+    }
+
+    private fun solidityRawType(type: String) = type.replace(Regex(pattern = "[^A-Za-z]+"), "")
+
+    private val typeDecoderMap = mapOf(
             "uint" to "decodeUInt",
             "int" to "decodeInt",
             "address" to "decodeUInt",
@@ -127,7 +141,7 @@ class AbiParser {
             "bytes" to "decodeStaticBytes"
     )
 
-    val typeMapper = mapOf<String, KClass<*>>(
+    private val typeMapper = mapOf<String, KClass<*>>(
             "uint" to BigInteger::class,
             "int" to BigInteger::class,
             "address" to BigInteger::class,
@@ -136,5 +150,13 @@ class AbiParser {
             "bytesN" to ByteArray::class
     )
 
-    fun isStaticType(type: String) = type != "bytes" && !type.endsWith("[]")
+    private fun isStaticType(type: String) = !isDynamicType(type)
+
+    private fun isDynamicType(type: String) = isBytes(type) || isArray(type) || isString(type)
+
+    private fun isBytes(type: String) = type == "bytes"
+
+    private fun isArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
+
+    private fun isString(type: String) = type == "string"
 }
