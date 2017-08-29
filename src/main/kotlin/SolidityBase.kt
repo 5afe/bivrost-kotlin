@@ -102,9 +102,9 @@ object SolidityBase {
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
-    fun partitionData(data: String): List<String>? {
+    fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) return null
+        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw Exception()
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {

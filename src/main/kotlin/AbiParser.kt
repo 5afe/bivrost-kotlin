@@ -92,9 +92,9 @@ class AbiParser {
                 val decoderFunction = if (locationArgs[it].second == "bytes") "SolidityBase.decodeBytes" else "SolidityBase.decodeArray"
 
                 funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
-                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}, data.length))"
+                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length))"
                 } else {
-                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}, ${locationArgs[it + 1].first}))"
+                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2))"
                 })
             }
 
