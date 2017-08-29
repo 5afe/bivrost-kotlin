@@ -53,6 +53,7 @@ class AbiParser {
                     .addParameter("data", String::class)
             val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Result")
                     .addModifiers(KModifier.DATA)
+            val returnContainerConstructor = FunSpec.constructorBuilder()
 
             function.outputs.forEachIndexed { index, output ->
                 val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
@@ -60,11 +61,14 @@ class AbiParser {
                 if (output.type.contains("[]")) {
                     val kotlinType = typeMapper[abiRawType]
                     val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
-                    returnContainerBuilder.addProperty(name, parameterizedTypeName)
+                    returnContainerConstructor.addParameter(name, parameterizedTypeName)
+                    returnContainerBuilder.addProperty(PropertySpec.builder(name, parameterizedTypeName).initializer(name).build())
                 } else {
-                    returnContainerBuilder.addProperty(name, typeMapper[abiRawType]!!)
+                    returnContainerConstructor.addParameter(name, typeMapper[abiRawType]!!)
+                    returnContainerBuilder.addProperty(PropertySpec.builder(name, typeMapper[abiRawType]!!).initializer(name).build())
                 }
             }
+            returnContainerBuilder.primaryConstructor(returnContainerConstructor.build())
 
             val returnContainer = returnContainerBuilder.build()
             val typeName = ClassName("", returnContainer.name!!)
@@ -79,9 +83,9 @@ class AbiParser {
             function.outputs.forEachIndexed { index, outputJson ->
                 val abiRawType = outputJson.type.replace(Regex(pattern = "[^A-Za-z]+"), "")
                 if (isStaticType(outputJson.type)) {
-                    funSpecBuilder.addStatement("val arg$index = ${typeDecoderMap[abiRawType]}(partitions[$index])")
+                    funSpecBuilder.addStatement("val arg$index = %1T.${typeDecoderMap[abiRawType]}(partitions[$index])", SolidityBase::class)
                 } else {
-                    locationArgs.add("locationArg$index" to abiRawType)
+                    locationArgs.add("locationArg$index" to outputJson.type)
                     funSpecBuilder.addStatement("val locationArg$index = %1T(partitions[$index], 16)", BigInteger::class)
                 }
             }
@@ -89,13 +93,20 @@ class AbiParser {
             (0 until locationArgs.size).forEach {
                 val locationReference = locationArgs[it].first
                 val dynamicValName = locationReference.removePrefix("location").decapitalize()
-                val decoderFunction = if (locationArgs[it].second == "bytes") "SolidityBase.decodeBytes" else "SolidityBase.decodeArray"
-
-                funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
-                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length))"
-                } else {
-                    "val $dynamicValName = $decoderFunction(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2))"
-                })
+                if (locationArgs[it].second == "bytes") {
+                    funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
+                        "val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length))"
+                    } else {
+                        "val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2))"
+                    }, SolidityBase::class)
+                } else if (locationArgs[it].second.endsWith("[]")) {
+                    val abiRawType = locationArgs[it].second.replace(Regex(pattern = "[^A-Za-z]+"), "")
+                    funSpecBuilder.addStatement(if (it == locationArgs.size - 1) {
+                        "val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, data.length), %1T::${typeDecoderMap[abiRawType]})"
+                    } else {
+                        "val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, ${locationArgs[it + 1].first}.intValueExact() * 2), %1T::${typeDecoderMap[locationArgs[it].second.removeSuffix("[]")]})"
+                    }, SolidityBase::class)
+                }
             }
 
             funSpecBuilder.addStatement("")
@@ -109,11 +120,11 @@ class AbiParser {
     }
 
     val typeDecoderMap = mapOf(
-            "uint" to "SolidityBase.decodeUInt",
-            "int" to "SolidityBase.decodeInt",
-            "address" to "SolidityBase.decodeUInt",
-            "bool" to "SolidityBase.decodeBool",
-            "bytes" to "SolidityBase.decodeStaticBytes"
+            "uint" to "decodeUInt",
+            "int" to "decodeInt",
+            "address" to "decodeUInt",
+            "bool" to "decodeBool",
+            "bytes" to "decodeStaticBytes"
     )
 
     val typeMapper = mapOf<String, KClass<*>>(
