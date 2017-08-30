@@ -33,7 +33,7 @@ class AbiParser {
         kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
     }
 
-    fun generateEncoder(abiRoot: AbiRoot): Pair<TypeSpec, TypeSpec> {
+    private fun generateEncoder(abiRoot: AbiRoot): Pair<TypeSpec, TypeSpec> {
         val companionObject = TypeSpec.companionObjectBuilder()
         val encoderObject = TypeSpec.objectBuilder("Encoder")
 
@@ -62,7 +62,7 @@ class AbiParser {
         return companionObject.build() to encoderObject.build()
     }
 
-    fun generateDecoder(abiRoot: AbiRoot): TypeSpec {
+    private fun generateDecoder(abiRoot: AbiRoot): TypeSpec {
         val decoderObject = TypeSpec.objectBuilder("Decoder")
 
         abiRoot.abi.filter { it.type == "function" }.filter { it.outputs.isNotEmpty() }.forEach { function ->
@@ -97,14 +97,14 @@ class AbiParser {
         function.outputs.forEachIndexed { index, output ->
             val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
             val abiRawType = solidityRawType(output.type)
-            if (output.type.contains("[]")) {
-                val kotlinType = typeMapper[abiRawType]
+            if (isSolidityArray(output.type)) {
+                val kotlinType = solidityToKotlin[abiRawType]
                 val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
                 returnContainerConstructor.addParameter(name, parameterizedTypeName)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, parameterizedTypeName).initializer(name).build())
             } else {
-                returnContainerConstructor.addParameter(name, typeMapper[abiRawType]!!)
-                returnContainerBuilder.addProperty(PropertySpec.builder(name, typeMapper[abiRawType]!!).initializer(name).build())
+                returnContainerConstructor.addParameter(name, solidityToKotlin[abiRawType]!!)
+                returnContainerBuilder.addProperty(PropertySpec.builder(name, solidityToKotlin[abiRawType]!!).initializer(name).build())
             }
         }
 
@@ -116,8 +116,8 @@ class AbiParser {
         function.addComment("Decode arguments")
         outputs.forEachIndexed { index, outputJson ->
             val abiRawType = solidityRawType(outputJson.type)
-            if (isStaticType(outputJson.type)) {
-                function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${typeDecoderMap[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index])", SolidityBase::class)
+            if (isSolidityStaticType(outputJson.type)) {
+                function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index])", SolidityBase::class)
             } else {
                 locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
                 function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
@@ -131,18 +131,18 @@ class AbiParser {
             val type = locationArgs[it].second
             val dynamicValName = locationReference.removePrefix("location").decapitalize()
             val upperLimit = if (it == locationArgs.size - 1) "data.length" else "${locationArgs[it + 1].first}.intValueExact() * 2)"
-            if (isBytes(type)) {
+            if (isSolidityBytes(type)) {
                 function.addStatement("val $dynamicValName = %1T.decodeBytes(data.substring(${locationArgs[it].first}.intValueExact() * 2, $upperLimit))", SolidityBase::class)
-            } else if (isArray(type)) {
+            } else if (isSolidityArray(type)) {
                 val abiRawType = solidityRawType(type)
-                function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, $upperLimit), %1T::${typeDecoderMap[abiRawType]})", SolidityBase::class)
+                function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(${locationArgs[it].first}.intValueExact() * 2, $upperLimit), %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class)
             }
         }
     }
 
     private fun solidityRawType(type: String) = type.replace(Regex(pattern = "[^A-Za-z]+"), "")
 
-    private val typeDecoderMap = mapOf(
+    private val solidityStaticTypeToDecoder = mapOf(
             "uint" to "decodeUInt",
             "int" to "decodeInt",
             "address" to "decodeUInt",
@@ -150,22 +150,23 @@ class AbiParser {
             "bytes" to "decodeStaticBytes"
     )
 
-    private val typeMapper = mapOf<String, KClass<*>>(
+    private val solidityToKotlin = mapOf<String, KClass<*>>(
             "uint" to BigInteger::class,
             "int" to BigInteger::class,
             "address" to BigInteger::class,
             "bool" to Boolean::class,
-            "bytes" to ByteArray::class,
-            "bytesN" to ByteArray::class
+            "bytes" to ByteArray::class
     )
 
-    private fun isStaticType(type: String) = !isDynamicType(type)
+    private val kotlinToSolidity = mapOf(*solidityToKotlin.entries.map { it.value to it.key }.toTypedArray())
 
-    private fun isDynamicType(type: String) = isBytes(type) || isArray(type) || isString(type)
+    private fun isSolidityStaticType(type: String) = !isSolidityDynamicType(type)
 
-    private fun isBytes(type: String) = type == "bytes"
+    private fun isSolidityDynamicType(type: String) = isSolidityBytes(type) || isSolidityArray(type) || isSolidityString(type)
 
-    private fun isArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
+    private fun isSolidityBytes(type: String) = type == "bytes"
 
-    private fun isString(type: String) = type == "string"
+    private fun isSolidityArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
+
+    private fun isSolidityString(type: String) = type == "string"
 }
