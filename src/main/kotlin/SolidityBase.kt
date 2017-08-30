@@ -67,6 +67,10 @@ object SolidityBase {
         }
     }
 
+    // Solidity encodes length as a 256 bit value which can be greater than Integer.MAX_VALUE
+    // A work around could be receiving the size of the array as a BigInteger and the items
+    // as a List (no theoretical limit but the size of the list can be at max Integer.MAX_VALUE)
+    // Another solution can be receiving Collections up to Integer.MAX_VALUE and then merge them here
     open class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
         override fun encode(): String {
             val parts = encodeParts()
