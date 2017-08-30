@@ -1,3 +1,4 @@
+import exceptions.InvalidBitLengthException
 import utils.hexToByteArray
 import utils.padStartMultiple
 import utils.toHex
@@ -23,7 +24,11 @@ object SolidityBase {
 
     open class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
-            if (bitLength % 8 != 0 || value.bitLength() > bitLength || value.signum() == -1) throw Exception()
+            when {
+                bitLength % 8 != 0 -> throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
+                value.bitLength() > bitLength -> throw InvalidBitLengthException.BIG_VALUE
+                value.signum() == -1 -> throw IllegalArgumentException("UInt doesn't allow negative numbers")
+            }
         }
 
         override fun encode(): String {
@@ -34,11 +39,11 @@ object SolidityBase {
 
     open class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
-            if (bitLength % 8 != 0) throw Exception()
+            if (bitLength % 8 != 0) throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
             val max = BigInteger.valueOf(2).pow(bitLength - 1) - BigInteger.ONE
 
-            if (value < min || value > max) throw Exception()
+            if (value < min || value > max) throw IllegalArgumentException("Value is not within bit range [$min, $max]")
         }
 
         override fun encode(): String {
@@ -54,7 +59,7 @@ object SolidityBase {
 
     open class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
         init {
-            if (byteArray.size > nBytes) throw Exception()
+            if (byteArray.size > nBytes) throw IllegalArgumentException("Byte array has ${byteArray.size} bytes. It should have no more than $nBytes bytes.")
         }
 
         override fun encode(): String {
@@ -63,10 +68,6 @@ object SolidityBase {
     }
 
     open class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
-        init {
-            if (BigInteger(items.size.toString(10)) > BigInteger.valueOf(2).pow(BITS_PAD)) throw Exception()
-        }
-
         override fun encode(): String {
             val parts = encodeParts()
             return parts.static + parts.dynamic
@@ -104,7 +105,7 @@ object SolidityBase {
 
     fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw Exception()
+        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {
@@ -123,7 +124,7 @@ object SolidityBase {
         return when (value) {
             BigInteger.ZERO -> false
             BigInteger.ONE -> true
-            else -> throw Exception()
+            else -> throw IllegalArgumentException("${value.toString(10)} is not a valid boolean representation. It should either be 0 (false) or 1 (true)")
         }
     }
 
@@ -149,16 +150,14 @@ object SolidityBase {
 
     fun decodeBytes(data: String): ByteArray {
         val params = partitionData(data)
-        if (params === null || params.isEmpty()) throw Exception()
         val contentSize = BigInteger(params[0], 16).intValueExact() * 2
-        if (contentSize == 0) return byteArrayOf(0)
+        if (contentSize == 0) return kotlin.ByteArray(0)
         val contents = params.subList(1, params.size).joinToString("")
         return contents.substring(0, contentSize).hexToByteArray()
     }
 
     fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {
         val params = partitionData(data)
-        if (params == null || params.isEmpty()) throw Exception()
         val contentSize = BigInteger(params[0]).intValueExact() * 2
         if (contentSize == 0) return emptyList()
         return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
