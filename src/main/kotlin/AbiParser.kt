@@ -11,12 +11,31 @@ import kotlin.reflect.KClass
 class AbiParser {
     private val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
 
-    fun generateEncoder(abi: String) {
+    companion object {
+        const val DECODER_FUN_ARG_NAME = "data"
+        const val DECODER_VAR_PARTITIONS_NAME = "partitions"
+        const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
+        const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
+    }
+
+    fun generateWrapper(abi: String) {
         val abiRoot = jsonAdapter.fromJson(abi) ?: return
 
         val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
         val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
+
+        val companionWithEncoder = generateEncoder(abiRoot)
+        val decoder = generateDecoder(abiRoot)
+
+        kotlinClass.addType(companionWithEncoder.first)
+        kotlinClass.addType(companionWithEncoder.second)
+        kotlinClass.addType(decoder)
+        kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
+    }
+
+    fun generateEncoder(abiRoot: AbiRoot): Pair<TypeSpec, TypeSpec> {
         val companionObject = TypeSpec.companionObjectBuilder()
+        val encoderObject = TypeSpec.objectBuilder("Encoder")
 
         abiRoot.abi.filter { it.type == "function" }.forEach { function ->
             val funSpec = FunSpec.builder(function.name)
@@ -37,24 +56,14 @@ class AbiParser {
                         " + SolidityBase.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
                     } else ""}")
 
-            kotlinClass.addFun(finalFun.build())
+            encoderObject.addFun(finalFun.build())
         }
-        kotlinClass.addType(companionObject.build())
-        kotlinFile.addType(kotlinClass.build()).build().writeTo(System.out)
+
+        return companionObject.build() to encoderObject.build()
     }
 
-    companion object {
-        const val DECODER_FUN_ARG_NAME = "data"
-        const val DECODER_VAR_PARTITIONS_NAME = "partitions"
-        const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
-        const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
-    }
-
-    fun generateDecoder(abi: String) {
-        val abiRoot = jsonAdapter.fromJson(abi) ?: return
-
-        val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
-        val kotlinFile = KotlinFile.builder("", abiRoot.contractName)
+    fun generateDecoder(abiRoot: AbiRoot): TypeSpec {
+        val decoderObject = TypeSpec.objectBuilder("Decoder")
 
         abiRoot.abi.filter { it.type == "function" }.filter { it.outputs.isNotEmpty() }.forEach { function ->
             val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}").addParameter(DECODER_FUN_ARG_NAME, String::class)
@@ -74,11 +83,11 @@ class AbiParser {
             funSpecBuilder.addStatement("")
             funSpecBuilder.addStatement("return ${dataClass.name}(${(0 until function.outputs.size).joinToString(", ") { "arg$it" }})")
 
-            kotlinFile.addType(dataClass)
-            kotlinFile.addFun(funSpecBuilder.build())
+            decoderObject.addType(dataClass)
+            decoderObject.addFun(funSpecBuilder.build())
         }
 
-        kotlinFile.build().writeTo(System.out)
+        return decoderObject.build()
     }
 
     private fun generateDataClassResult(function: AbiElementJson): TypeSpec {
