@@ -47,4 +47,22 @@ class SolidityBaseTest {
         assertEquals(BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
                 SolidityBase.decodeUInt("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
     }
+
+    @Test
+    fun testBoolEncoding() {
+        assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
+                Solidity.Bool(false).encode())
+
+        assertEquals("0000000000000000000000000000000000000000000000000000000000000001",
+                Solidity.Bool(true).encode())
+    }
+
+    @Test
+    fun testBoolDecoding() {
+        assertEquals(false,
+                SolidityBase.decodeBool("0000000000000000000000000000000000000000000000000000000000000000"))
+
+        assertEquals(true,
+                SolidityBase.decodeBool("0000000000000000000000000000000000000000000000000000000000000001"))
+    }
 }
