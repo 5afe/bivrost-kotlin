@@ -6,7 +6,6 @@ import org.junit.Test
 import java.math.BigInteger
 
 class SolidityBaseTest {
-
     @Test
     fun testUIntEncoding() {
         assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
@@ -35,5 +34,17 @@ class SolidityBaseTest {
             } catch (e: InvalidBitLengthException) {
             }
         }
+    }
+
+    @Test
+    fun testUIntDecoding() {
+        assertEquals(BigInteger.ZERO,
+                SolidityBase.decodeUInt("0000000000000000000000000000000000000000000000000000000000000000"))
+
+        assertEquals(BigInteger.ONE,
+                SolidityBase.decodeUInt("0000000000000000000000000000000000000000000000000000000000000001"))
+
+        assertEquals(BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639935"),
+                SolidityBase.decodeUInt("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"))
     }
 }
