@@ -1,5 +1,3 @@
-@file:JvmName("Main")
-
 import model.Solidity
 import java.math.BigInteger
 import java.nio.file.Files
