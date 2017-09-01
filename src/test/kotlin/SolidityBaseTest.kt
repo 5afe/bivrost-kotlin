@@ -1,10 +1,12 @@
 import exceptions.InvalidBitLengthException
 import model.Solidity
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Test
 import java.math.BigInteger
 
 class SolidityBaseTest {
+
     @Test
     fun testUIntEncoding() {
         assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
@@ -23,9 +25,15 @@ class SolidityBaseTest {
         Solidity.UInt256(BigInteger.valueOf(-1L))
     }
 
-    @Test(expected = InvalidBitLengthException::class)
-    fun testUInt8BitOverflow() {
-        assertEquals("00000000000000000000000000000000000000000000000000000000000000ff", Solidity.UInt8(BigInteger("255")).encode())
-        Solidity.UInt8(BigInteger("256"))
+    @Test
+    fun testUIntBitOverflow() {
+        (8..256 step 8).forEach {
+            SolidityBase.UInt(BigInteger.valueOf(2).pow(it).minus(BigInteger.ONE), it)
+            try {
+                SolidityBase.UInt(BigInteger.valueOf(2).pow(it), it)
+                fail("Expected InvalidBitLengthException")
+            } catch (e: InvalidBitLengthException) {
+            }
+        }
     }
 }
