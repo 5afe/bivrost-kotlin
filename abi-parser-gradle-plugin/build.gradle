@@ -1,0 +1,19 @@
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+    compileOnly gradleApi()
+
+    //implementation deps.android.gradlePlugin
+    //implementation deps.javaparser
+    //implementation deps.javapoet
+    //implementation deps.kotlin.stdLibJre8
+
+    //testImplementation deps.junit
+    //testImplementation deps.truth
+    //testImplementation deps.support.annotations
+    //testImplementation deps.compiletesting
+}

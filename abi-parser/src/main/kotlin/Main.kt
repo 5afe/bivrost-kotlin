@@ -1,7 +1,5 @@
 import model.Solidity
-import java.math.BigInteger
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 
 fun main(args: Array<String>) {
