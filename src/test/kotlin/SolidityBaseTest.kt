@@ -161,4 +161,10 @@ class SolidityBaseTest {
             }
         }
     }
+
+    @Test
+    fun testArrayOfStaticEncoding() {
+        assertEquals("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
+                Solidity.ArrayOfUInt32(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))).encode())
+    }
 }
