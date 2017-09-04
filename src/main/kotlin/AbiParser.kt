@@ -116,11 +116,16 @@ class AbiParser {
         function.addComment("Decode arguments")
         outputs.forEachIndexed { index, outputJson ->
             val abiRawType = solidityRawType(outputJson.type)
-            if (isSolidityStaticType(outputJson.type)) {
-                function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index])", SolidityBase::class)
-            } else {
-                locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
-                function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
+            when {
+                abiRawType == "bytes" -> {
+                    val nBytes = outputJson.type.removePrefix("bytes")
+                    function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index], ${nBytes})", SolidityBase::class)
+                }
+                isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}($DECODER_VAR_PARTITIONS_NAME[$index])", SolidityBase::class)
+                else -> {
+                    locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
+                    function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
+                }
             }
         }
     }

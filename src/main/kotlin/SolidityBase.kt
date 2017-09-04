@@ -148,8 +148,8 @@ object SolidityBase {
         return value
     }
 
-    fun decodeStaticBytes(data: String): ByteArray {
-        return BigInteger(data, 16).toByteArray()
+    fun decodeStaticBytes(data: String, nBytes: kotlin.Int): ByteArray {
+        return data.substring(0, nBytes * 2).hexToByteArray()
     }
 
     fun decodeBytes(data: String): ByteArray {

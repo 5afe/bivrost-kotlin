@@ -1,7 +1,6 @@
 import exceptions.InvalidBitLengthException
 import model.Solidity
-import org.junit.Assert.assertEquals
-import org.junit.Assert.fail
+import org.junit.Assert.*
 import org.junit.Test
 import java.math.BigInteger
 
@@ -121,5 +120,45 @@ class SolidityBaseTest {
 
         assertEquals(BigInteger.valueOf(-128),
                 SolidityBase.decodeInt("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80"))
+    }
+
+    @Test
+    fun testStaticBytesEncoding() {
+        assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
+                Solidity.Bytes1(byteArrayOf(0)).encode())
+
+        assertEquals("0001000000000000000000000000000000000000000000000000000000000000",
+                Solidity.Bytes2(byteArrayOf(0, 1)).encode())
+
+        assertEquals("0001020000000000000000000000000000000000000000000000000000000000",
+                Solidity.Bytes3(byteArrayOf(0, 1, 2)).encode())
+
+        assertEquals("6461766500000000000000000000000000000000000000000000000000000000",
+                Solidity.Bytes4("dave".toByteArray()).encode())
+    }
+
+    @Test
+    fun testStaticBytesDecoding() {
+        assertArrayEquals(byteArrayOf(0), SolidityBase.decodeStaticBytes("0000000000000000000000000000000000000000000000000000000000000000", 1))
+
+        assertArrayEquals(byteArrayOf(0, 1), SolidityBase.decodeStaticBytes("0001000000000000000000000000000000000000000000000000000000000000", 2))
+
+        assertArrayEquals(byteArrayOf(0, 1, 2), SolidityBase.decodeStaticBytes("0001020000000000000000000000000000000000000000000000000000000000", 3))
+
+        assertArrayEquals("dave".toByteArray(), SolidityBase.decodeStaticBytes("6461766500000000000000000000000000000000000000000000000000000000", 4))
+    }
+
+    @Test
+    fun testStaticBytesRange() {
+        (1..32).forEach {
+            val bytes = ByteArray(it, { it.toByte() })
+            SolidityBase.StaticBytes(bytes, it)
+            try {
+                val oversizedBytes = ByteArray(it + 1, { it.toByte() })
+                SolidityBase.StaticBytes(oversizedBytes, it)
+                fail("Expected IllegalArgumentException")
+            } catch (ignored: IllegalArgumentException) {
+            }
+        }
     }
 }
