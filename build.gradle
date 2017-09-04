@@ -1,27 +1,35 @@
 buildscript {
     ext.versions = [
-            'kotlin': '1.1.4-3',
+            'minSdk'       : 14,
+            'compileSdk'   : 26,
+            'buildTools'   : '26.0.1',
 
-            'androidPlugin': '3.0.0-beta2',
+            'kotlin'       : '1.1.4-3',
+
+            'androidPlugin': '3.0.0-beta4',
     ]
 
     ext.deps = [
-            android: [
-                    'runtime': 'com.google.android:android:4.1.1.4',
+            android : [
+                    'runtime'     : 'com.google.android:android:4.1.1.4',
                     'gradlePlugin': "com.android.tools.build:gradle:${versions.androidPlugin}",
             ],
             'kotlin': [
                     'stdLibJre8': "org.jetbrains.kotlin:kotlin-stdlib-jre8:${versions.kotlin}",
-            ]
+            ],
     ]
 
     repositories {
         mavenCentral()
         maven {
+            url 'https://maven.google.com'
+        }
+        maven {
             url "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
+        classpath deps.android.gradlePlugin
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     }
 }
@@ -33,6 +41,9 @@ subprojects { project ->
 
     repositories {
         mavenCentral()
+        maven {
+            url 'https://maven.google.com'
+        }
         maven {
             url "https://plugins.gradle.org/m2/"
         }

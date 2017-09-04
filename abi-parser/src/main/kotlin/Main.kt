@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     //println(SolidityBase.decodeInt("000000000000000000000000000000000000000000000000000000000000007f").toString(10))
 
     //AbiParser().generateEncoder(Files.readAllLines(Paths.get("/Users/frederico/repos/abi-decoder-kotlin/src/main/resources/EtherToken.json")).joinToString(""))
-    AbiParser().generateWrapper(Files.readAllLines(Paths.get("/Users/frederico/repos/abi-decoder-kotlin/src/main/resources/test.json")).joinToString(""))
+    //AbiParser.generateWrapper(Files.readAllLines(Paths.get("/Users/frederico/repos/abi-decoder-kotlin/src/main/resources/test.json")).joinToString(""))
 
     //println(MultiSigWalletWithDailyLimit().transactions(Solidity.UInt256(BigInteger.ZERO)))
 
