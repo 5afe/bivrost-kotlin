@@ -1,12 +1,17 @@
 package pm.gnosis.model
 
-import pm.gnosis.utils.hexToByteArray
-import pm.gnosis.utils.padEndMultiple
-import pm.gnosis.utils.toHex
 import java.lang.Exception
 import java.math.BigDecimal
 import java.math.BigInteger
+import kotlin.Boolean
+import kotlin.ByteArray
+import kotlin.String
+import kotlin.collections.List
+import kotlin.collections.Map
 import kotlin.reflect.KClass
+import pm.gnosis.utils.hexToByteArray
+import pm.gnosis.utils.padEndMultiple
+import pm.gnosis.utils.toHex
 
 /**
  * Generated code. Do not modify
@@ -802,7 +807,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt16> {
       override fun decode(source: String): ArrayOfInt16 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt16(ArrayList())
         return ArrayOfInt16((1 until partitions.size).map { Int16.decode(partitions[it]) }.toList())
       }
@@ -813,7 +818,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt24> {
       override fun decode(source: String): ArrayOfInt24 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt24(ArrayList())
         return ArrayOfInt24((1 until partitions.size).map { Int24.decode(partitions[it]) }.toList())
       }
@@ -824,7 +829,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt32> {
       override fun decode(source: String): ArrayOfInt32 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt32(ArrayList())
         return ArrayOfInt32((1 until partitions.size).map { Int32.decode(partitions[it]) }.toList())
       }
@@ -835,7 +840,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt40> {
       override fun decode(source: String): ArrayOfInt40 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt40(ArrayList())
         return ArrayOfInt40((1 until partitions.size).map { Int40.decode(partitions[it]) }.toList())
       }
@@ -846,7 +851,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt48> {
       override fun decode(source: String): ArrayOfInt48 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt48(ArrayList())
         return ArrayOfInt48((1 until partitions.size).map { Int48.decode(partitions[it]) }.toList())
       }
@@ -857,7 +862,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt56> {
       override fun decode(source: String): ArrayOfInt56 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt56(ArrayList())
         return ArrayOfInt56((1 until partitions.size).map { Int56.decode(partitions[it]) }.toList())
       }
@@ -868,7 +873,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt64> {
       override fun decode(source: String): ArrayOfInt64 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt64(ArrayList())
         return ArrayOfInt64((1 until partitions.size).map { Int64.decode(partitions[it]) }.toList())
       }
@@ -879,7 +884,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt72> {
       override fun decode(source: String): ArrayOfInt72 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt72(ArrayList())
         return ArrayOfInt72((1 until partitions.size).map { Int72.decode(partitions[it]) }.toList())
       }
@@ -890,7 +895,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt80> {
       override fun decode(source: String): ArrayOfInt80 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt80(ArrayList())
         return ArrayOfInt80((1 until partitions.size).map { Int80.decode(partitions[it]) }.toList())
       }
@@ -901,7 +906,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt88> {
       override fun decode(source: String): ArrayOfInt88 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt88(ArrayList())
         return ArrayOfInt88((1 until partitions.size).map { Int88.decode(partitions[it]) }.toList())
       }
@@ -912,7 +917,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt96> {
       override fun decode(source: String): ArrayOfInt96 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt96(ArrayList())
         return ArrayOfInt96((1 until partitions.size).map { Int96.decode(partitions[it]) }.toList())
       }
@@ -923,7 +928,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt104> {
       override fun decode(source: String): ArrayOfInt104 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt104(ArrayList())
         return ArrayOfInt104((1 until partitions.size).map { Int104.decode(partitions[it]) }.toList())
       }
@@ -934,7 +939,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt112> {
       override fun decode(source: String): ArrayOfInt112 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt112(ArrayList())
         return ArrayOfInt112((1 until partitions.size).map { Int112.decode(partitions[it]) }.toList())
       }
@@ -945,7 +950,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt120> {
       override fun decode(source: String): ArrayOfInt120 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt120(ArrayList())
         return ArrayOfInt120((1 until partitions.size).map { Int120.decode(partitions[it]) }.toList())
       }
@@ -956,7 +961,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt128> {
       override fun decode(source: String): ArrayOfInt128 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt128(ArrayList())
         return ArrayOfInt128((1 until partitions.size).map { Int128.decode(partitions[it]) }.toList())
       }
@@ -967,7 +972,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt136> {
       override fun decode(source: String): ArrayOfInt136 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt136(ArrayList())
         return ArrayOfInt136((1 until partitions.size).map { Int136.decode(partitions[it]) }.toList())
       }
@@ -978,7 +983,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt144> {
       override fun decode(source: String): ArrayOfInt144 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt144(ArrayList())
         return ArrayOfInt144((1 until partitions.size).map { Int144.decode(partitions[it]) }.toList())
       }
@@ -989,7 +994,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt152> {
       override fun decode(source: String): ArrayOfInt152 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt152(ArrayList())
         return ArrayOfInt152((1 until partitions.size).map { Int152.decode(partitions[it]) }.toList())
       }
@@ -1000,7 +1005,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt160> {
       override fun decode(source: String): ArrayOfInt160 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt160(ArrayList())
         return ArrayOfInt160((1 until partitions.size).map { Int160.decode(partitions[it]) }.toList())
       }
@@ -1011,7 +1016,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt168> {
       override fun decode(source: String): ArrayOfInt168 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt168(ArrayList())
         return ArrayOfInt168((1 until partitions.size).map { Int168.decode(partitions[it]) }.toList())
       }
@@ -1022,7 +1027,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt176> {
       override fun decode(source: String): ArrayOfInt176 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt176(ArrayList())
         return ArrayOfInt176((1 until partitions.size).map { Int176.decode(partitions[it]) }.toList())
       }
@@ -1033,7 +1038,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt184> {
       override fun decode(source: String): ArrayOfInt184 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt184(ArrayList())
         return ArrayOfInt184((1 until partitions.size).map { Int184.decode(partitions[it]) }.toList())
       }
@@ -1044,7 +1049,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt192> {
       override fun decode(source: String): ArrayOfInt192 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt192(ArrayList())
         return ArrayOfInt192((1 until partitions.size).map { Int192.decode(partitions[it]) }.toList())
       }
@@ -1055,7 +1060,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt200> {
       override fun decode(source: String): ArrayOfInt200 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt200(ArrayList())
         return ArrayOfInt200((1 until partitions.size).map { Int200.decode(partitions[it]) }.toList())
       }
@@ -1066,7 +1071,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt208> {
       override fun decode(source: String): ArrayOfInt208 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt208(ArrayList())
         return ArrayOfInt208((1 until partitions.size).map { Int208.decode(partitions[it]) }.toList())
       }
@@ -1077,7 +1082,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt216> {
       override fun decode(source: String): ArrayOfInt216 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt216(ArrayList())
         return ArrayOfInt216((1 until partitions.size).map { Int216.decode(partitions[it]) }.toList())
       }
@@ -1088,7 +1093,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt224> {
       override fun decode(source: String): ArrayOfInt224 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt224(ArrayList())
         return ArrayOfInt224((1 until partitions.size).map { Int224.decode(partitions[it]) }.toList())
       }
@@ -1099,7 +1104,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt232> {
       override fun decode(source: String): ArrayOfInt232 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt232(ArrayList())
         return ArrayOfInt232((1 until partitions.size).map { Int232.decode(partitions[it]) }.toList())
       }
@@ -1110,7 +1115,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt240> {
       override fun decode(source: String): ArrayOfInt240 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt240(ArrayList())
         return ArrayOfInt240((1 until partitions.size).map { Int240.decode(partitions[it]) }.toList())
       }
@@ -1121,7 +1126,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt248> {
       override fun decode(source: String): ArrayOfInt248 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt248(ArrayList())
         return ArrayOfInt248((1 until partitions.size).map { Int248.decode(partitions[it]) }.toList())
       }
@@ -1132,7 +1137,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt256> {
       override fun decode(source: String): ArrayOfInt256 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt256(ArrayList())
         return ArrayOfInt256((1 until partitions.size).map { Int256.decode(partitions[it]) }.toList())
       }
@@ -1143,7 +1148,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt8> {
       override fun decode(source: String): ArrayOfUInt8 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt8(ArrayList())
         return ArrayOfUInt8((1 until partitions.size).map { UInt8.decode(partitions[it]) }.toList())
       }
@@ -1154,7 +1159,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt16> {
       override fun decode(source: String): ArrayOfUInt16 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt16(ArrayList())
         return ArrayOfUInt16((1 until partitions.size).map { UInt16.decode(partitions[it]) }.toList())
       }
@@ -1165,7 +1170,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt24> {
       override fun decode(source: String): ArrayOfUInt24 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt24(ArrayList())
         return ArrayOfUInt24((1 until partitions.size).map { UInt24.decode(partitions[it]) }.toList())
       }
@@ -1176,7 +1181,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt32> {
       override fun decode(source: String): ArrayOfUInt32 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt32(ArrayList())
         return ArrayOfUInt32((1 until partitions.size).map { UInt32.decode(partitions[it]) }.toList())
       }
@@ -1187,7 +1192,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt40> {
       override fun decode(source: String): ArrayOfUInt40 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt40(ArrayList())
         return ArrayOfUInt40((1 until partitions.size).map { UInt40.decode(partitions[it]) }.toList())
       }
@@ -1198,7 +1203,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt48> {
       override fun decode(source: String): ArrayOfUInt48 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt48(ArrayList())
         return ArrayOfUInt48((1 until partitions.size).map { UInt48.decode(partitions[it]) }.toList())
       }
@@ -1209,7 +1214,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt56> {
       override fun decode(source: String): ArrayOfUInt56 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt56(ArrayList())
         return ArrayOfUInt56((1 until partitions.size).map { UInt56.decode(partitions[it]) }.toList())
       }
@@ -1220,7 +1225,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt64> {
       override fun decode(source: String): ArrayOfUInt64 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt64(ArrayList())
         return ArrayOfUInt64((1 until partitions.size).map { UInt64.decode(partitions[it]) }.toList())
       }
@@ -1231,7 +1236,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt72> {
       override fun decode(source: String): ArrayOfUInt72 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt72(ArrayList())
         return ArrayOfUInt72((1 until partitions.size).map { UInt72.decode(partitions[it]) }.toList())
       }
@@ -1242,7 +1247,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt80> {
       override fun decode(source: String): ArrayOfUInt80 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt80(ArrayList())
         return ArrayOfUInt80((1 until partitions.size).map { UInt80.decode(partitions[it]) }.toList())
       }
@@ -1253,7 +1258,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt88> {
       override fun decode(source: String): ArrayOfUInt88 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt88(ArrayList())
         return ArrayOfUInt88((1 until partitions.size).map { UInt88.decode(partitions[it]) }.toList())
       }
@@ -1264,7 +1269,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt96> {
       override fun decode(source: String): ArrayOfUInt96 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt96(ArrayList())
         return ArrayOfUInt96((1 until partitions.size).map { UInt96.decode(partitions[it]) }.toList())
       }
@@ -1275,7 +1280,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt104> {
       override fun decode(source: String): ArrayOfUInt104 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt104(ArrayList())
         return ArrayOfUInt104((1 until partitions.size).map { UInt104.decode(partitions[it]) }.toList())
       }
@@ -1286,7 +1291,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt112> {
       override fun decode(source: String): ArrayOfUInt112 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt112(ArrayList())
         return ArrayOfUInt112((1 until partitions.size).map { UInt112.decode(partitions[it]) }.toList())
       }
@@ -1297,7 +1302,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt120> {
       override fun decode(source: String): ArrayOfUInt120 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt120(ArrayList())
         return ArrayOfUInt120((1 until partitions.size).map { UInt120.decode(partitions[it]) }.toList())
       }
@@ -1308,7 +1313,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt128> {
       override fun decode(source: String): ArrayOfUInt128 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt128(ArrayList())
         return ArrayOfUInt128((1 until partitions.size).map { UInt128.decode(partitions[it]) }.toList())
       }
@@ -1319,7 +1324,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt136> {
       override fun decode(source: String): ArrayOfUInt136 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt136(ArrayList())
         return ArrayOfUInt136((1 until partitions.size).map { UInt136.decode(partitions[it]) }.toList())
       }
@@ -1330,7 +1335,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt144> {
       override fun decode(source: String): ArrayOfUInt144 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt144(ArrayList())
         return ArrayOfUInt144((1 until partitions.size).map { UInt144.decode(partitions[it]) }.toList())
       }
@@ -1341,7 +1346,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt152> {
       override fun decode(source: String): ArrayOfUInt152 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt152(ArrayList())
         return ArrayOfUInt152((1 until partitions.size).map { UInt152.decode(partitions[it]) }.toList())
       }
@@ -1352,7 +1357,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt160> {
       override fun decode(source: String): ArrayOfUInt160 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt160(ArrayList())
         return ArrayOfUInt160((1 until partitions.size).map { UInt160.decode(partitions[it]) }.toList())
       }
@@ -1363,7 +1368,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt168> {
       override fun decode(source: String): ArrayOfUInt168 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt168(ArrayList())
         return ArrayOfUInt168((1 until partitions.size).map { UInt168.decode(partitions[it]) }.toList())
       }
@@ -1374,7 +1379,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt176> {
       override fun decode(source: String): ArrayOfUInt176 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt176(ArrayList())
         return ArrayOfUInt176((1 until partitions.size).map { UInt176.decode(partitions[it]) }.toList())
       }
@@ -1385,7 +1390,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt184> {
       override fun decode(source: String): ArrayOfUInt184 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt184(ArrayList())
         return ArrayOfUInt184((1 until partitions.size).map { UInt184.decode(partitions[it]) }.toList())
       }
@@ -1396,7 +1401,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt192> {
       override fun decode(source: String): ArrayOfUInt192 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt192(ArrayList())
         return ArrayOfUInt192((1 until partitions.size).map { UInt192.decode(partitions[it]) }.toList())
       }
@@ -1407,7 +1412,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt200> {
       override fun decode(source: String): ArrayOfUInt200 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt200(ArrayList())
         return ArrayOfUInt200((1 until partitions.size).map { UInt200.decode(partitions[it]) }.toList())
       }
@@ -1418,7 +1423,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt208> {
       override fun decode(source: String): ArrayOfUInt208 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt208(ArrayList())
         return ArrayOfUInt208((1 until partitions.size).map { UInt208.decode(partitions[it]) }.toList())
       }
@@ -1429,7 +1434,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt216> {
       override fun decode(source: String): ArrayOfUInt216 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt216(ArrayList())
         return ArrayOfUInt216((1 until partitions.size).map { UInt216.decode(partitions[it]) }.toList())
       }
@@ -1440,7 +1445,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt224> {
       override fun decode(source: String): ArrayOfUInt224 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt224(ArrayList())
         return ArrayOfUInt224((1 until partitions.size).map { UInt224.decode(partitions[it]) }.toList())
       }
@@ -1451,7 +1456,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt232> {
       override fun decode(source: String): ArrayOfUInt232 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt232(ArrayList())
         return ArrayOfUInt232((1 until partitions.size).map { UInt232.decode(partitions[it]) }.toList())
       }
@@ -1462,7 +1467,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt240> {
       override fun decode(source: String): ArrayOfUInt240 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt240(ArrayList())
         return ArrayOfUInt240((1 until partitions.size).map { UInt240.decode(partitions[it]) }.toList())
       }
@@ -1473,7 +1478,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt248> {
       override fun decode(source: String): ArrayOfUInt248 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt248(ArrayList())
         return ArrayOfUInt248((1 until partitions.size).map { UInt248.decode(partitions[it]) }.toList())
       }
@@ -1484,7 +1489,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfUInt256> {
       override fun decode(source: String): ArrayOfUInt256 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfUInt256(ArrayList())
         return ArrayOfUInt256((1 until partitions.size).map { UInt256.decode(partitions[it]) }.toList())
       }
@@ -1495,7 +1500,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes1> {
       override fun decode(source: String): ArrayOfBytes1 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes1(ArrayList())
         return ArrayOfBytes1((1 until partitions.size).map { Bytes1.decode(partitions[it]) }.toList())
       }
@@ -1506,7 +1511,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes2> {
       override fun decode(source: String): ArrayOfBytes2 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes2(ArrayList())
         return ArrayOfBytes2((1 until partitions.size).map { Bytes2.decode(partitions[it]) }.toList())
       }
@@ -1517,7 +1522,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes3> {
       override fun decode(source: String): ArrayOfBytes3 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes3(ArrayList())
         return ArrayOfBytes3((1 until partitions.size).map { Bytes3.decode(partitions[it]) }.toList())
       }
@@ -1528,7 +1533,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes4> {
       override fun decode(source: String): ArrayOfBytes4 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes4(ArrayList())
         return ArrayOfBytes4((1 until partitions.size).map { Bytes4.decode(partitions[it]) }.toList())
       }
@@ -1539,7 +1544,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes5> {
       override fun decode(source: String): ArrayOfBytes5 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes5(ArrayList())
         return ArrayOfBytes5((1 until partitions.size).map { Bytes5.decode(partitions[it]) }.toList())
       }
@@ -1550,7 +1555,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes6> {
       override fun decode(source: String): ArrayOfBytes6 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes6(ArrayList())
         return ArrayOfBytes6((1 until partitions.size).map { Bytes6.decode(partitions[it]) }.toList())
       }
@@ -1561,7 +1566,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes7> {
       override fun decode(source: String): ArrayOfBytes7 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes7(ArrayList())
         return ArrayOfBytes7((1 until partitions.size).map { Bytes7.decode(partitions[it]) }.toList())
       }
@@ -1572,7 +1577,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes8> {
       override fun decode(source: String): ArrayOfBytes8 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes8(ArrayList())
         return ArrayOfBytes8((1 until partitions.size).map { Bytes8.decode(partitions[it]) }.toList())
       }
@@ -1583,7 +1588,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes9> {
       override fun decode(source: String): ArrayOfBytes9 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes9(ArrayList())
         return ArrayOfBytes9((1 until partitions.size).map { Bytes9.decode(partitions[it]) }.toList())
       }
@@ -1594,7 +1599,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes10> {
       override fun decode(source: String): ArrayOfBytes10 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes10(ArrayList())
         return ArrayOfBytes10((1 until partitions.size).map { Bytes10.decode(partitions[it]) }.toList())
       }
@@ -1605,7 +1610,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes11> {
       override fun decode(source: String): ArrayOfBytes11 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes11(ArrayList())
         return ArrayOfBytes11((1 until partitions.size).map { Bytes11.decode(partitions[it]) }.toList())
       }
@@ -1616,7 +1621,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes12> {
       override fun decode(source: String): ArrayOfBytes12 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes12(ArrayList())
         return ArrayOfBytes12((1 until partitions.size).map { Bytes12.decode(partitions[it]) }.toList())
       }
@@ -1627,7 +1632,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes13> {
       override fun decode(source: String): ArrayOfBytes13 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes13(ArrayList())
         return ArrayOfBytes13((1 until partitions.size).map { Bytes13.decode(partitions[it]) }.toList())
       }
@@ -1638,7 +1643,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes14> {
       override fun decode(source: String): ArrayOfBytes14 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes14(ArrayList())
         return ArrayOfBytes14((1 until partitions.size).map { Bytes14.decode(partitions[it]) }.toList())
       }
@@ -1649,7 +1654,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes15> {
       override fun decode(source: String): ArrayOfBytes15 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes15(ArrayList())
         return ArrayOfBytes15((1 until partitions.size).map { Bytes15.decode(partitions[it]) }.toList())
       }
@@ -1660,7 +1665,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes16> {
       override fun decode(source: String): ArrayOfBytes16 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes16(ArrayList())
         return ArrayOfBytes16((1 until partitions.size).map { Bytes16.decode(partitions[it]) }.toList())
       }
@@ -1671,7 +1676,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes17> {
       override fun decode(source: String): ArrayOfBytes17 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes17(ArrayList())
         return ArrayOfBytes17((1 until partitions.size).map { Bytes17.decode(partitions[it]) }.toList())
       }
@@ -1682,7 +1687,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes18> {
       override fun decode(source: String): ArrayOfBytes18 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes18(ArrayList())
         return ArrayOfBytes18((1 until partitions.size).map { Bytes18.decode(partitions[it]) }.toList())
       }
@@ -1693,7 +1698,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes19> {
       override fun decode(source: String): ArrayOfBytes19 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes19(ArrayList())
         return ArrayOfBytes19((1 until partitions.size).map { Bytes19.decode(partitions[it]) }.toList())
       }
@@ -1704,7 +1709,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes20> {
       override fun decode(source: String): ArrayOfBytes20 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes20(ArrayList())
         return ArrayOfBytes20((1 until partitions.size).map { Bytes20.decode(partitions[it]) }.toList())
       }
@@ -1715,7 +1720,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes21> {
       override fun decode(source: String): ArrayOfBytes21 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes21(ArrayList())
         return ArrayOfBytes21((1 until partitions.size).map { Bytes21.decode(partitions[it]) }.toList())
       }
@@ -1726,7 +1731,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes22> {
       override fun decode(source: String): ArrayOfBytes22 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes22(ArrayList())
         return ArrayOfBytes22((1 until partitions.size).map { Bytes22.decode(partitions[it]) }.toList())
       }
@@ -1737,7 +1742,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes23> {
       override fun decode(source: String): ArrayOfBytes23 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes23(ArrayList())
         return ArrayOfBytes23((1 until partitions.size).map { Bytes23.decode(partitions[it]) }.toList())
       }
@@ -1748,7 +1753,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes24> {
       override fun decode(source: String): ArrayOfBytes24 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes24(ArrayList())
         return ArrayOfBytes24((1 until partitions.size).map { Bytes24.decode(partitions[it]) }.toList())
       }
@@ -1759,7 +1764,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes25> {
       override fun decode(source: String): ArrayOfBytes25 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes25(ArrayList())
         return ArrayOfBytes25((1 until partitions.size).map { Bytes25.decode(partitions[it]) }.toList())
       }
@@ -1770,7 +1775,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes26> {
       override fun decode(source: String): ArrayOfBytes26 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes26(ArrayList())
         return ArrayOfBytes26((1 until partitions.size).map { Bytes26.decode(partitions[it]) }.toList())
       }
@@ -1781,7 +1786,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes27> {
       override fun decode(source: String): ArrayOfBytes27 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes27(ArrayList())
         return ArrayOfBytes27((1 until partitions.size).map { Bytes27.decode(partitions[it]) }.toList())
       }
@@ -1792,7 +1797,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes28> {
       override fun decode(source: String): ArrayOfBytes28 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes28(ArrayList())
         return ArrayOfBytes28((1 until partitions.size).map { Bytes28.decode(partitions[it]) }.toList())
       }
@@ -1803,7 +1808,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes29> {
       override fun decode(source: String): ArrayOfBytes29 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes29(ArrayList())
         return ArrayOfBytes29((1 until partitions.size).map { Bytes29.decode(partitions[it]) }.toList())
       }
@@ -1814,7 +1819,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes30> {
       override fun decode(source: String): ArrayOfBytes30 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes30(ArrayList())
         return ArrayOfBytes30((1 until partitions.size).map { Bytes30.decode(partitions[it]) }.toList())
       }
@@ -1825,7 +1830,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes31> {
       override fun decode(source: String): ArrayOfBytes31 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes31(ArrayList())
         return ArrayOfBytes31((1 until partitions.size).map { Bytes31.decode(partitions[it]) }.toList())
       }
@@ -1836,7 +1841,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBytes32> {
       override fun decode(source: String): ArrayOfBytes32 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBytes32(ArrayList())
         return ArrayOfBytes32((1 until partitions.size).map { Bytes32.decode(partitions[it]) }.toList())
       }
@@ -1853,7 +1858,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfAddress> {
       override fun decode(source: String): ArrayOfAddress {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfAddress(ArrayList())
         return ArrayOfAddress((1 until partitions.size).map { Address.decode(partitions[it]) }.toList())
       }
@@ -1870,7 +1875,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfBool> {
       override fun decode(source: String): ArrayOfBool {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfBool(ArrayList())
         return ArrayOfBool((1 until partitions.size).map { Bool.decode(partitions[it]) }.toList())
       }
