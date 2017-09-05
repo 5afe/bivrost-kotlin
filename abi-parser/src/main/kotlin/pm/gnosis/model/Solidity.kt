@@ -1,17 +1,12 @@
 package pm.gnosis.model
 
-import java.lang.Exception
-import java.math.BigDecimal
-import java.math.BigInteger
-import kotlin.Boolean
-import kotlin.ByteArray
-import kotlin.String
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.reflect.KClass
 import pm.gnosis.utils.hexToByteArray
 import pm.gnosis.utils.padEndMultiple
 import pm.gnosis.utils.toHex
+import java.lang.Exception
+import java.math.BigDecimal
+import java.math.BigInteger
+import kotlin.reflect.KClass
 
 /**
  * Generated code. Do not modify
@@ -796,7 +791,7 @@ object Solidity {
     companion object : SolidityBase.Type.Decoder<ArrayOfInt8> {
       override fun decode(source: String): ArrayOfInt8 {
         val partitions = SolidityBase.partitionData(source)
-        val contentSize = BigDecimal(BigInteger(partitions[0])).intValueExact() * 2
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
         if (contentSize == 0) return ArrayOfInt8(ArrayList())
         return ArrayOfInt8((1 until partitions.size).map { Int8.decode(partitions[it]) }.toList())
       }

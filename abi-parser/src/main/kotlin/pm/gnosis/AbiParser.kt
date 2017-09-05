@@ -10,8 +10,6 @@ import java.math.BigInteger
 import kotlin.reflect.KClass
 
 class AbiParser {
-    private val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
-
     companion object {
         const val DECODER_FUN_ARG_NAME = "data"
         const val DECODER_VAR_PARTITIONS_NAME = "partitions"

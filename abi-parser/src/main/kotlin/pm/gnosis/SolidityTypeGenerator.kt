@@ -7,8 +7,6 @@ import pm.gnosis.model.SolidityBase
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
-import javax.lang.model.element.ExecutableElement
-import kotlin.reflect.KClass
 
 fun main(vararg args: String) {
     args.forEach { println(it.split(File.separator).last()) }
@@ -185,7 +183,7 @@ private fun generateArrayClass(className: ClassName): TypeSpec {
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
                             .addStatement("val partitions = %1T.partitionData(%2L)", SolidityBase::class, "source")
-                            .addStatement("val contentSize = %1T(%2T(partitions[0])).intValueExact() * 2", BigDecimal::class, BigInteger::class)
+                            .addStatement("val contentSize = %1T(partitions[0]).intValueExact() * 2", BigDecimal::class)
                             .addStatement("if (contentSize == 0) return %1L(ArrayList())", name)
                             .addStatement("return %1L((1 until partitions.size).map { %2L.decode(partitions[it]) }.toList())", name, entryTypeName)
                             .build())

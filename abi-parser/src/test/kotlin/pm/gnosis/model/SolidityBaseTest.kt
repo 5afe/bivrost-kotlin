@@ -1,8 +1,8 @@
 package pm.gnosis.model
 
-import pm.gnosis.exceptions.InvalidBitLengthException
 import org.junit.Assert.*
 import org.junit.Test
+import pm.gnosis.exceptions.InvalidBitLengthException
 import java.math.BigInteger
 
 class SolidityBaseTest {
