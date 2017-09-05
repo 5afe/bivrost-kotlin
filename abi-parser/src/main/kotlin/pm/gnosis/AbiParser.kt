@@ -125,8 +125,10 @@ class AbiParser {
             outputs.forEachIndexed { index, outputJson ->
                 val abiRawType = solidityRawType(outputJson.type)
                 when {
-                    abiRawType == "bytes" -> {
-                        function.addStatement("val ${DECODER_VAR_ARG_PREFIX}$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}(${DECODER_VAR_PARTITIONS_NAME}[$index])", SolidityBase::class)
+                    abiRawType == "bytes" && isSolidityStaticType(outputJson.type) -> {
+                        Regex(pattern = "[0-9]+").find(outputJson.type)?.value.let { nBytes ->
+                            function.addStatement("val ${DECODER_VAR_ARG_PREFIX}$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}(${DECODER_VAR_PARTITIONS_NAME}[$index], $nBytes)", SolidityBase::class)
+                        }
                     }
                     isSolidityStaticType(outputJson.type) -> function.addStatement("val ${DECODER_VAR_ARG_PREFIX}$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}(${DECODER_VAR_PARTITIONS_NAME}[$index])", SolidityBase::class)
                     else -> {
@@ -147,7 +149,13 @@ class AbiParser {
                     function.addStatement("val $dynamicValName = %1T.decodeBytes(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit))", SolidityBase::class, BigDecimal::class)
                 } else if (isSolidityArray(type)) {
                     val abiRawType = solidityRawType(type)
-                    function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit), %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class, BigDecimal::class)
+                    if (abiRawType == "bytes") {
+                        Regex(pattern = "[0-9]+").find(type)?.value.let { nBytes ->
+                            function.addStatement("val $dynamicValName = %1T.decodeArrayStaticBytes(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit), $nBytes, %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class, BigDecimal::class)
+                        }
+                    } else {
+                        function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit), %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class, BigDecimal::class)
+                    }
                 }
             }
         }

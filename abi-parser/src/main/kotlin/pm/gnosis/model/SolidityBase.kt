@@ -150,8 +150,8 @@ object SolidityBase {
         return value
     }
 
-    fun decodeStaticBytes(data: String): ByteArray {
-        return data.hexToByteArray()
+    fun decodeStaticBytes(data: String, nBytes: kotlin.Int): ByteArray {
+        return data.substring(0, nBytes * 2).hexToByteArray()
     }
 
     fun decodeBytes(data: String): ByteArray {
@@ -167,5 +167,12 @@ object SolidityBase {
         val contentSize = BigInteger(params[0]).intValueExact() * 2
         if (contentSize == 0) return emptyList()
         return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
+    }
+
+    fun decodeArrayStaticBytes(data: String, nBytes: kotlin.Int, itemDecoder: (String, kotlin.Int) -> ByteArray): List<ByteArray> {
+        val params = partitionData(data)
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return emptyList()
+        return (1 until params.size).map { itemDecoder.invoke(params[it], nBytes) }.toList()
     }
 }

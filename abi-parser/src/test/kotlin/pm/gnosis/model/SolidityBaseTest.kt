@@ -138,7 +138,6 @@ class SolidityBaseTest {
                 Solidity.Bytes4("dave".toByteArray()).encode())
     }
 
-    /*
     @Test
     fun testStaticBytesDecoding() {
         assertArrayEquals(byteArrayOf(0), SolidityBase.decodeStaticBytes("0000000000000000000000000000000000000000000000000000000000000000", 1))
@@ -149,7 +148,6 @@ class SolidityBaseTest {
 
         assertArrayEquals("dave".toByteArray(), SolidityBase.decodeStaticBytes("6461766500000000000000000000000000000000000000000000000000000000", 4))
     }
-    */
 
     @Test
     fun testStaticBytesRange() {
