@@ -2,10 +2,7 @@ package pm.gnosis
 
 import com.squareup.kotlinpoet.*
 import com.squareup.moshi.Moshi
-import pm.gnosis.model.AbiElementJson
-import pm.gnosis.model.AbiRoot
-import pm.gnosis.model.OutputJson
-import pm.gnosis.model.SolidityBase
+import pm.gnosis.model.*
 import pm.gnosis.utils.generateSolidityMethodId
 import java.io.File
 import java.math.BigDecimal
@@ -49,9 +46,9 @@ class AbiParser {
                 val funSpec = FunSpec.builder(function.name)
                 function.inputs.forEachIndexed { index, parameter ->
                     val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                    /*Solidity.map[parameter.type]?.let {
+                    Solidity.map[parameter.type]?.let {
                         funSpec.addParameter(name, it)
-                    }*/
+                    }
                 }
 
                 val funWithParams = funSpec.build()
