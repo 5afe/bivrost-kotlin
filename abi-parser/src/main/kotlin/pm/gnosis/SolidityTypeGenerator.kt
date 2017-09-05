@@ -1,25 +1,27 @@
 @file:JvmName("SolidityTypeGenerator")
 
+package pm.gnosis
+
 import com.squareup.kotlinpoet.*
+import pm.gnosis.model.SolidityBase
 import java.io.File
 import java.math.BigInteger
 
 fun main(vararg args: String) {
-    println("Hello World!!")
     args.forEach { println(it.split(File.separator).last()) }
     if (args.isNotEmpty()) {
-        generate(args[0])
+        generate(args[0], args[1])
     }
 }
 
-fun generate(path: String) {
+fun generate(path: String, packageName: String) {
     val fileName = "Solidity"
-    val packageName = path.split(File.separator).last()
 
-    val kotlinFile = KotlinFile.builder(packageName, fileName)
+    val modelPackageName = "$packageName.model"
+    val kotlinFile = KotlinFile.builder(modelPackageName, fileName)
     val solidityGeneratedObject = TypeSpec.objectBuilder(fileName)
 
-    kotlinFile.addStaticImport("utils", "padEndMultiple", "toHex")
+    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
     solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
 
     //Generate types
@@ -73,7 +75,7 @@ fun generate(path: String) {
     solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
     //Write object file
-    kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(packageName)))
+    kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
 private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map {

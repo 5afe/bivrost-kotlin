@@ -1,4 +1,4 @@
-package model
+package pm.gnosis.model
 
 import java.lang.Exception
 import java.math.BigInteger
@@ -7,8 +7,8 @@ import kotlin.ByteArray
 import kotlin.String
 import kotlin.collections.Map
 import kotlin.reflect.KClass
-import utils.padEndMultiple
-import utils.toHex
+import pm.gnosis.utils.padEndMultiple
+import pm.gnosis.utils.toHex
 
 /**
  * Generated code. Do not modify
@@ -405,205 +405,205 @@ object Solidity {
 
   class Bytes32(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 32)
 
-  class ArrayOfInt8(vararg items: Int8) : SolidityBase.ArrayOfStatic<Int8>(*items)
+  class ArrayOfInt8(vararg items: Int8) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int8>(*items)
 
-  class ArrayOfInt16(vararg items: Int16) : SolidityBase.ArrayOfStatic<Int16>(*items)
+  class ArrayOfInt16(vararg items: Int16) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int16>(*items)
 
-  class ArrayOfInt24(vararg items: Int24) : SolidityBase.ArrayOfStatic<Int24>(*items)
+  class ArrayOfInt24(vararg items: Int24) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int24>(*items)
 
-  class ArrayOfInt32(vararg items: Int32) : SolidityBase.ArrayOfStatic<Int32>(*items)
+  class ArrayOfInt32(vararg items: Int32) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int32>(*items)
 
-  class ArrayOfInt40(vararg items: Int40) : SolidityBase.ArrayOfStatic<Int40>(*items)
+  class ArrayOfInt40(vararg items: Int40) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int40>(*items)
 
-  class ArrayOfInt48(vararg items: Int48) : SolidityBase.ArrayOfStatic<Int48>(*items)
+  class ArrayOfInt48(vararg items: Int48) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int48>(*items)
 
-  class ArrayOfInt56(vararg items: Int56) : SolidityBase.ArrayOfStatic<Int56>(*items)
+  class ArrayOfInt56(vararg items: Int56) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int56>(*items)
 
-  class ArrayOfInt64(vararg items: Int64) : SolidityBase.ArrayOfStatic<Int64>(*items)
+  class ArrayOfInt64(vararg items: Int64) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int64>(*items)
 
-  class ArrayOfInt72(vararg items: Int72) : SolidityBase.ArrayOfStatic<Int72>(*items)
+  class ArrayOfInt72(vararg items: Int72) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int72>(*items)
 
-  class ArrayOfInt80(vararg items: Int80) : SolidityBase.ArrayOfStatic<Int80>(*items)
+  class ArrayOfInt80(vararg items: Int80) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int80>(*items)
 
-  class ArrayOfInt88(vararg items: Int88) : SolidityBase.ArrayOfStatic<Int88>(*items)
+  class ArrayOfInt88(vararg items: Int88) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int88>(*items)
 
-  class ArrayOfInt96(vararg items: Int96) : SolidityBase.ArrayOfStatic<Int96>(*items)
+  class ArrayOfInt96(vararg items: Int96) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int96>(*items)
 
-  class ArrayOfInt104(vararg items: Int104) : SolidityBase.ArrayOfStatic<Int104>(*items)
+  class ArrayOfInt104(vararg items: Int104) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int104>(*items)
 
-  class ArrayOfInt112(vararg items: Int112) : SolidityBase.ArrayOfStatic<Int112>(*items)
+  class ArrayOfInt112(vararg items: Int112) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int112>(*items)
 
-  class ArrayOfInt120(vararg items: Int120) : SolidityBase.ArrayOfStatic<Int120>(*items)
+  class ArrayOfInt120(vararg items: Int120) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int120>(*items)
 
-  class ArrayOfInt128(vararg items: Int128) : SolidityBase.ArrayOfStatic<Int128>(*items)
+  class ArrayOfInt128(vararg items: Int128) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int128>(*items)
 
-  class ArrayOfInt136(vararg items: Int136) : SolidityBase.ArrayOfStatic<Int136>(*items)
+  class ArrayOfInt136(vararg items: Int136) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int136>(*items)
 
-  class ArrayOfInt144(vararg items: Int144) : SolidityBase.ArrayOfStatic<Int144>(*items)
+  class ArrayOfInt144(vararg items: Int144) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int144>(*items)
 
-  class ArrayOfInt152(vararg items: Int152) : SolidityBase.ArrayOfStatic<Int152>(*items)
+  class ArrayOfInt152(vararg items: Int152) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int152>(*items)
 
-  class ArrayOfInt160(vararg items: Int160) : SolidityBase.ArrayOfStatic<Int160>(*items)
+  class ArrayOfInt160(vararg items: Int160) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int160>(*items)
 
-  class ArrayOfInt168(vararg items: Int168) : SolidityBase.ArrayOfStatic<Int168>(*items)
+  class ArrayOfInt168(vararg items: Int168) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int168>(*items)
 
-  class ArrayOfInt176(vararg items: Int176) : SolidityBase.ArrayOfStatic<Int176>(*items)
+  class ArrayOfInt176(vararg items: Int176) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int176>(*items)
 
-  class ArrayOfInt184(vararg items: Int184) : SolidityBase.ArrayOfStatic<Int184>(*items)
+  class ArrayOfInt184(vararg items: Int184) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int184>(*items)
 
-  class ArrayOfInt192(vararg items: Int192) : SolidityBase.ArrayOfStatic<Int192>(*items)
+  class ArrayOfInt192(vararg items: Int192) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int192>(*items)
 
-  class ArrayOfInt200(vararg items: Int200) : SolidityBase.ArrayOfStatic<Int200>(*items)
+  class ArrayOfInt200(vararg items: Int200) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int200>(*items)
 
-  class ArrayOfInt208(vararg items: Int208) : SolidityBase.ArrayOfStatic<Int208>(*items)
+  class ArrayOfInt208(vararg items: Int208) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int208>(*items)
 
-  class ArrayOfInt216(vararg items: Int216) : SolidityBase.ArrayOfStatic<Int216>(*items)
+  class ArrayOfInt216(vararg items: Int216) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int216>(*items)
 
-  class ArrayOfInt224(vararg items: Int224) : SolidityBase.ArrayOfStatic<Int224>(*items)
+  class ArrayOfInt224(vararg items: Int224) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int224>(*items)
 
-  class ArrayOfInt232(vararg items: Int232) : SolidityBase.ArrayOfStatic<Int232>(*items)
+  class ArrayOfInt232(vararg items: Int232) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int232>(*items)
 
-  class ArrayOfInt240(vararg items: Int240) : SolidityBase.ArrayOfStatic<Int240>(*items)
+  class ArrayOfInt240(vararg items: Int240) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int240>(*items)
 
-  class ArrayOfInt248(vararg items: Int248) : SolidityBase.ArrayOfStatic<Int248>(*items)
+  class ArrayOfInt248(vararg items: Int248) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int248>(*items)
 
-  class ArrayOfInt256(vararg items: Int256) : SolidityBase.ArrayOfStatic<Int256>(*items)
+  class ArrayOfInt256(vararg items: Int256) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Int256>(*items)
 
-  class ArrayOfUInt8(vararg items: UInt8) : SolidityBase.ArrayOfStatic<UInt8>(*items)
+  class ArrayOfUInt8(vararg items: UInt8) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt8>(*items)
 
-  class ArrayOfUInt16(vararg items: UInt16) : SolidityBase.ArrayOfStatic<UInt16>(*items)
+  class ArrayOfUInt16(vararg items: UInt16) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt16>(*items)
 
-  class ArrayOfUInt24(vararg items: UInt24) : SolidityBase.ArrayOfStatic<UInt24>(*items)
+  class ArrayOfUInt24(vararg items: UInt24) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt24>(*items)
 
-  class ArrayOfUInt32(vararg items: UInt32) : SolidityBase.ArrayOfStatic<UInt32>(*items)
+  class ArrayOfUInt32(vararg items: UInt32) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt32>(*items)
 
-  class ArrayOfUInt40(vararg items: UInt40) : SolidityBase.ArrayOfStatic<UInt40>(*items)
+  class ArrayOfUInt40(vararg items: UInt40) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt40>(*items)
 
-  class ArrayOfUInt48(vararg items: UInt48) : SolidityBase.ArrayOfStatic<UInt48>(*items)
+  class ArrayOfUInt48(vararg items: UInt48) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt48>(*items)
 
-  class ArrayOfUInt56(vararg items: UInt56) : SolidityBase.ArrayOfStatic<UInt56>(*items)
+  class ArrayOfUInt56(vararg items: UInt56) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt56>(*items)
 
-  class ArrayOfUInt64(vararg items: UInt64) : SolidityBase.ArrayOfStatic<UInt64>(*items)
+  class ArrayOfUInt64(vararg items: UInt64) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt64>(*items)
 
-  class ArrayOfUInt72(vararg items: UInt72) : SolidityBase.ArrayOfStatic<UInt72>(*items)
+  class ArrayOfUInt72(vararg items: UInt72) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt72>(*items)
 
-  class ArrayOfUInt80(vararg items: UInt80) : SolidityBase.ArrayOfStatic<UInt80>(*items)
+  class ArrayOfUInt80(vararg items: UInt80) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt80>(*items)
 
-  class ArrayOfUInt88(vararg items: UInt88) : SolidityBase.ArrayOfStatic<UInt88>(*items)
+  class ArrayOfUInt88(vararg items: UInt88) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt88>(*items)
 
-  class ArrayOfUInt96(vararg items: UInt96) : SolidityBase.ArrayOfStatic<UInt96>(*items)
+  class ArrayOfUInt96(vararg items: UInt96) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt96>(*items)
 
-  class ArrayOfUInt104(vararg items: UInt104) : SolidityBase.ArrayOfStatic<UInt104>(*items)
+  class ArrayOfUInt104(vararg items: UInt104) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt104>(*items)
 
-  class ArrayOfUInt112(vararg items: UInt112) : SolidityBase.ArrayOfStatic<UInt112>(*items)
+  class ArrayOfUInt112(vararg items: UInt112) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt112>(*items)
 
-  class ArrayOfUInt120(vararg items: UInt120) : SolidityBase.ArrayOfStatic<UInt120>(*items)
+  class ArrayOfUInt120(vararg items: UInt120) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt120>(*items)
 
-  class ArrayOfUInt128(vararg items: UInt128) : SolidityBase.ArrayOfStatic<UInt128>(*items)
+  class ArrayOfUInt128(vararg items: UInt128) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt128>(*items)
 
-  class ArrayOfUInt136(vararg items: UInt136) : SolidityBase.ArrayOfStatic<UInt136>(*items)
+  class ArrayOfUInt136(vararg items: UInt136) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt136>(*items)
 
-  class ArrayOfUInt144(vararg items: UInt144) : SolidityBase.ArrayOfStatic<UInt144>(*items)
+  class ArrayOfUInt144(vararg items: UInt144) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt144>(*items)
 
-  class ArrayOfUInt152(vararg items: UInt152) : SolidityBase.ArrayOfStatic<UInt152>(*items)
+  class ArrayOfUInt152(vararg items: UInt152) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt152>(*items)
 
-  class ArrayOfUInt160(vararg items: UInt160) : SolidityBase.ArrayOfStatic<UInt160>(*items)
+  class ArrayOfUInt160(vararg items: UInt160) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt160>(*items)
 
-  class ArrayOfUInt168(vararg items: UInt168) : SolidityBase.ArrayOfStatic<UInt168>(*items)
+  class ArrayOfUInt168(vararg items: UInt168) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt168>(*items)
 
-  class ArrayOfUInt176(vararg items: UInt176) : SolidityBase.ArrayOfStatic<UInt176>(*items)
+  class ArrayOfUInt176(vararg items: UInt176) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt176>(*items)
 
-  class ArrayOfUInt184(vararg items: UInt184) : SolidityBase.ArrayOfStatic<UInt184>(*items)
+  class ArrayOfUInt184(vararg items: UInt184) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt184>(*items)
 
-  class ArrayOfUInt192(vararg items: UInt192) : SolidityBase.ArrayOfStatic<UInt192>(*items)
+  class ArrayOfUInt192(vararg items: UInt192) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt192>(*items)
 
-  class ArrayOfUInt200(vararg items: UInt200) : SolidityBase.ArrayOfStatic<UInt200>(*items)
+  class ArrayOfUInt200(vararg items: UInt200) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt200>(*items)
 
-  class ArrayOfUInt208(vararg items: UInt208) : SolidityBase.ArrayOfStatic<UInt208>(*items)
+  class ArrayOfUInt208(vararg items: UInt208) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt208>(*items)
 
-  class ArrayOfUInt216(vararg items: UInt216) : SolidityBase.ArrayOfStatic<UInt216>(*items)
+  class ArrayOfUInt216(vararg items: UInt216) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt216>(*items)
 
-  class ArrayOfUInt224(vararg items: UInt224) : SolidityBase.ArrayOfStatic<UInt224>(*items)
+  class ArrayOfUInt224(vararg items: UInt224) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt224>(*items)
 
-  class ArrayOfUInt232(vararg items: UInt232) : SolidityBase.ArrayOfStatic<UInt232>(*items)
+  class ArrayOfUInt232(vararg items: UInt232) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt232>(*items)
 
-  class ArrayOfUInt240(vararg items: UInt240) : SolidityBase.ArrayOfStatic<UInt240>(*items)
+  class ArrayOfUInt240(vararg items: UInt240) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt240>(*items)
 
-  class ArrayOfUInt248(vararg items: UInt248) : SolidityBase.ArrayOfStatic<UInt248>(*items)
+  class ArrayOfUInt248(vararg items: UInt248) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt248>(*items)
 
-  class ArrayOfUInt256(vararg items: UInt256) : SolidityBase.ArrayOfStatic<UInt256>(*items)
+  class ArrayOfUInt256(vararg items: UInt256) : pm.gnosis.model.SolidityBase.ArrayOfStatic<UInt256>(*items)
 
-  class ArrayOfBytes1(vararg items: Bytes1) : SolidityBase.ArrayOfStatic<Bytes1>(*items)
+  class ArrayOfBytes1(vararg items: Bytes1) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes1>(*items)
 
-  class ArrayOfBytes2(vararg items: Bytes2) : SolidityBase.ArrayOfStatic<Bytes2>(*items)
+  class ArrayOfBytes2(vararg items: Bytes2) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes2>(*items)
 
-  class ArrayOfBytes3(vararg items: Bytes3) : SolidityBase.ArrayOfStatic<Bytes3>(*items)
+  class ArrayOfBytes3(vararg items: Bytes3) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes3>(*items)
 
-  class ArrayOfBytes4(vararg items: Bytes4) : SolidityBase.ArrayOfStatic<Bytes4>(*items)
+  class ArrayOfBytes4(vararg items: Bytes4) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes4>(*items)
 
-  class ArrayOfBytes5(vararg items: Bytes5) : SolidityBase.ArrayOfStatic<Bytes5>(*items)
+  class ArrayOfBytes5(vararg items: Bytes5) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes5>(*items)
 
-  class ArrayOfBytes6(vararg items: Bytes6) : SolidityBase.ArrayOfStatic<Bytes6>(*items)
+  class ArrayOfBytes6(vararg items: Bytes6) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes6>(*items)
 
-  class ArrayOfBytes7(vararg items: Bytes7) : SolidityBase.ArrayOfStatic<Bytes7>(*items)
+  class ArrayOfBytes7(vararg items: Bytes7) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes7>(*items)
 
-  class ArrayOfBytes8(vararg items: Bytes8) : SolidityBase.ArrayOfStatic<Bytes8>(*items)
+  class ArrayOfBytes8(vararg items: Bytes8) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes8>(*items)
 
-  class ArrayOfBytes9(vararg items: Bytes9) : SolidityBase.ArrayOfStatic<Bytes9>(*items)
+  class ArrayOfBytes9(vararg items: Bytes9) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes9>(*items)
 
-  class ArrayOfBytes10(vararg items: Bytes10) : SolidityBase.ArrayOfStatic<Bytes10>(*items)
+  class ArrayOfBytes10(vararg items: Bytes10) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes10>(*items)
 
-  class ArrayOfBytes11(vararg items: Bytes11) : SolidityBase.ArrayOfStatic<Bytes11>(*items)
+  class ArrayOfBytes11(vararg items: Bytes11) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes11>(*items)
 
-  class ArrayOfBytes12(vararg items: Bytes12) : SolidityBase.ArrayOfStatic<Bytes12>(*items)
+  class ArrayOfBytes12(vararg items: Bytes12) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes12>(*items)
 
-  class ArrayOfBytes13(vararg items: Bytes13) : SolidityBase.ArrayOfStatic<Bytes13>(*items)
+  class ArrayOfBytes13(vararg items: Bytes13) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes13>(*items)
 
-  class ArrayOfBytes14(vararg items: Bytes14) : SolidityBase.ArrayOfStatic<Bytes14>(*items)
+  class ArrayOfBytes14(vararg items: Bytes14) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes14>(*items)
 
-  class ArrayOfBytes15(vararg items: Bytes15) : SolidityBase.ArrayOfStatic<Bytes15>(*items)
+  class ArrayOfBytes15(vararg items: Bytes15) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes15>(*items)
 
-  class ArrayOfBytes16(vararg items: Bytes16) : SolidityBase.ArrayOfStatic<Bytes16>(*items)
+  class ArrayOfBytes16(vararg items: Bytes16) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes16>(*items)
 
-  class ArrayOfBytes17(vararg items: Bytes17) : SolidityBase.ArrayOfStatic<Bytes17>(*items)
+  class ArrayOfBytes17(vararg items: Bytes17) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes17>(*items)
 
-  class ArrayOfBytes18(vararg items: Bytes18) : SolidityBase.ArrayOfStatic<Bytes18>(*items)
+  class ArrayOfBytes18(vararg items: Bytes18) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes18>(*items)
 
-  class ArrayOfBytes19(vararg items: Bytes19) : SolidityBase.ArrayOfStatic<Bytes19>(*items)
+  class ArrayOfBytes19(vararg items: Bytes19) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes19>(*items)
 
-  class ArrayOfBytes20(vararg items: Bytes20) : SolidityBase.ArrayOfStatic<Bytes20>(*items)
+  class ArrayOfBytes20(vararg items: Bytes20) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes20>(*items)
 
-  class ArrayOfBytes21(vararg items: Bytes21) : SolidityBase.ArrayOfStatic<Bytes21>(*items)
+  class ArrayOfBytes21(vararg items: Bytes21) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes21>(*items)
 
-  class ArrayOfBytes22(vararg items: Bytes22) : SolidityBase.ArrayOfStatic<Bytes22>(*items)
+  class ArrayOfBytes22(vararg items: Bytes22) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes22>(*items)
 
-  class ArrayOfBytes23(vararg items: Bytes23) : SolidityBase.ArrayOfStatic<Bytes23>(*items)
+  class ArrayOfBytes23(vararg items: Bytes23) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes23>(*items)
 
-  class ArrayOfBytes24(vararg items: Bytes24) : SolidityBase.ArrayOfStatic<Bytes24>(*items)
+  class ArrayOfBytes24(vararg items: Bytes24) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes24>(*items)
 
-  class ArrayOfBytes25(vararg items: Bytes25) : SolidityBase.ArrayOfStatic<Bytes25>(*items)
+  class ArrayOfBytes25(vararg items: Bytes25) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes25>(*items)
 
-  class ArrayOfBytes26(vararg items: Bytes26) : SolidityBase.ArrayOfStatic<Bytes26>(*items)
+  class ArrayOfBytes26(vararg items: Bytes26) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes26>(*items)
 
-  class ArrayOfBytes27(vararg items: Bytes27) : SolidityBase.ArrayOfStatic<Bytes27>(*items)
+  class ArrayOfBytes27(vararg items: Bytes27) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes27>(*items)
 
-  class ArrayOfBytes28(vararg items: Bytes28) : SolidityBase.ArrayOfStatic<Bytes28>(*items)
+  class ArrayOfBytes28(vararg items: Bytes28) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes28>(*items)
 
-  class ArrayOfBytes29(vararg items: Bytes29) : SolidityBase.ArrayOfStatic<Bytes29>(*items)
+  class ArrayOfBytes29(vararg items: Bytes29) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes29>(*items)
 
-  class ArrayOfBytes30(vararg items: Bytes30) : SolidityBase.ArrayOfStatic<Bytes30>(*items)
+  class ArrayOfBytes30(vararg items: Bytes30) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes30>(*items)
 
-  class ArrayOfBytes31(vararg items: Bytes31) : SolidityBase.ArrayOfStatic<Bytes31>(*items)
+  class ArrayOfBytes31(vararg items: Bytes31) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes31>(*items)
 
-  class ArrayOfBytes32(vararg items: Bytes32) : SolidityBase.ArrayOfStatic<Bytes32>(*items)
+  class ArrayOfBytes32(vararg items: Bytes32) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bytes32>(*items)
 
   class Address(value: BigInteger) : SolidityBase.UInt(value, 160)
 
-  class ArrayOfAddress(vararg items: Address) : SolidityBase.ArrayOfStatic<Address>(*items)
+  class ArrayOfAddress(vararg items: Address) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Address>(*items)
 
   class Bool(value: Boolean) : SolidityBase.UInt(if (value) BigInteger.ONE else BigInteger.ZERO, 8)
 
-  class ArrayOfBool(vararg items: Bool) : SolidityBase.ArrayOfStatic<Bool>(*items)
+  class ArrayOfBool(vararg items: Bool) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Bool>(*items)
 
   class Bytes(val bytes: ByteArray) : SolidityBase.DynamicType {
     init {

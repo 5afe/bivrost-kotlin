@@ -10,11 +10,11 @@ buildscript {
     }
 
     dependencies {
-        //classpath "pm.gnosis:abi-parser-gradle-plugin:1.0-SNAPSHOT"
+        classpath "pm.gnosis:abi-parser-gradle-plugin:1.0-SNAPSHOT"
     }
 }
 
-//apply plugin: pm.gnosis.abiparser.plugin.AbiParserPlugin
+apply plugin: pm.gnosis.abiparser.plugin.AbiParserPlugin
 
 android {
     compileSdkVersion versions.compileSdk
@@ -46,5 +46,6 @@ android {
 }
 
 dependencies {
+    implementation deps.kotlin.stdLibJre8
     implementation project(':abi-parser')
 }

@@ -1,7 +1,9 @@
-import exceptions.InvalidBitLengthException
-import utils.hexToByteArray
-import utils.padStartMultiple
-import utils.toHex
+package pm.gnosis.model
+
+import pm.gnosis.exceptions.InvalidBitLengthException
+import pm.gnosis.utils.hexToByteArray
+import pm.gnosis.utils.padStartMultiple
+import pm.gnosis.utils.toHex
 import java.math.BigInteger
 import java.util.*
 
@@ -109,7 +111,7 @@ object SolidityBase {
 
     fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
+        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of ${PADDED_HEX_LENGTH}")
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {
@@ -148,8 +150,8 @@ object SolidityBase {
         return value
     }
 
-    fun decodeStaticBytes(data: String, nBytes: kotlin.Int): ByteArray {
-        return data.substring(0, nBytes * 2).hexToByteArray()
+    fun decodeStaticBytes(data: String): ByteArray {
+        return data.hexToByteArray()
     }
 
     fun decodeBytes(data: String): ByteArray {

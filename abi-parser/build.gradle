@@ -11,10 +11,10 @@ task runSolidityTypeGenerator(type: JavaExec) {
         return
     }
 
-    def path = "${sourceSets.main.kotlin.getSrcDirs().getAt(0)}${File.separator}model"
-    main = 'SolidityTypeGenerator'
+    def path = "${sourceSets.main.kotlin.getSrcDirs().getAt(0)}"
+    main = 'pm.gnosis.SolidityTypeGenerator'
     classpath = sourceSets.main.runtimeClasspath
-    args path
+    args (path, project.group)
 }
 
 dependencies {

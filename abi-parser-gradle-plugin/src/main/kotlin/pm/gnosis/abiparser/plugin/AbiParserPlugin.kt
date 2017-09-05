@@ -6,6 +6,7 @@ import org.gradle.api.DomainObjectSet
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionContainer
+import pm.gnosis.AbiParser
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
@@ -38,9 +39,9 @@ class AbiParserPlugin : Plugin<Project> {
     private fun configureCodeGeneration(project: Project, variants: DomainObjectSet<out BaseVariant>) {
         variants.all { variant ->
             val outputDir = project.buildDir.resolve(
-                    "generated/source/r/${variant.dirName}")
+                    "generated/source/abi/${variant.dirName}")
 
-            val task = project.tasks.create("generate${variant.name.capitalize()}AbiWrapper")
+            val task = project.tasks.create("pm.gnosis.generate${variant.name.capitalize()}AbiWrapper")
             task.outputs.dir(outputDir)
             variant.registerJavaGeneratingTask(task, outputDir)
 

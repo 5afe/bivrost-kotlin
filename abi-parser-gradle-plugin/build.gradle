@@ -20,6 +20,14 @@ dependencies {
     //testImplementation deps.compiletesting
 }
 
+sourceSets {
+    main {
+        kotlin {
+            srcDir 'build/generated/source/abi'
+        }
+    }
+}
+
 uploadArchives {
     repositories {
         mavenDeployer {
