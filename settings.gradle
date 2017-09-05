@@ -1,2 +1,6 @@
-rootProject.name = 'abi-decoder-kotlin'
+include ':abi-parser'
+include ':abi-parser-gradle-plugin'
+include ':sample:app'
+
+rootProject.name = 'abi-parser-kotlin'
 

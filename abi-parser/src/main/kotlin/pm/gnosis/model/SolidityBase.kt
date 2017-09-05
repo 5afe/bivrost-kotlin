@@ -1,7 +1,9 @@
-import exceptions.InvalidBitLengthException
-import utils.hexToByteArray
-import utils.padStartMultiple
-import utils.toHex
+package pm.gnosis.model
+
+import pm.gnosis.exceptions.InvalidBitLengthException
+import pm.gnosis.utils.hexToByteArray
+import pm.gnosis.utils.padStartMultiple
+import pm.gnosis.utils.toHex
 import java.math.BigInteger
 import java.util.*
 
@@ -109,7 +111,7 @@ object SolidityBase {
 
     fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
+        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of ${PADDED_HEX_LENGTH}")
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {
@@ -165,5 +167,12 @@ object SolidityBase {
         val contentSize = BigInteger(params[0]).intValueExact() * 2
         if (contentSize == 0) return emptyList()
         return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
+    }
+
+    fun decodeArrayStaticBytes(data: String, nBytes: kotlin.Int, itemDecoder: (String, kotlin.Int) -> ByteArray): List<ByteArray> {
+        val params = partitionData(data)
+        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        if (contentSize == 0) return emptyList()
+        return (1 until params.size).map { itemDecoder.invoke(params[it], nBytes) }.toList()
     }
 }

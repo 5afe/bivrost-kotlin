@@ -1,0 +1,29 @@
+apply plugin: 'java-library'
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+    compileOnly gradleApi()
+
+    implementation project(":abi-parser")
+    implementation deps.android.gradlePlugin
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir 'build/generated/source/abi'
+        }
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('../repo'))
+        }
+    }
+}

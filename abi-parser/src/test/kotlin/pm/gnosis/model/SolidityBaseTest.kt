@@ -1,5 +1,6 @@
-import exceptions.InvalidBitLengthException
-import model.Solidity
+package pm.gnosis.model
+
+import pm.gnosis.exceptions.InvalidBitLengthException
 import org.junit.Assert.*
 import org.junit.Test
 import java.math.BigInteger

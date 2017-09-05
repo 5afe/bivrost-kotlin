@@ -1,4 +1,4 @@
-package model
+package pm.gnosis.model
 
 import com.squareup.moshi.Json
 

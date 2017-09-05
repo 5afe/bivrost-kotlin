@@ -1,4 +1,4 @@
-package exceptions
+package pm.gnosis.exceptions
 
 class InvalidBitLengthException(message: String?) : Exception(message) {
     companion object {

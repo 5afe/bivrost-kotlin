@@ -5,7 +5,8 @@
 /.idea/misc.xml
 /.idea/libraries
 .DS_Store
-/build
+build
+repo
 /captures
 .externalNativeBuild
 out/
