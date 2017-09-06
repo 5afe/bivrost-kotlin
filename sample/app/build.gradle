@@ -14,7 +14,7 @@ buildscript {
     }
 }
 
-apply plugin: pm.gnosis.abiparser.plugin.AbiParserPlugin
+apply plugin: "pm.gnosis.abiparser"
 
 android {
     compileSdkVersion versions.compileSdk
