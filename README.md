@@ -1,7 +1,7 @@
 #### Abi Parser
 
 #### Setup of Sample App
-* Generate the Solidity types:
+* Optional: Generate the Solidity types:
   - `./gradlew :abi-data-types-generator:runSolidityTypeGenerator`
 * Add library artifacts to local maven:
   - `./gradlew :abi-data-types:uploadArchives`
