@@ -14,6 +14,10 @@ object SolidityBase {
 
     interface Type {
         fun encode(): String
+
+        interface Decoder<out T : Type> {
+            fun decode(source: String): T
+        }
     }
 
     interface StaticType : Type
@@ -73,7 +77,10 @@ object SolidityBase {
     // A work around could be receiving the size of the array as a BigInteger and the items
     // as a List (no theoretical limit but the size of the list can be at max Integer.MAX_VALUE)
     // Another solution can be receiving Collections up to Integer.MAX_VALUE and then merge them here
-    open class ArrayOfStatic<T : StaticType>(private vararg val items: T) : DynamicType {
+    open class ArrayOfStatic<T : StaticType>(private val items: List<T>) : DynamicType {
+
+        constructor(vararg items: T) : this(items.toList())
+
         override fun encode(): String {
             val parts = encodeParts()
             return parts.static + parts.dynamic

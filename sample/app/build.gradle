@@ -45,7 +45,13 @@ android {
     }
 }
 
+repositories {
+    maven {
+        url uri('../../repo')
+    }
+}
+
 dependencies {
     implementation deps.kotlin.stdLibJre8
-    implementation project(':abi-parser')
+    implementation "pm.gnosis:abi-data-types:1.0-SNAPSHOT"
 }

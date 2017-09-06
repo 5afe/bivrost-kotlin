@@ -10,13 +10,11 @@ import java.math.BigInteger
 import kotlin.reflect.KClass
 
 class AbiParser {
-    private val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
-
     companion object {
-        const val DECODER_FUN_ARG_NAME = "data"
-        const val DECODER_VAR_PARTITIONS_NAME = "partitions"
-        const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
-        const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
+        private const val DECODER_FUN_ARG_NAME = "data"
+        private const val DECODER_VAR_PARTITIONS_NAME = "partitions"
+        private const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
+        private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
 
         fun generateWrapper(packageName: String, abi: String, output: File) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -47,7 +45,7 @@ class AbiParser {
                 function.inputs.forEachIndexed { index, parameter ->
                     val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
                     Solidity.map[parameter.type]?.let {
-                        funSpec.addParameter(name, it)
+                        funSpec.addParameter(name, ClassName.bestGuess(it))
                     }
                 }
 
@@ -174,8 +172,6 @@ class AbiParser {
                 "bool" to Boolean::class,
                 "bytes" to ByteArray::class
         )
-
-        private val kotlinToSolidity = mapOf(*solidityToKotlin.entries.map { it.value to it.key }.toTypedArray())
 
         private fun isSolidityStaticType(type: String) = !isSolidityDynamicType(type)
 

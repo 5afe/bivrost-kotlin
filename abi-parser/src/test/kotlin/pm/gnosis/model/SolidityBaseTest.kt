@@ -1,8 +1,8 @@
 package pm.gnosis.model
 
-import pm.gnosis.exceptions.InvalidBitLengthException
 import org.junit.Assert.*
 import org.junit.Test
+import pm.gnosis.exceptions.InvalidBitLengthException
 import java.math.BigInteger
 
 class SolidityBaseTest {
@@ -147,6 +147,8 @@ class SolidityBaseTest {
         assertArrayEquals(byteArrayOf(0, 1, 2), SolidityBase.decodeStaticBytes("0001020000000000000000000000000000000000000000000000000000000000", 3))
 
         assertArrayEquals("dave".toByteArray(), SolidityBase.decodeStaticBytes("6461766500000000000000000000000000000000000000000000000000000000", 4))
+
+        assertArrayEquals("dave".toByteArray(), Solidity.Bytes4.decode("6461766500000000000000000000000000000000000000000000000000000000").byteArray)
     }
 
     @Test
@@ -166,6 +168,6 @@ class SolidityBaseTest {
     @Test
     fun testArrayOfStaticEncoding() {
         assertEquals("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
-                Solidity.ArrayOfUInt32(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))).encode())
+                Solidity.ArrayOfUInt32(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))).encode())
     }
 }

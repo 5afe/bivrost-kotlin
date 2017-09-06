@@ -5,6 +5,7 @@ package pm.gnosis
 import com.squareup.kotlinpoet.*
 import pm.gnosis.model.SolidityBase
 import java.io.File
+import java.math.BigDecimal
 import java.math.BigInteger
 
 fun main(vararg args: String) {
@@ -21,7 +22,7 @@ fun generate(path: String, packageName: String) {
     val kotlinFile = KotlinFile.builder(modelPackageName, fileName)
     val solidityGeneratedObject = TypeSpec.objectBuilder(fileName)
 
-    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
+    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex", "hexToByteArray")
     solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
 
     //Generate types
@@ -62,60 +63,107 @@ fun generate(path: String, packageName: String) {
                 } else {
                     it.first!!.toLowerCase()
                 } to it.second
-            }.joinToString(",\n") { "\"${it.first}\" to ${it.second}::class" }
+            }.joinToString(",\n") { "\"${it.first}\" to \"$modelPackageName.$fileName.${it.second}\"" }
 
     val mapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$mapContent)"))
 
     //Add map to object
     val mapClassName = ClassName("kotlin.collections", "Map")
     val stringClassName = ClassName("kotlin", "String")
-    val kClassName = ClassName("kotlin.reflect", "KClass")
-    val kclassType = ParameterizedTypeName.get(kClassName, WildcardTypeName.subtypeOf(Any::class))
-    val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, kclassType)
+    val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, stringClassName)
     solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
     //Write object file
     kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
+private fun generateDecoderCompanion(name: String, decodeCode: CodeBlock): TypeSpec {
+    val className = ClassName("", name)
+    return TypeSpec.companionObjectBuilder()
+            .addSuperinterface(ParameterizedTypeName.get(SolidityBase.Type.Decoder::class.asClassName(), className))
+            .addFun(generateDecodeFunction(decodeCode, className))
+            .build()
+}
+
+private fun generateDecodeFunction(decodeCode: CodeBlock, className: ClassName): FunSpec {
+    return FunSpec.builder("decode")
+            .addParameter("source", String::class)
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(className)
+            .addCode(decodeCode)
+            .build()
+}
+
 private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map {
-    TypeSpec.classBuilder("UInt$it")
+    val name = "UInt$it"
+    TypeSpec.classBuilder(name)
             .superclass(SolidityBase.UInt::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
+                            .build())
+            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
             .build()
 }.toList()
 
-private fun generateAddress(): TypeSpec =
-        TypeSpec.classBuilder("Address")
-                .superclass(SolidityBase.UInt::class)
-                .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
-                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                        ParameterSpec.builder("value", BigInteger::class).build()).build())
-                .build()
+private fun generateAddress(): TypeSpec {
+    val name = "Address"
+    return TypeSpec.classBuilder(name)
+            .superclass(SolidityBase.UInt::class)
+            .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
+                            .build())
+            )
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .build()
+}
 
-private fun generateBool(): TypeSpec =
-        TypeSpec.classBuilder("Bool")
-                .superclass(SolidityBase.UInt::class)
-                .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
-                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                        ParameterSpec.builder("value", Boolean::class).build()).build())
-                .build()
+private fun generateBool(): TypeSpec {
+    val name = "Bool"
+    return TypeSpec.classBuilder(name)
+            .superclass(SolidityBase.UInt::class)
+            .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T(%3L, 16) != %2T.ZERO)", name, BigInteger::class, "source")
+                            .build())
+            )
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", Boolean::class).build()).build())
+            .build()
+}
 
 private fun generateInts() = (8..256 step 8).map {
-    TypeSpec.classBuilder("Int$it")
+    val name = "Int$it"
+    TypeSpec.classBuilder(name)
             .superclass(SolidityBase.Int::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
+                            .build())
+            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
             .build()
 }.toList()
 
 private fun generateStaticBytes() = (1..32).map {
-    TypeSpec.classBuilder("Bytes$it")
+    val name = "Bytes$it"
+    TypeSpec.classBuilder(name)
             .superclass(SolidityBase.StaticBytes::class)
             .addSuperclassConstructorParameter("%1L, %2L", "byteArray", it)
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2L.substring(0, %3L * 2).hexToByteArray())", name, "source", it)
+                            .build())
+            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("byteArray", ByteArray::class).build()).build())
             .build()
@@ -124,11 +172,22 @@ private fun generateStaticBytes() = (1..32).map {
 private fun generateArrayClass(className: ClassName): TypeSpec {
     val arrayOfStaticBase = ClassName("", SolidityBase.ArrayOfStatic::class.qualifiedName!!)
     val parameterizedType = ParameterizedTypeName.get(arrayOfStaticBase, className)
-    return TypeSpec.classBuilder("ArrayOf${className.simpleName()}")
+    val listEntryTypeName = ParameterizedTypeName.get(List::class.asClassName(), className)
+    val entryTypeName = className.simpleName()
+    val name = "ArrayOf$entryTypeName"
+    return TypeSpec.classBuilder(name)
             .superclass(parameterizedType)
-            .addSuperclassConstructorParameter("*items")
+            .addSuperclassConstructorParameter("items")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("val partitions = %1T.partitionData(%2L)", SolidityBase::class, "source")
+                            .addStatement("val contentSize = %1T(partitions[0]).intValueExact() * 2", BigDecimal::class)
+                            .addStatement("if (contentSize == 0) return %1L(ArrayList())", name)
+                            .addStatement("return %1L((1 until partitions.size).map { %2L.decode(partitions[it]) }.toList())", name, entryTypeName)
+                            .build())
+            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("items", className, KModifier.VARARG).build()).build())
+                    ParameterSpec.builder("items", listEntryTypeName).build()).build())
             .build()
 }
 
