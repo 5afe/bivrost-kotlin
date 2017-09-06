@@ -5,27 +5,24 @@ apply plugin: 'maven'
 sourceCompatibility = 1.8
 
 task runSolidityTypeGenerator(type: JavaExec) {
-    def srcDirs = sourceSets.main.kotlin.getSrcDirs()
+    def targetProject = project.parent.childProjects.get("abi-data-types") ?: this
+    def srcDirs = targetProject.sourceSets.main.kotlin.getSrcDirs()
     if (srcDirs.isEmpty()) {
         logger.error("Couldn't find kotlin main source sets")
         return
     }
 
-    def path = "${sourceSets.main.kotlin.getSrcDirs().getAt(0)}"
+    def path = "${srcDirs[0]}"
     main = 'pm.gnosis.SolidityTypeGenerator'
     classpath = sourceSets.main.runtimeClasspath
     args (path, project.group)
 }
 
 dependencies {
-
-    implementation project(":abi-data-types")
-
     implementation deps.kotlin.stdLibJre8
 
-    implementation 'com.squareup.moshi:moshi:1.4.0'
+    implementation project(":abi-data-types")
     implementation 'com.squareup:kotlinpoet:0.4.0'
-    implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.57'
 
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
@@ -35,12 +32,4 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: uri('../repo'))
-        }
-    }
 }

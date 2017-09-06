@@ -63,16 +63,14 @@ fun generate(path: String, packageName: String) {
                 } else {
                     it.first!!.toLowerCase()
                 } to it.second
-            }.joinToString(",\n") { "\"${it.first}\" to ${it.second}::class" }
+            }.joinToString(",\n") { "\"${it.first}\" to \"$modelPackageName.$fileName.${it.second}\"" }
 
     val mapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$mapContent)"))
 
     //Add map to object
     val mapClassName = ClassName("kotlin.collections", "Map")
     val stringClassName = ClassName("kotlin", "String")
-    val kClassName = ClassName("kotlin.reflect", "KClass")
-    val kclassType = ParameterizedTypeName.get(kClassName, WildcardTypeName.subtypeOf(Any::class))
-    val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, kclassType)
+    val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, stringClassName)
     solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
     //Write object file
@@ -163,7 +161,7 @@ private fun generateStaticBytes() = (1..32).map {
             .addSuperclassConstructorParameter("%1L, %2L", "byteArray", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2L.hexToByteArray())", name, "source")
+                            .addStatement("return %1N(%2L.substring(0, %3L * 2).hexToByteArray())", name, "source", it)
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(

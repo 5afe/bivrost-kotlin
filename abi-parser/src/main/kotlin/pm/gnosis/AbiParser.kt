@@ -45,7 +45,7 @@ class AbiParser {
                 function.inputs.forEachIndexed { index, parameter ->
                     val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
                     Solidity.map[parameter.type]?.let {
-                        funSpec.addParameter(name, it)
+                        funSpec.addParameter(name, ClassName.bestGuess(it))
                     }
                 }
 
