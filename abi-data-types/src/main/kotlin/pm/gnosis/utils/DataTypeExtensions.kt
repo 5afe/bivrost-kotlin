@@ -9,7 +9,7 @@ fun String.padEndMultiple(multiple: Int, padChar: Char = ' ') =
         this.padEnd(if (this.length % multiple != 0) this.length + multiple - this.length % multiple else 0, padChar)
 
 
-private val hexArray = "0123456789ABCDEF".toCharArray()
+private val hexArray = "0123456789abcdef".toCharArray()
 
 fun ByteArray.toHex(): String {
     val hexChars = CharArray(this.size * 2)
