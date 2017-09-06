@@ -2,7 +2,7 @@ include ':abi-parser'
 include ':abi-parser-gradle-plugin'
 include ':abi-data-types'
 include ':abi-data-types-generator'
-include ':sample:app'
+//include ':sample:app'
 
 rootProject.name = 'abi-parser-kotlin'
 
