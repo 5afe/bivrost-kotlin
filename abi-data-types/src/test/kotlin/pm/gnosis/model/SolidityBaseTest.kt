@@ -3,6 +3,7 @@ package pm.gnosis.model
 import org.junit.Assert.*
 import org.junit.Test
 import pm.gnosis.exceptions.InvalidBitLengthException
+import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
 
 class SolidityBaseTest {
@@ -27,11 +28,14 @@ class SolidityBaseTest {
     @Test
     fun testUIntBitOverflow() {
         (8..256 step 8).forEach {
-            SolidityBase.UInt(BigInteger.valueOf(2).pow(it).minus(BigInteger.ONE), it)
+            val upperLimit = BigInteger.valueOf(2).pow(it)
+            val constructor = Class.forName(formatClassName(Solidity.map["uint$it"]!!)).constructors[0]
+            constructor.newInstance(upperLimit.minus(BigInteger.ONE))
             try {
-                SolidityBase.UInt(BigInteger.valueOf(2).pow(it), it)
+                constructor.newInstance(upperLimit)
                 fail("Expected InvalidBitLengthException")
-            } catch (e: InvalidBitLengthException) {
+            } catch (e: InvocationTargetException) {
+                if (e.targetException !is InvalidBitLengthException) throw e
             }
         }
     }
@@ -89,18 +93,21 @@ class SolidityBaseTest {
         (8..256 step 8).forEach {
             val min = BigInteger.valueOf(2).pow(it - 1).negate()
             val max = BigInteger.valueOf(2).pow(it - 1) - BigInteger.ONE
-            SolidityBase.Int(min, it)
-            SolidityBase.Int(max, it)
+            val constructor = Class.forName(formatClassName(Solidity.map["int$it"]!!)).constructors[0]
+            constructor.newInstance(min)
+            constructor.newInstance(max)
             try {
-                SolidityBase.UInt(BigInteger.valueOf(2).pow(it), it)
-                fail("Expected InvalidBitLengthException")
-            } catch (e: InvalidBitLengthException) {
+                constructor.newInstance(BigInteger.valueOf(2).pow(it))
+                fail("Expected IllegalArgumentException")
+            } catch (e: InvocationTargetException) {
+                if (e.targetException !is IllegalArgumentException) throw e
             }
 
             try {
-                SolidityBase.UInt(BigInteger.valueOf(2).pow(it), it)
-                fail("Expected InvalidBitLengthException")
-            } catch (e: InvalidBitLengthException) {
+                constructor.newInstance(BigInteger.valueOf(2).pow(it))
+                fail("Expected IllegalArgumentException")
+            } catch (e: InvocationTargetException) {
+                if (e.targetException !is IllegalArgumentException) throw e
             }
         }
     }
@@ -155,12 +162,14 @@ class SolidityBaseTest {
     fun testStaticBytesRange() {
         (1..32).forEach {
             val bytes = ByteArray(it, { it.toByte() })
-            SolidityBase.StaticBytes(bytes, it)
+            val constructor = Class.forName(formatClassName(Solidity.map["bytes$it"]!!)).constructors[0]
+            constructor.newInstance(bytes)
             try {
                 val oversizedBytes = ByteArray(it + 1, { it.toByte() })
-                SolidityBase.StaticBytes(oversizedBytes, it)
+                constructor.newInstance(oversizedBytes)
                 fail("Expected IllegalArgumentException")
-            } catch (ignored: IllegalArgumentException) {
+            } catch (e: InvocationTargetException) {
+                if (e.targetException !is IllegalArgumentException) throw e
             }
         }
     }
@@ -174,7 +183,7 @@ class SolidityBaseTest {
                 Solidity.ArrayOfBool(listOf(Solidity.Bool(true), Solidity.Bool(false))).encode())
 
         assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
-                SolidityBase.ArrayOfStatic<Solidity.Bool>().encode())
+                Solidity.ArrayOfBool(emptyList()).encode())
     }
 
     @Test
@@ -235,5 +244,10 @@ class SolidityBaseTest {
     fun testStringEncoding() {
         assertEquals("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000",
                 Solidity.String("Hello, world!").encode())
+    }
+
+    private fun formatClassName(clazz: String): String {
+        val index = clazz.lastIndexOf(".")
+        return clazz.replaceRange(index, index + 1, "$")
     }
 }
