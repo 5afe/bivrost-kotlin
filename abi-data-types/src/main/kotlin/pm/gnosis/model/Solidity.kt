@@ -218,577 +218,577 @@ object Solidity {
 
     class UInt8(value: BigInteger) : SolidityBase.UInt(value, 8) {
         companion object : SolidityBase.Type.Decoder<UInt8> {
-            override fun decode(source: kotlin.String): UInt8 = UInt8(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt8 = UInt8(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt16(value: BigInteger) : SolidityBase.UInt(value, 16) {
         companion object : SolidityBase.Type.Decoder<UInt16> {
-            override fun decode(source: kotlin.String): UInt16 = UInt16(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt16 = UInt16(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt24(value: BigInteger) : SolidityBase.UInt(value, 24) {
         companion object : SolidityBase.Type.Decoder<UInt24> {
-            override fun decode(source: kotlin.String): UInt24 = UInt24(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt24 = UInt24(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt32(value: BigInteger) : SolidityBase.UInt(value, 32) {
         companion object : SolidityBase.Type.Decoder<UInt32> {
-            override fun decode(source: kotlin.String): UInt32 = UInt32(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt32 = UInt32(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt40(value: BigInteger) : SolidityBase.UInt(value, 40) {
         companion object : SolidityBase.Type.Decoder<UInt40> {
-            override fun decode(source: kotlin.String): UInt40 = UInt40(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt40 = UInt40(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt48(value: BigInteger) : SolidityBase.UInt(value, 48) {
         companion object : SolidityBase.Type.Decoder<UInt48> {
-            override fun decode(source: kotlin.String): UInt48 = UInt48(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt48 = UInt48(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt56(value: BigInteger) : SolidityBase.UInt(value, 56) {
         companion object : SolidityBase.Type.Decoder<UInt56> {
-            override fun decode(source: kotlin.String): UInt56 = UInt56(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt56 = UInt56(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt64(value: BigInteger) : SolidityBase.UInt(value, 64) {
         companion object : SolidityBase.Type.Decoder<UInt64> {
-            override fun decode(source: kotlin.String): UInt64 = UInt64(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt64 = UInt64(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt72(value: BigInteger) : SolidityBase.UInt(value, 72) {
         companion object : SolidityBase.Type.Decoder<UInt72> {
-            override fun decode(source: kotlin.String): UInt72 = UInt72(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt72 = UInt72(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt80(value: BigInteger) : SolidityBase.UInt(value, 80) {
         companion object : SolidityBase.Type.Decoder<UInt80> {
-            override fun decode(source: kotlin.String): UInt80 = UInt80(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt80 = UInt80(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt88(value: BigInteger) : SolidityBase.UInt(value, 88) {
         companion object : SolidityBase.Type.Decoder<UInt88> {
-            override fun decode(source: kotlin.String): UInt88 = UInt88(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt88 = UInt88(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt96(value: BigInteger) : SolidityBase.UInt(value, 96) {
         companion object : SolidityBase.Type.Decoder<UInt96> {
-            override fun decode(source: kotlin.String): UInt96 = UInt96(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt96 = UInt96(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt104(value: BigInteger) : SolidityBase.UInt(value, 104) {
         companion object : SolidityBase.Type.Decoder<UInt104> {
-            override fun decode(source: kotlin.String): UInt104 = UInt104(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt104 = UInt104(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt112(value: BigInteger) : SolidityBase.UInt(value, 112) {
         companion object : SolidityBase.Type.Decoder<UInt112> {
-            override fun decode(source: kotlin.String): UInt112 = UInt112(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt112 = UInt112(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt120(value: BigInteger) : SolidityBase.UInt(value, 120) {
         companion object : SolidityBase.Type.Decoder<UInt120> {
-            override fun decode(source: kotlin.String): UInt120 = UInt120(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt120 = UInt120(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt128(value: BigInteger) : SolidityBase.UInt(value, 128) {
         companion object : SolidityBase.Type.Decoder<UInt128> {
-            override fun decode(source: kotlin.String): UInt128 = UInt128(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt128 = UInt128(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt136(value: BigInteger) : SolidityBase.UInt(value, 136) {
         companion object : SolidityBase.Type.Decoder<UInt136> {
-            override fun decode(source: kotlin.String): UInt136 = UInt136(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt136 = UInt136(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt144(value: BigInteger) : SolidityBase.UInt(value, 144) {
         companion object : SolidityBase.Type.Decoder<UInt144> {
-            override fun decode(source: kotlin.String): UInt144 = UInt144(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt144 = UInt144(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt152(value: BigInteger) : SolidityBase.UInt(value, 152) {
         companion object : SolidityBase.Type.Decoder<UInt152> {
-            override fun decode(source: kotlin.String): UInt152 = UInt152(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt152 = UInt152(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt160(value: BigInteger) : SolidityBase.UInt(value, 160) {
         companion object : SolidityBase.Type.Decoder<UInt160> {
-            override fun decode(source: kotlin.String): UInt160 = UInt160(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt160 = UInt160(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt168(value: BigInteger) : SolidityBase.UInt(value, 168) {
         companion object : SolidityBase.Type.Decoder<UInt168> {
-            override fun decode(source: kotlin.String): UInt168 = UInt168(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt168 = UInt168(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt176(value: BigInteger) : SolidityBase.UInt(value, 176) {
         companion object : SolidityBase.Type.Decoder<UInt176> {
-            override fun decode(source: kotlin.String): UInt176 = UInt176(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt176 = UInt176(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt184(value: BigInteger) : SolidityBase.UInt(value, 184) {
         companion object : SolidityBase.Type.Decoder<UInt184> {
-            override fun decode(source: kotlin.String): UInt184 = UInt184(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt184 = UInt184(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt192(value: BigInteger) : SolidityBase.UInt(value, 192) {
         companion object : SolidityBase.Type.Decoder<UInt192> {
-            override fun decode(source: kotlin.String): UInt192 = UInt192(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt192 = UInt192(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt200(value: BigInteger) : SolidityBase.UInt(value, 200) {
         companion object : SolidityBase.Type.Decoder<UInt200> {
-            override fun decode(source: kotlin.String): UInt200 = UInt200(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt200 = UInt200(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt208(value: BigInteger) : SolidityBase.UInt(value, 208) {
         companion object : SolidityBase.Type.Decoder<UInt208> {
-            override fun decode(source: kotlin.String): UInt208 = UInt208(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt208 = UInt208(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt216(value: BigInteger) : SolidityBase.UInt(value, 216) {
         companion object : SolidityBase.Type.Decoder<UInt216> {
-            override fun decode(source: kotlin.String): UInt216 = UInt216(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt216 = UInt216(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt224(value: BigInteger) : SolidityBase.UInt(value, 224) {
         companion object : SolidityBase.Type.Decoder<UInt224> {
-            override fun decode(source: kotlin.String): UInt224 = UInt224(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt224 = UInt224(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt232(value: BigInteger) : SolidityBase.UInt(value, 232) {
         companion object : SolidityBase.Type.Decoder<UInt232> {
-            override fun decode(source: kotlin.String): UInt232 = UInt232(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt232 = UInt232(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt240(value: BigInteger) : SolidityBase.UInt(value, 240) {
         companion object : SolidityBase.Type.Decoder<UInt240> {
-            override fun decode(source: kotlin.String): UInt240 = UInt240(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt240 = UInt240(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt248(value: BigInteger) : SolidityBase.UInt(value, 248) {
         companion object : SolidityBase.Type.Decoder<UInt248> {
-            override fun decode(source: kotlin.String): UInt248 = UInt248(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt248 = UInt248(SolidityBase.decodeUInt(source))
         }
     }
 
     class UInt256(value: BigInteger) : SolidityBase.UInt(value, 256) {
         companion object : SolidityBase.Type.Decoder<UInt256> {
-            override fun decode(source: kotlin.String): UInt256 = UInt256(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): UInt256 = UInt256(SolidityBase.decodeUInt(source))
         }
     }
 
     class Int8(value: BigInteger) : SolidityBase.Int(value, 8) {
         companion object : SolidityBase.Type.Decoder<Int8> {
-            override fun decode(source: kotlin.String): Int8 = Int8(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int8 = Int8(SolidityBase.decodeInt(source))
         }
     }
 
     class Int16(value: BigInteger) : SolidityBase.Int(value, 16) {
         companion object : SolidityBase.Type.Decoder<Int16> {
-            override fun decode(source: kotlin.String): Int16 = Int16(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int16 = Int16(SolidityBase.decodeInt(source))
         }
     }
 
     class Int24(value: BigInteger) : SolidityBase.Int(value, 24) {
         companion object : SolidityBase.Type.Decoder<Int24> {
-            override fun decode(source: kotlin.String): Int24 = Int24(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int24 = Int24(SolidityBase.decodeInt(source))
         }
     }
 
     class Int32(value: BigInteger) : SolidityBase.Int(value, 32) {
         companion object : SolidityBase.Type.Decoder<Int32> {
-            override fun decode(source: kotlin.String): Int32 = Int32(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int32 = Int32(SolidityBase.decodeInt(source))
         }
     }
 
     class Int40(value: BigInteger) : SolidityBase.Int(value, 40) {
         companion object : SolidityBase.Type.Decoder<Int40> {
-            override fun decode(source: kotlin.String): Int40 = Int40(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int40 = Int40(SolidityBase.decodeInt(source))
         }
     }
 
     class Int48(value: BigInteger) : SolidityBase.Int(value, 48) {
         companion object : SolidityBase.Type.Decoder<Int48> {
-            override fun decode(source: kotlin.String): Int48 = Int48(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int48 = Int48(SolidityBase.decodeInt(source))
         }
     }
 
     class Int56(value: BigInteger) : SolidityBase.Int(value, 56) {
         companion object : SolidityBase.Type.Decoder<Int56> {
-            override fun decode(source: kotlin.String): Int56 = Int56(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int56 = Int56(SolidityBase.decodeInt(source))
         }
     }
 
     class Int64(value: BigInteger) : SolidityBase.Int(value, 64) {
         companion object : SolidityBase.Type.Decoder<Int64> {
-            override fun decode(source: kotlin.String): Int64 = Int64(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int64 = Int64(SolidityBase.decodeInt(source))
         }
     }
 
     class Int72(value: BigInteger) : SolidityBase.Int(value, 72) {
         companion object : SolidityBase.Type.Decoder<Int72> {
-            override fun decode(source: kotlin.String): Int72 = Int72(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int72 = Int72(SolidityBase.decodeInt(source))
         }
     }
 
     class Int80(value: BigInteger) : SolidityBase.Int(value, 80) {
         companion object : SolidityBase.Type.Decoder<Int80> {
-            override fun decode(source: kotlin.String): Int80 = Int80(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int80 = Int80(SolidityBase.decodeInt(source))
         }
     }
 
     class Int88(value: BigInteger) : SolidityBase.Int(value, 88) {
         companion object : SolidityBase.Type.Decoder<Int88> {
-            override fun decode(source: kotlin.String): Int88 = Int88(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int88 = Int88(SolidityBase.decodeInt(source))
         }
     }
 
     class Int96(value: BigInteger) : SolidityBase.Int(value, 96) {
         companion object : SolidityBase.Type.Decoder<Int96> {
-            override fun decode(source: kotlin.String): Int96 = Int96(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int96 = Int96(SolidityBase.decodeInt(source))
         }
     }
 
     class Int104(value: BigInteger) : SolidityBase.Int(value, 104) {
         companion object : SolidityBase.Type.Decoder<Int104> {
-            override fun decode(source: kotlin.String): Int104 = Int104(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int104 = Int104(SolidityBase.decodeInt(source))
         }
     }
 
     class Int112(value: BigInteger) : SolidityBase.Int(value, 112) {
         companion object : SolidityBase.Type.Decoder<Int112> {
-            override fun decode(source: kotlin.String): Int112 = Int112(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int112 = Int112(SolidityBase.decodeInt(source))
         }
     }
 
     class Int120(value: BigInteger) : SolidityBase.Int(value, 120) {
         companion object : SolidityBase.Type.Decoder<Int120> {
-            override fun decode(source: kotlin.String): Int120 = Int120(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int120 = Int120(SolidityBase.decodeInt(source))
         }
     }
 
     class Int128(value: BigInteger) : SolidityBase.Int(value, 128) {
         companion object : SolidityBase.Type.Decoder<Int128> {
-            override fun decode(source: kotlin.String): Int128 = Int128(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int128 = Int128(SolidityBase.decodeInt(source))
         }
     }
 
     class Int136(value: BigInteger) : SolidityBase.Int(value, 136) {
         companion object : SolidityBase.Type.Decoder<Int136> {
-            override fun decode(source: kotlin.String): Int136 = Int136(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int136 = Int136(SolidityBase.decodeInt(source))
         }
     }
 
     class Int144(value: BigInteger) : SolidityBase.Int(value, 144) {
         companion object : SolidityBase.Type.Decoder<Int144> {
-            override fun decode(source: kotlin.String): Int144 = Int144(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int144 = Int144(SolidityBase.decodeInt(source))
         }
     }
 
     class Int152(value: BigInteger) : SolidityBase.Int(value, 152) {
         companion object : SolidityBase.Type.Decoder<Int152> {
-            override fun decode(source: kotlin.String): Int152 = Int152(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int152 = Int152(SolidityBase.decodeInt(source))
         }
     }
 
     class Int160(value: BigInteger) : SolidityBase.Int(value, 160) {
         companion object : SolidityBase.Type.Decoder<Int160> {
-            override fun decode(source: kotlin.String): Int160 = Int160(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int160 = Int160(SolidityBase.decodeInt(source))
         }
     }
 
     class Int168(value: BigInteger) : SolidityBase.Int(value, 168) {
         companion object : SolidityBase.Type.Decoder<Int168> {
-            override fun decode(source: kotlin.String): Int168 = Int168(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int168 = Int168(SolidityBase.decodeInt(source))
         }
     }
 
     class Int176(value: BigInteger) : SolidityBase.Int(value, 176) {
         companion object : SolidityBase.Type.Decoder<Int176> {
-            override fun decode(source: kotlin.String): Int176 = Int176(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int176 = Int176(SolidityBase.decodeInt(source))
         }
     }
 
     class Int184(value: BigInteger) : SolidityBase.Int(value, 184) {
         companion object : SolidityBase.Type.Decoder<Int184> {
-            override fun decode(source: kotlin.String): Int184 = Int184(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int184 = Int184(SolidityBase.decodeInt(source))
         }
     }
 
     class Int192(value: BigInteger) : SolidityBase.Int(value, 192) {
         companion object : SolidityBase.Type.Decoder<Int192> {
-            override fun decode(source: kotlin.String): Int192 = Int192(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int192 = Int192(SolidityBase.decodeInt(source))
         }
     }
 
     class Int200(value: BigInteger) : SolidityBase.Int(value, 200) {
         companion object : SolidityBase.Type.Decoder<Int200> {
-            override fun decode(source: kotlin.String): Int200 = Int200(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int200 = Int200(SolidityBase.decodeInt(source))
         }
     }
 
     class Int208(value: BigInteger) : SolidityBase.Int(value, 208) {
         companion object : SolidityBase.Type.Decoder<Int208> {
-            override fun decode(source: kotlin.String): Int208 = Int208(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int208 = Int208(SolidityBase.decodeInt(source))
         }
     }
 
     class Int216(value: BigInteger) : SolidityBase.Int(value, 216) {
         companion object : SolidityBase.Type.Decoder<Int216> {
-            override fun decode(source: kotlin.String): Int216 = Int216(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int216 = Int216(SolidityBase.decodeInt(source))
         }
     }
 
     class Int224(value: BigInteger) : SolidityBase.Int(value, 224) {
         companion object : SolidityBase.Type.Decoder<Int224> {
-            override fun decode(source: kotlin.String): Int224 = Int224(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int224 = Int224(SolidityBase.decodeInt(source))
         }
     }
 
     class Int232(value: BigInteger) : SolidityBase.Int(value, 232) {
         companion object : SolidityBase.Type.Decoder<Int232> {
-            override fun decode(source: kotlin.String): Int232 = Int232(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int232 = Int232(SolidityBase.decodeInt(source))
         }
     }
 
     class Int240(value: BigInteger) : SolidityBase.Int(value, 240) {
         companion object : SolidityBase.Type.Decoder<Int240> {
-            override fun decode(source: kotlin.String): Int240 = Int240(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int240 = Int240(SolidityBase.decodeInt(source))
         }
     }
 
     class Int248(value: BigInteger) : SolidityBase.Int(value, 248) {
         companion object : SolidityBase.Type.Decoder<Int248> {
-            override fun decode(source: kotlin.String): Int248 = Int248(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int248 = Int248(SolidityBase.decodeInt(source))
         }
     }
 
     class Int256(value: BigInteger) : SolidityBase.Int(value, 256) {
         companion object : SolidityBase.Type.Decoder<Int256> {
-            override fun decode(source: kotlin.String): Int256 = Int256(BigInteger(source, 16))
+            override fun decode(source: kotlin.String): Int256 = Int256(SolidityBase.decodeInt(source))
         }
     }
 
     class Bytes1(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 1) {
         companion object : SolidityBase.Type.Decoder<Bytes1> {
-            override fun decode(source: kotlin.String): Bytes1 = Bytes1(source.substring(0, 1 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes1 = Bytes1(SolidityBase.decodeStaticBytes(source, 1))
         }
     }
 
     class Bytes2(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 2) {
         companion object : SolidityBase.Type.Decoder<Bytes2> {
-            override fun decode(source: kotlin.String): Bytes2 = Bytes2(source.substring(0, 2 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes2 = Bytes2(SolidityBase.decodeStaticBytes(source, 2))
         }
     }
 
     class Bytes3(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 3) {
         companion object : SolidityBase.Type.Decoder<Bytes3> {
-            override fun decode(source: kotlin.String): Bytes3 = Bytes3(source.substring(0, 3 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes3 = Bytes3(SolidityBase.decodeStaticBytes(source, 3))
         }
     }
 
     class Bytes4(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 4) {
         companion object : SolidityBase.Type.Decoder<Bytes4> {
-            override fun decode(source: kotlin.String): Bytes4 = Bytes4(source.substring(0, 4 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes4 = Bytes4(SolidityBase.decodeStaticBytes(source, 4))
         }
     }
 
     class Bytes5(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 5) {
         companion object : SolidityBase.Type.Decoder<Bytes5> {
-            override fun decode(source: kotlin.String): Bytes5 = Bytes5(source.substring(0, 5 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes5 = Bytes5(SolidityBase.decodeStaticBytes(source, 5))
         }
     }
 
     class Bytes6(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 6) {
         companion object : SolidityBase.Type.Decoder<Bytes6> {
-            override fun decode(source: kotlin.String): Bytes6 = Bytes6(source.substring(0, 6 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes6 = Bytes6(SolidityBase.decodeStaticBytes(source, 6))
         }
     }
 
     class Bytes7(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 7) {
         companion object : SolidityBase.Type.Decoder<Bytes7> {
-            override fun decode(source: kotlin.String): Bytes7 = Bytes7(source.substring(0, 7 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes7 = Bytes7(SolidityBase.decodeStaticBytes(source, 7))
         }
     }
 
     class Bytes8(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 8) {
         companion object : SolidityBase.Type.Decoder<Bytes8> {
-            override fun decode(source: kotlin.String): Bytes8 = Bytes8(source.substring(0, 8 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes8 = Bytes8(SolidityBase.decodeStaticBytes(source, 8))
         }
     }
 
     class Bytes9(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 9) {
         companion object : SolidityBase.Type.Decoder<Bytes9> {
-            override fun decode(source: kotlin.String): Bytes9 = Bytes9(source.substring(0, 9 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes9 = Bytes9(SolidityBase.decodeStaticBytes(source, 9))
         }
     }
 
     class Bytes10(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 10) {
         companion object : SolidityBase.Type.Decoder<Bytes10> {
-            override fun decode(source: kotlin.String): Bytes10 = Bytes10(source.substring(0, 10 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes10 = Bytes10(SolidityBase.decodeStaticBytes(source, 10))
         }
     }
 
     class Bytes11(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 11) {
         companion object : SolidityBase.Type.Decoder<Bytes11> {
-            override fun decode(source: kotlin.String): Bytes11 = Bytes11(source.substring(0, 11 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes11 = Bytes11(SolidityBase.decodeStaticBytes(source, 11))
         }
     }
 
     class Bytes12(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 12) {
         companion object : SolidityBase.Type.Decoder<Bytes12> {
-            override fun decode(source: kotlin.String): Bytes12 = Bytes12(source.substring(0, 12 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes12 = Bytes12(SolidityBase.decodeStaticBytes(source, 12))
         }
     }
 
     class Bytes13(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 13) {
         companion object : SolidityBase.Type.Decoder<Bytes13> {
-            override fun decode(source: kotlin.String): Bytes13 = Bytes13(source.substring(0, 13 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes13 = Bytes13(SolidityBase.decodeStaticBytes(source, 13))
         }
     }
 
     class Bytes14(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 14) {
         companion object : SolidityBase.Type.Decoder<Bytes14> {
-            override fun decode(source: kotlin.String): Bytes14 = Bytes14(source.substring(0, 14 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes14 = Bytes14(SolidityBase.decodeStaticBytes(source, 14))
         }
     }
 
     class Bytes15(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 15) {
         companion object : SolidityBase.Type.Decoder<Bytes15> {
-            override fun decode(source: kotlin.String): Bytes15 = Bytes15(source.substring(0, 15 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes15 = Bytes15(SolidityBase.decodeStaticBytes(source, 15))
         }
     }
 
     class Bytes16(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 16) {
         companion object : SolidityBase.Type.Decoder<Bytes16> {
-            override fun decode(source: kotlin.String): Bytes16 = Bytes16(source.substring(0, 16 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes16 = Bytes16(SolidityBase.decodeStaticBytes(source, 16))
         }
     }
 
     class Bytes17(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 17) {
         companion object : SolidityBase.Type.Decoder<Bytes17> {
-            override fun decode(source: kotlin.String): Bytes17 = Bytes17(source.substring(0, 17 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes17 = Bytes17(SolidityBase.decodeStaticBytes(source, 17))
         }
     }
 
     class Bytes18(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 18) {
         companion object : SolidityBase.Type.Decoder<Bytes18> {
-            override fun decode(source: kotlin.String): Bytes18 = Bytes18(source.substring(0, 18 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes18 = Bytes18(SolidityBase.decodeStaticBytes(source, 18))
         }
     }
 
     class Bytes19(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 19) {
         companion object : SolidityBase.Type.Decoder<Bytes19> {
-            override fun decode(source: kotlin.String): Bytes19 = Bytes19(source.substring(0, 19 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes19 = Bytes19(SolidityBase.decodeStaticBytes(source, 19))
         }
     }
 
     class Bytes20(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 20) {
         companion object : SolidityBase.Type.Decoder<Bytes20> {
-            override fun decode(source: kotlin.String): Bytes20 = Bytes20(source.substring(0, 20 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes20 = Bytes20(SolidityBase.decodeStaticBytes(source, 20))
         }
     }
 
     class Bytes21(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 21) {
         companion object : SolidityBase.Type.Decoder<Bytes21> {
-            override fun decode(source: kotlin.String): Bytes21 = Bytes21(source.substring(0, 21 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes21 = Bytes21(SolidityBase.decodeStaticBytes(source, 21))
         }
     }
 
     class Bytes22(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 22) {
         companion object : SolidityBase.Type.Decoder<Bytes22> {
-            override fun decode(source: kotlin.String): Bytes22 = Bytes22(source.substring(0, 22 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes22 = Bytes22(SolidityBase.decodeStaticBytes(source, 22))
         }
     }
 
     class Bytes23(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 23) {
         companion object : SolidityBase.Type.Decoder<Bytes23> {
-            override fun decode(source: kotlin.String): Bytes23 = Bytes23(source.substring(0, 23 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes23 = Bytes23(SolidityBase.decodeStaticBytes(source, 23))
         }
     }
 
     class Bytes24(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 24) {
         companion object : SolidityBase.Type.Decoder<Bytes24> {
-            override fun decode(source: kotlin.String): Bytes24 = Bytes24(source.substring(0, 24 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes24 = Bytes24(SolidityBase.decodeStaticBytes(source, 24))
         }
     }
 
     class Bytes25(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 25) {
         companion object : SolidityBase.Type.Decoder<Bytes25> {
-            override fun decode(source: kotlin.String): Bytes25 = Bytes25(source.substring(0, 25 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes25 = Bytes25(SolidityBase.decodeStaticBytes(source, 25))
         }
     }
 
     class Bytes26(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 26) {
         companion object : SolidityBase.Type.Decoder<Bytes26> {
-            override fun decode(source: kotlin.String): Bytes26 = Bytes26(source.substring(0, 26 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes26 = Bytes26(SolidityBase.decodeStaticBytes(source, 26))
         }
     }
 
     class Bytes27(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 27) {
         companion object : SolidityBase.Type.Decoder<Bytes27> {
-            override fun decode(source: kotlin.String): Bytes27 = Bytes27(source.substring(0, 27 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes27 = Bytes27(SolidityBase.decodeStaticBytes(source, 27))
         }
     }
 
     class Bytes28(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 28) {
         companion object : SolidityBase.Type.Decoder<Bytes28> {
-            override fun decode(source: kotlin.String): Bytes28 = Bytes28(source.substring(0, 28 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes28 = Bytes28(SolidityBase.decodeStaticBytes(source, 28))
         }
     }
 
     class Bytes29(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 29) {
         companion object : SolidityBase.Type.Decoder<Bytes29> {
-            override fun decode(source: kotlin.String): Bytes29 = Bytes29(source.substring(0, 29 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes29 = Bytes29(SolidityBase.decodeStaticBytes(source, 29))
         }
     }
 
     class Bytes30(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 30) {
         companion object : SolidityBase.Type.Decoder<Bytes30> {
-            override fun decode(source: kotlin.String): Bytes30 = Bytes30(source.substring(0, 30 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes30 = Bytes30(SolidityBase.decodeStaticBytes(source, 30))
         }
     }
 
     class Bytes31(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 31) {
         companion object : SolidityBase.Type.Decoder<Bytes31> {
-            override fun decode(source: kotlin.String): Bytes31 = Bytes31(source.substring(0, 31 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes31 = Bytes31(SolidityBase.decodeStaticBytes(source, 31))
         }
     }
 
     class Bytes32(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 32) {
         companion object : SolidityBase.Type.Decoder<Bytes32> {
-            override fun decode(source: kotlin.String): Bytes32 = Bytes32(source.substring(0, 32 * 2).hexToByteArray())
+            override fun decode(source: kotlin.String): Bytes32 = Bytes32(SolidityBase.decodeStaticBytes(source, 32))
         }
     }
 

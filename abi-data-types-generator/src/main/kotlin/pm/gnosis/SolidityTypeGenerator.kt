@@ -107,9 +107,8 @@ private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map {
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
-                            .build())
-            )
+                            .addStatement("return %1L(%2T.decodeUInt(%3L))", name, SolidityBase::class, "source")
+                            .build()))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
             .build()
@@ -178,7 +177,7 @@ private fun generateInts() = (8..256 step 8).map {
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
+                            .addStatement("return %1L(%2T.decodeInt(%3L))", name, SolidityBase::class, "source")
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -193,7 +192,7 @@ private fun generateStaticBytes() = (1..32).map {
             .addSuperclassConstructorParameter("%1L, %2L", "byteArray", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2L.substring(0, %3L * 2).hexToByteArray())", name, "source", it)
+                            .addStatement("return %1N(%2T.decodeStaticBytes(source, $it))", name, SolidityBase::class)
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
