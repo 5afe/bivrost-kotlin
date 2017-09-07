@@ -5,6 +5,7 @@ import pm.gnosis.utils.hexToByteArray
 import pm.gnosis.utils.padStartMultiple
 import pm.gnosis.utils.toHex
 import java.math.BigInteger
+import java.nio.charset.Charset
 import java.util.*
 
 object SolidityBase {
@@ -168,6 +169,9 @@ object SolidityBase {
         val contents = params.subList(1, params.size).joinToString("")
         return contents.substring(0, contentSize).hexToByteArray()
     }
+
+    fun decodeString(data: String) =
+            decodeBytes(data).toString(Charset.forName("UTF-8"))
 
     fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {
         val params = partitionData(data)

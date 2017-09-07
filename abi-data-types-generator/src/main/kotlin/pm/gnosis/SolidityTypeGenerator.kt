@@ -33,6 +33,7 @@ fun generate(path: String, packageName: String) {
     val bool = generateBool()
     val dynamicBytes = generateDynamicBytes()
     val byte = generateByte()
+    val string = generateString()
 
     //Arrays of dynamic types not supported (only static types)
     val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
@@ -56,10 +57,11 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addType(dynamicBytes)
     solidityGeneratedObject.addType(byte)
     solidityGeneratedObject.addType(arrayOfByte)
+    solidityGeneratedObject.addType(string)
 
     //Generate map
     val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address +
-            arrayOfAddress + bool + arrayOfBool + dynamicBytes + byte + arrayOfByte)
+            arrayOfAddress + bool + arrayOfBool + dynamicBytes + byte + arrayOfByte + string)
             .map { it.name?.toLowerCase() to it.name }
             .map {
                 if (it.first!!.startsWith("arrayof")) {
@@ -158,6 +160,17 @@ private fun generateByte(): TypeSpec {
             .build()
 }
 
+private fun generateString(): TypeSpec {
+    val name = "String"
+    val superClass = ClassName.bestGuess("Bytes")
+    return TypeSpec.classBuilder(name)
+            .superclass(superClass)
+            .addSuperclassConstructorParameter("%1L.toByteArray()", "string")
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("string", String::class).build()).build())
+            .build()
+}
+
 private fun generateInts() = (8..256 step 8).map {
     val name = "Int$it"
     TypeSpec.classBuilder(name)
@@ -212,6 +225,7 @@ private fun generateArrayClass(className: ClassName): TypeSpec {
 
 private fun generateDynamicBytes() =
         TypeSpec.classBuilder("Bytes")
+                .addModifiers(KModifier.OPEN)
                 .addSuperinterface(SolidityBase.DynamicType::class)
                 .primaryConstructor(FunSpec.constructorBuilder()
                         .addParameter("bytes", ByteArray::class)
