@@ -32,6 +32,7 @@ fun generate(path: String, packageName: String) {
     val address = generateAddress()
     val bool = generateBool()
     val dynamicBytes = generateDynamicBytes()
+    val byte = generateByte()
 
     //Arrays of dynamic types not supported (only static types)
     val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
@@ -39,6 +40,7 @@ fun generate(path: String, packageName: String) {
     val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
     val arrayOfAddress = generateArrayClass(ClassName("", address.name!!))
     val arrayOfBool = generateArrayClass(ClassName("", bool.name!!))
+    val arrayOfByte = generateArrayClass(ClassName("", byte.name!!))
 
     //Add types to object
     solidityGeneratedObject.addTypes(uInts)
@@ -52,10 +54,12 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addType(bool)
     solidityGeneratedObject.addType(arrayOfBool)
     solidityGeneratedObject.addType(dynamicBytes)
+    solidityGeneratedObject.addType(byte)
+    solidityGeneratedObject.addType(arrayOfByte)
 
     //Generate map
     val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address +
-            arrayOfAddress + bool + arrayOfBool + dynamicBytes)
+            arrayOfAddress + bool + arrayOfBool + dynamicBytes + byte + arrayOfByte)
             .map { it.name?.toLowerCase() to it.name }
             .map {
                 if (it.first!!.startsWith("arrayof")) {
@@ -136,6 +140,21 @@ private fun generateBool(): TypeSpec {
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", Boolean::class).build()).build())
+            .build()
+}
+
+private fun generateByte(): TypeSpec {
+    val name = "Byte"
+    return TypeSpec.classBuilder(name)
+            .superclass(SolidityBase.StaticBytes::class)
+            .addSuperclassConstructorParameter("%1L, %2L", "byteArray", "1")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T.decodeStaticBytes(source, 1))", name, SolidityBase::class)
+                            .build())
+            )
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("byteArray", ByteArray::class).build()).build())
             .build()
 }
 

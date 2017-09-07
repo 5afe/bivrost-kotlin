@@ -213,7 +213,9 @@ object Solidity {
       "address[]" to "pm.gnosis.model.Solidity.ArrayOfAddress",
       "bool" to "pm.gnosis.model.Solidity.Bool",
       "bool[]" to "pm.gnosis.model.Solidity.ArrayOfBool",
-      "bytes" to "pm.gnosis.model.Solidity.Bytes")
+      "bytes" to "pm.gnosis.model.Solidity.Bytes",
+      "byte" to "pm.gnosis.model.Solidity.Byte",
+      "byte[]" to "pm.gnosis.model.Solidity.ArrayOfByte")
 
   class UInt8(value: BigInteger) : SolidityBase.UInt(value, 8) {
     companion object : SolidityBase.Type.Decoder<UInt8> {
@@ -1895,6 +1897,23 @@ object Solidity {
       val length = bytes.size.toString(16).padStart(64, '0')
       val contents = bytes.toHex().padEndMultiple(64, '0')
       return SolidityBase.DynamicType.Parts(length, contents)
+    }
+  }
+
+  class Byte(byteArray: ByteArray) : SolidityBase.StaticBytes(byteArray, 1) {
+    companion object : SolidityBase.Type.Decoder<Byte> {
+      override fun decode(source: String): Byte = Byte(SolidityBase.decodeStaticBytes(source, 1))
+    }
+  }
+
+  class ArrayOfByte(items: List<Byte>) : pm.gnosis.model.SolidityBase.ArrayOfStatic<Byte>(items) {
+    companion object : SolidityBase.Type.Decoder<ArrayOfByte> {
+      override fun decode(source: String): ArrayOfByte {
+        val partitions = SolidityBase.partitionData(source)
+        val contentSize = BigDecimal(partitions[0]).intValueExact() * 2
+        if (contentSize == 0) return ArrayOfByte(ArrayList())
+        return ArrayOfByte((1 until partitions.size).map { Byte.decode(partitions[it]) }.toList())
+      }
     }
   }
 }
