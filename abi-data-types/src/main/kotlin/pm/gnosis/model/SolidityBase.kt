@@ -29,7 +29,7 @@ object SolidityBase {
         fun encodeParts(): Parts
     }
 
-    open class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
+    abstract class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
             when {
                 bitLength % 8 != 0 -> throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
@@ -44,7 +44,7 @@ object SolidityBase {
         }
     }
 
-    open class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
+    abstract class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0) throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
@@ -64,7 +64,7 @@ object SolidityBase {
         }
     }
 
-    open class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
+    abstract class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
         init {
             if (byteArray.size > nBytes) throw IllegalArgumentException("Byte array has ${byteArray.size} bytes. It should have no more than $nBytes bytes.")
         }
@@ -78,7 +78,7 @@ object SolidityBase {
     // A work around could be receiving the size of the array as a BigInteger and the items
     // as a List (no theoretical limit but the size of the list can be at max Integer.MAX_VALUE)
     // Another solution can be receiving Collections up to Integer.MAX_VALUE and then merge them here
-    open class ArrayOfStatic<T : StaticType>(private val items: List<T>) : DynamicType {
+    abstract class ArrayOfStatic<T : StaticType>(private val items: List<T>) : DynamicType {
 
         constructor(vararg items: T) : this(items.toList())
 
@@ -97,6 +97,7 @@ object SolidityBase {
         }
     }
 
+    @Suppress("unused")
     fun encodeFunctionArguments(vararg args: Type): String {
         val sizeOfStaticBlock = args.size * BYTES_PAD
         val staticArgsBuilder = StringBuilder()
@@ -117,7 +118,7 @@ object SolidityBase {
         return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
     }
 
-    fun partitionData(data: String): List<String> {
+    private fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
         if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of ${PADDED_HEX_LENGTH}")
         val properties = arrayListOf<String>()
