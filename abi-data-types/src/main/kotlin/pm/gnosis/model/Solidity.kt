@@ -6,7 +6,6 @@ import kotlin.Boolean
 import kotlin.ByteArray
 import kotlin.collections.List
 import kotlin.collections.Map
-import pm.gnosis.utils.hexToByteArray
 import pm.gnosis.utils.padEndMultiple
 import pm.gnosis.utils.toHex
 
@@ -1406,6 +1405,9 @@ object Solidity {
             val length = bytes.size.toString(16).padStart(64, '0')
             val contents = bytes.toHex().padEndMultiple(64, '0')
             return SolidityBase.DynamicType.Parts(length, contents)
+        }
+        companion object : SolidityBase.Type.Decoder<Bytes> {
+            override fun decode(source: kotlin.String): Bytes = Bytes(SolidityBase.decodeBytes(source))
         }
     }
 

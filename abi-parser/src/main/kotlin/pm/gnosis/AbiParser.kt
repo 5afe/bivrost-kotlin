@@ -7,7 +7,6 @@ import pm.gnosis.utils.generateSolidityMethodId
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.reflect.KClass
 
 class AbiParser {
     companion object {
@@ -76,7 +75,7 @@ class AbiParser {
                 val typeName = ClassName("", dataClass.name!!)
                 funSpecBuilder.returns(typeName)
 
-                funSpecBuilder.addStatement("val ${DECODER_VAR_PARTITIONS_NAME} = %1T.partitionData(${DECODER_FUN_ARG_NAME})", SolidityBase::class)
+                funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
 
                 //Generate decodings
                 val locationArgs = ArrayList<Pair<String, String>>()
@@ -99,16 +98,10 @@ class AbiParser {
 
             function.outputs.forEachIndexed { index, output ->
                 val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
-                val abiRawType = solidityRawType(output.type)
-                if (isSolidityArray(output.type)) {
-                    val kotlinType = solidityToKotlin[abiRawType]
-                    val parameterizedTypeName = ParameterizedTypeName.get(List::class, kotlinType!!)
-                    returnContainerConstructor.addParameter(name, parameterizedTypeName)
-                    returnContainerBuilder.addProperty(PropertySpec.builder(name, parameterizedTypeName).initializer(name).build())
-                } else {
-                    returnContainerConstructor.addParameter(name, solidityToKotlin[abiRawType]!!)
-                    returnContainerBuilder.addProperty(PropertySpec.builder(name, solidityToKotlin[abiRawType]!!).initializer(name).build())
-                }
+                val className = ClassName.bestGuess(Solidity.map[output.type]!!)
+                returnContainerConstructor.addParameter(name, className)
+                returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
+
             }
 
             return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
@@ -118,17 +111,12 @@ class AbiParser {
             function.addStatement("")
             function.addComment("Decode arguments")
             outputs.forEachIndexed { index, outputJson ->
-                val abiRawType = solidityRawType(outputJson.type)
+                val className = ClassName.bestGuess(Solidity.map[outputJson.type]!!)
                 when {
-                    abiRawType == "bytes" && isSolidityStaticType(outputJson.type) -> {
-                        Regex(pattern = "[0-9]+").find(outputJson.type)?.value.let { nBytes ->
-                            function.addStatement("val ${DECODER_VAR_ARG_PREFIX}$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}(${DECODER_VAR_PARTITIONS_NAME}[$index], $nBytes)", SolidityBase::class)
-                        }
-                    }
-                    isSolidityStaticType(outputJson.type) -> function.addStatement("val ${DECODER_VAR_ARG_PREFIX}$index = %1T.${solidityStaticTypeToDecoder[abiRawType]}(${DECODER_VAR_PARTITIONS_NAME}[$index])", SolidityBase::class)
+                    isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.decode($DECODER_VAR_PARTITIONS_NAME[$index])", className)
                     else -> {
-                        locationArgs.add("${DECODER_VAR_LOCATION_ARG_PREFIX}$index" to outputJson.type)
-                        function.addStatement("val ${DECODER_VAR_LOCATION_ARG_PREFIX}$index = %1T(${DECODER_VAR_PARTITIONS_NAME}[$index], 16)", BigInteger::class)
+                        locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
+                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
                     }
                 }
             }
@@ -137,41 +125,13 @@ class AbiParser {
         private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, String>>, function: FunSpec.Builder) {
             (0 until locationArgs.size).forEach {
                 val locationReference = locationArgs[it].first
-                val type = locationArgs[it].second
+                val className = ClassName.bestGuess(Solidity.map[locationArgs[it].second]!!)
                 val dynamicValName = locationReference.removePrefix("location").decapitalize()
                 val upperLimit = if (it == locationArgs.size - 1) "data.length" else "%2T(${locationArgs[it + 1].first}).intValueExact() * 2)"
-                if (isSolidityBytes(type)) {
-                    function.addStatement("val $dynamicValName = %1T.decodeBytes(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit))", SolidityBase::class, BigDecimal::class)
-                } else if (isSolidityArray(type)) {
-                    val abiRawType = solidityRawType(type)
-                    if (abiRawType == "bytes") {
-                        Regex(pattern = "[0-9]+").find(type)?.value.let { nBytes ->
-                            function.addStatement("val $dynamicValName = %1T.decodeArrayStaticBytes(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit), $nBytes, %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class, BigDecimal::class)
-                        }
-                    } else {
-                        function.addStatement("val $dynamicValName = %1T.decodeArray(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit), %1T::${solidityStaticTypeToDecoder[abiRawType]})", SolidityBase::class, BigDecimal::class)
-                    }
-                }
+
+                function.addStatement("val $dynamicValName = %1T.decode(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit))", className, BigDecimal::class)
             }
         }
-
-        private fun solidityRawType(type: String) = type.replace(Regex(pattern = "[^A-Za-z]+"), "")
-
-        private val solidityStaticTypeToDecoder = mapOf(
-                "uint" to "decodeUInt",
-                "int" to "decodeInt",
-                "address" to "decodeUInt",
-                "bool" to "decodeBool",
-                "bytes" to "decodeStaticBytes"
-        )
-
-        private val solidityToKotlin = mapOf<String, KClass<*>>(
-                "uint" to BigInteger::class,
-                "int" to BigInteger::class,
-                "address" to BigInteger::class,
-                "bool" to Boolean::class,
-                "bytes" to ByteArray::class
-        )
 
         private fun isSolidityStaticType(type: String) = !isSolidityDynamicType(type)
 
@@ -182,6 +142,5 @@ class AbiParser {
         private fun isSolidityArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
 
         private fun isSolidityString(type: String) = type == "string"
-
     }
 }
