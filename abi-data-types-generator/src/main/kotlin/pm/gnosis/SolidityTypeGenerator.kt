@@ -5,7 +5,6 @@ package pm.gnosis
 import com.squareup.kotlinpoet.*
 import pm.gnosis.model.SolidityBase
 import java.io.File
-import java.math.BigDecimal
 import java.math.BigInteger
 
 fun main(vararg args: String) {
@@ -17,12 +16,13 @@ fun main(vararg args: String) {
 
 fun generate(path: String, packageName: String) {
     val fileName = "Solidity"
+    val indentation = "    "
 
     val modelPackageName = "$packageName.model"
     val kotlinFile = KotlinFile.builder(modelPackageName, fileName)
     val solidityGeneratedObject = TypeSpec.objectBuilder(fileName)
 
-    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex", "hexToByteArray")
+    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
     solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
 
     //Generate types
@@ -32,6 +32,8 @@ fun generate(path: String, packageName: String) {
     val address = generateAddress()
     val bool = generateBool()
     val dynamicBytes = generateDynamicBytes()
+    val byte = generateByte()
+    val string = generateString()
 
     //Arrays of dynamic types not supported (only static types)
     val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
@@ -39,6 +41,7 @@ fun generate(path: String, packageName: String) {
     val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
     val arrayOfAddress = generateArrayClass(ClassName("", address.name!!))
     val arrayOfBool = generateArrayClass(ClassName("", bool.name!!))
+    val arrayOfByte = generateArrayClass(ClassName("", byte.name!!))
 
     //Add types to object
     solidityGeneratedObject.addTypes(uInts)
@@ -52,10 +55,13 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addType(bool)
     solidityGeneratedObject.addType(arrayOfBool)
     solidityGeneratedObject.addType(dynamicBytes)
+    solidityGeneratedObject.addType(byte)
+    solidityGeneratedObject.addType(arrayOfByte)
+    solidityGeneratedObject.addType(string)
 
     //Generate map
     val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address +
-            arrayOfAddress + bool + arrayOfBool + dynamicBytes)
+            arrayOfAddress + bool + arrayOfBool + dynamicBytes + byte + arrayOfByte + string)
             .map { it.name?.toLowerCase() to it.name }
             .map {
                 if (it.first!!.startsWith("arrayof")) {
@@ -74,7 +80,7 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
     //Write object file
-    kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
+    kotlinFile.indent(indentation).addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
 private fun generateDecoderCompanion(name: String, decodeCode: CodeBlock): TypeSpec {
@@ -101,11 +107,13 @@ private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map {
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
-                            .build())
-            )
+                            .addStatement("return %1L(%2T.decodeUInt(%3L))", name, SolidityBase::class, "source")
+                            .build()))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .addProperty(PropertySpec.builder("value", BigInteger::class)
+                    .initializer("value")
+                    .build())
             .build()
 }.toList()
 
@@ -121,6 +129,9 @@ private fun generateAddress(): TypeSpec {
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .addProperty(PropertySpec.builder("value", BigInteger::class)
+                    .initializer("value")
+                    .build())
             .build()
 }
 
@@ -136,6 +147,41 @@ private fun generateBool(): TypeSpec {
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", Boolean::class).build()).build())
+            .addProperty(PropertySpec.builder("value", Boolean::class)
+                    .initializer("value")
+                    .build())
+            .build()
+}
+
+private fun generateByte(): TypeSpec {
+    val name = "Byte"
+    return TypeSpec.classBuilder(name)
+            .superclass(SolidityBase.StaticBytes::class)
+            .addSuperclassConstructorParameter("%1L, %2L", "value", "1")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T.decodeStaticBytes(source, 1))", name, SolidityBase::class)
+                            .build())
+            )
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", ByteArray::class).build()).build())
+            .addProperty(PropertySpec.builder("value", ByteArray::class)
+                    .initializer("value")
+                    .build())
+            .build()
+}
+
+private fun generateString(): TypeSpec {
+    val name = "String"
+    val superClass = ClassName.bestGuess("Bytes")
+    return TypeSpec.classBuilder(name)
+            .superclass(superClass)
+            .addSuperclassConstructorParameter("%1L.toByteArray()", "value")
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", String::class).build()).build())
+            .addProperty(PropertySpec.builder("value", String::class)
+                    .initializer("value")
+                    .build())
             .build()
 }
 
@@ -146,11 +192,14 @@ private fun generateInts() = (8..256 step 8).map {
             .addSuperclassConstructorParameter("%1L, %2L", "value", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
+                            .addStatement("return %1N(%2T.decodeInt(%3L))", name, SolidityBase::class, "source")
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .addProperty(PropertySpec.builder("value", BigInteger::class)
+                    .initializer("value")
+                    .build())
             .build()
 }.toList()
 
@@ -158,14 +207,17 @@ private fun generateStaticBytes() = (1..32).map {
     val name = "Bytes$it"
     TypeSpec.classBuilder(name)
             .superclass(SolidityBase.StaticBytes::class)
-            .addSuperclassConstructorParameter("%1L, %2L", "byteArray", it)
+            .addSuperclassConstructorParameter("%1L, %2L", "bytes", it)
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2L.substring(0, %3L * 2).hexToByteArray())", name, "source", it)
+                            .addStatement("return %1N(%2T.decodeStaticBytes(source, $it))", name, SolidityBase::class)
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("byteArray", ByteArray::class).build()).build())
+                    ParameterSpec.builder("bytes", ByteArray::class).build()).build())
+            .addProperty(PropertySpec.builder("bytes", ByteArray::class)
+                    .initializer("bytes")
+                    .build())
             .build()
 }.toList()
 
@@ -180,43 +232,49 @@ private fun generateArrayClass(className: ClassName): TypeSpec {
             .addSuperclassConstructorParameter("items")
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("val partitions = %1T.partitionData(%2L)", SolidityBase::class, "source")
-                            .addStatement("val contentSize = %1T(partitions[0]).intValueExact() * 2", BigDecimal::class)
-                            .addStatement("if (contentSize == 0) return %1L(ArrayList())", name)
-                            .addStatement("return %1L((1 until partitions.size).map { %2L.decode(partitions[it]) }.toList())", name, entryTypeName)
+                            .addStatement("return $name(SolidityBase.decodeArray(source, $entryTypeName.Companion::decode))")
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("items", listEntryTypeName).build()).build())
+            .addProperty(PropertySpec.builder("items", listEntryTypeName)
+                    .initializer("items")
+                    .build())
             .build()
 }
 
-private fun generateDynamicBytes() =
-        TypeSpec.classBuilder("Bytes")
-                .addSuperinterface(SolidityBase.DynamicType::class)
-                .primaryConstructor(FunSpec.constructorBuilder()
-                        .addParameter("bytes", ByteArray::class)
-                        .build())
-                .addProperty(PropertySpec.builder("bytes", ByteArray::class).initializer("bytes").build())
-                .addInitializerBlock(CodeBlock.builder()
-                        .addStatement("if (%1T(bytes.size.toString(10)) > %1T.valueOf(2).pow(256)) throw %2T()", BigInteger::class, Exception::class)
-                        .build())
-                .addFun(FunSpec.builder("encode")
-                        .addModifiers(KModifier.OVERRIDE)
-                        .returns(String::class)
-                        .addCode(CodeBlock.builder()
-                                .addStatement("val parts = encodeParts()")
-                                .addStatement("return parts.static + parts.dynamic")
-                                .build())
-                        .build())
-                .addFun(FunSpec.builder("encodeParts")
-                        .addModifiers(KModifier.OVERRIDE)
-                        .returns(SolidityBase.DynamicType.Parts::class)
-                        .addCode(CodeBlock.builder()
-                                .addStatement("val length = bytes.size.toString(16).padStart(64, '0')")
-                                .addStatement("val contents = bytes.toHex().padEndMultiple(64, '0')")
-                                .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
-                                .build())
-                        .build())
-                .build()
-
+private fun generateDynamicBytes(): TypeSpec {
+    val name = "Bytes"
+    return TypeSpec.classBuilder(name)
+            .addModifiers(KModifier.OPEN)
+            .addSuperinterface(SolidityBase.DynamicType::class)
+            .primaryConstructor(FunSpec.constructorBuilder()
+                    .addParameter("items", ByteArray::class)
+                    .build())
+            .addProperty(PropertySpec.builder("items", ByteArray::class).initializer("items").build())
+            .addInitializerBlock(CodeBlock.builder()
+                    .addStatement("if (%1T(items.size.toString(10)) > %1T.valueOf(2).pow(256)) throw %2T()", BigInteger::class, Exception::class)
+                    .build())
+            .addFun(FunSpec.builder("encode")
+                    .addModifiers(KModifier.OVERRIDE)
+                    .returns(String::class)
+                    .addCode(CodeBlock.builder()
+                            .addStatement("val parts = encodeParts()")
+                            .addStatement("return parts.static + parts.dynamic")
+                            .build())
+                    .build())
+            .addFun(FunSpec.builder("encodeParts")
+                    .addModifiers(KModifier.OVERRIDE)
+                    .returns(SolidityBase.DynamicType.Parts::class)
+                    .addCode(CodeBlock.builder()
+                            .addStatement("val length = items.size.toString(16).padStart(64, '0')")
+                            .addStatement("val contents = items.toHex().padEndMultiple(64, '0')")
+                            .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
+                            .build())
+                    .build())
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T.decodeBytes(source))", name, SolidityBase::class)
+                            .build()))
+            .build()
+}
