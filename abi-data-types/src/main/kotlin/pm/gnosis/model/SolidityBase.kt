@@ -179,11 +179,4 @@ object SolidityBase {
         if (contentSize == 0) return emptyList()
         return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
     }
-
-    fun decodeArrayStaticBytes(data: String, nBytes: kotlin.Int, itemDecoder: (String, kotlin.Int) -> ByteArray): List<ByteArray> {
-        val params = partitionData(data)
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
-        if (contentSize == 0) return emptyList()
-        return (1 until params.size).map { itemDecoder.invoke(params[it], nBytes) }.toList()
-    }
 }

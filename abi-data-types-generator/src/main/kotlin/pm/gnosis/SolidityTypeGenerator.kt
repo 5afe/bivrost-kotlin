@@ -5,7 +5,6 @@ package pm.gnosis
 import com.squareup.kotlinpoet.*
 import pm.gnosis.model.SolidityBase
 import java.io.File
-import java.math.BigDecimal
 import java.math.BigInteger
 
 fun main(vararg args: String) {
@@ -17,6 +16,7 @@ fun main(vararg args: String) {
 
 fun generate(path: String, packageName: String) {
     val fileName = "Solidity"
+    val indentation = "    "
 
     val modelPackageName = "$packageName.model"
     val kotlinFile = KotlinFile.builder(modelPackageName, fileName)
@@ -80,7 +80,7 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
     //Write object file
-    kotlinFile.addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
+    kotlinFile.indent(indentation).addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
 private fun generateDecoderCompanion(name: String, decodeCode: CodeBlock): TypeSpec {
@@ -212,10 +212,7 @@ private fun generateArrayClass(className: ClassName): TypeSpec {
             .addSuperclassConstructorParameter("items")
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
-                            .addStatement("val partitions = %1T.partitionData(%2L)", SolidityBase::class, "source")
-                            .addStatement("val contentSize = %1T(partitions[0]).intValueExact() * 2", BigDecimal::class)
-                            .addStatement("if (contentSize == 0) return %1L(ArrayList())", name)
-                            .addStatement("return %1L((1 until partitions.size).map { %2L.decode(partitions[it]) }.toList())", name, entryTypeName)
+                            .addStatement("return $name(SolidityBase.decodeArray(source, $entryTypeName.Companion::decode))")
                             .build())
             )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
