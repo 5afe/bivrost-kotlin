@@ -1423,5 +1423,9 @@ object Solidity {
         }
     }
 
-    class String(val value: kotlin.String) : Bytes(value.toByteArray())
+    class String(val value: kotlin.String) : Bytes(value.toByteArray()) {
+        companion object : SolidityBase.Type.Decoder<String> {
+            override fun decode(source: kotlin.String): String = String(SolidityBase.decodeString(source))
+        }
+    }
 }
