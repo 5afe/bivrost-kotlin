@@ -246,6 +246,12 @@ class SolidityBaseTest {
                 Solidity.String("Hello, world!").encode())
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun testMalformedArraySizeDecoding() {
+        assertEquals(listOf(BigInteger("456", 16), BigInteger("789", 16)),
+                SolidityBase.decodeArray("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789", SolidityBase::decodeUInt))
+    }
+
     private fun formatClassName(clazz: String): String {
         val index = clazz.lastIndexOf(".")
         return clazz.replaceRange(index, index + 1, "$")

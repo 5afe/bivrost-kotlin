@@ -4,6 +4,7 @@ import pm.gnosis.exceptions.InvalidBitLengthException
 import pm.gnosis.utils.hexToByteArray
 import pm.gnosis.utils.padStartMultiple
 import pm.gnosis.utils.toHex
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
 import java.util.*
@@ -166,7 +167,7 @@ object SolidityBase {
 
     fun decodeBytes(data: String): ByteArray {
         val params = partitionData(data)
-        val contentSize = BigInteger(params[0], 16).intValueExact() * 2
+        val contentSize = BigDecimal(BigInteger(params[0], 16)).intValueExact() * 2
         if (contentSize == 0) return kotlin.ByteArray(0)
         val contents = params.subList(1, params.size).joinToString("")
         return contents.substring(0, contentSize).hexToByteArray()
@@ -177,7 +178,8 @@ object SolidityBase {
 
     fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {
         val params = partitionData(data)
-        val contentSize = BigInteger(params[0]).intValueExact() * 2
+        val contentSize = BigDecimal(BigInteger(params[0])).intValueExact()
+        if (contentSize != params.size - 1) throw IllegalArgumentException("Number of items is different from the actual array size")
         if (contentSize == 0) return emptyList()
         return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
     }

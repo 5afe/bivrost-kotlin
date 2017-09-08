@@ -127,7 +127,7 @@ class AbiParser {
                 val locationReference = locationArgs[it].first
                 val className = ClassName.bestGuess(Solidity.map[locationArgs[it].second]!!)
                 val dynamicValName = locationReference.removePrefix("location").decapitalize()
-                val upperLimit = if (it == locationArgs.size - 1) "data.length" else "%2T(${locationArgs[it + 1].first}).intValueExact() * 2)"
+                val upperLimit = if (it == locationArgs.size - 1) "data.length" else "%2T(${locationArgs[it + 1].first}).intValueExact() * 2"
 
                 function.addStatement("val $dynamicValName = %1T.decode(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit))", className, BigDecimal::class)
             }
