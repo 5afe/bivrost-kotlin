@@ -177,6 +177,11 @@ private fun generateString(): TypeSpec {
     return TypeSpec.classBuilder(name)
             .superclass(superClass)
             .addSuperclassConstructorParameter("%1L.toByteArray()", "value")
+            .companionObject(generateDecoderCompanion(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T.decodeString(%3L))", name, SolidityBase::class, "source")
+                            .build())
+            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", String::class).build()).build())
             .addProperty(PropertySpec.builder("value", String::class)
