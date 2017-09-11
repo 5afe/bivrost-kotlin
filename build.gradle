@@ -6,7 +6,7 @@ buildscript {
 
             'kotlin'       : '1.1.4-3',
 
-            'androidPlugin': '3.0.0-beta4',
+            'androidPlugin': '3.0.0-beta5',
     ]
 
     ext.deps = [

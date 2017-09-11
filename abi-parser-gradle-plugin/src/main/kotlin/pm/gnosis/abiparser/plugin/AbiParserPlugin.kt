@@ -62,7 +62,7 @@ class AbiParserPlugin : Plugin<Project> {
                         doLast {
                             abiFolder.listFiles().forEach {
                                 println("Generating wrapper for <$it>")
-                                AbiParser.generateWrapper("com.example.abiparser", it.readText(), outputDir)
+                                AbiParser.generateWrapper(variant.applicationId, it.readText(), outputDir)
                             }
 
                         }
