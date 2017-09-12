@@ -25,10 +25,12 @@ class AbiParser {
 
             val companionWithEncoder = generateEncoder(abiRoot)
             val decoder = generateDecoder(abiRoot)
+            val functionCallDecoder = generateFunctionCallDecoder(abiRoot)
 
             kotlinClass.addType(companionWithEncoder.first)
             kotlinClass.addType(companionWithEncoder.second)
             kotlinClass.addType(decoder)
+            kotlinClass.addType(functionCallDecoder)
             val build = kotlinFile.addType(kotlinClass.build()).build()
             output.mkdirs()
             build.writeTo(output)
@@ -62,6 +64,34 @@ class AbiParser {
             }
 
             return companionObject.build() to encoderObject.build()
+        }
+
+        private fun generateFunctionCallDecoder(abiRoot: AbiRoot): TypeSpec {
+            val decoderObject = TypeSpec.objectBuilder("FunctionCallDecoder")
+
+            abiRoot.abi.filter { it.type == "function" }.filter { it.inputs.isNotEmpty() }.forEach { function ->
+                val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}Call").addParameter(DECODER_FUN_ARG_NAME, String::class)
+                val dataClass = generateDataClassFunctionCall(function)
+
+                //Set function return
+                val typeName = ClassName("", dataClass.name!!)
+                funSpecBuilder.returns(typeName)
+
+                funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
+
+                //Generate decodings
+                val locationArgs = ArrayList<Pair<String, String>>()
+                generateStaticArgDecoding(function.inputs, funSpecBuilder, locationArgs)
+                generateDynamicArgDecoding(locationArgs, funSpecBuilder)
+
+                funSpecBuilder.addStatement("")
+                funSpecBuilder.addStatement("return ${dataClass.name}(${(0 until function.inputs.size).joinToString(", ") { "arg$it" }})")
+
+                decoderObject.addType(dataClass)
+                decoderObject.addFun(funSpecBuilder.build())
+            }
+
+            return decoderObject.build()
         }
 
         private fun generateDecoder(abiRoot: AbiRoot): TypeSpec {
@@ -101,16 +131,29 @@ class AbiParser {
                 val className = ClassName.bestGuess(Solidity.map[output.type]!!)
                 returnContainerConstructor.addParameter(name, className)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
-
             }
 
             return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
         }
 
-        private fun generateStaticArgDecoding(outputs: List<OutputJson>, function: FunSpec.Builder, locationArgs: MutableCollection<Pair<String, String>>) {
+        private fun generateDataClassFunctionCall(function: AbiElementJson): TypeSpec {
+            val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Call").addModifiers(KModifier.DATA)
+            val returnContainerConstructor = FunSpec.constructorBuilder()
+
+            function.inputs.forEachIndexed { index, output ->
+                val name = if (output.name.isEmpty()) "input$index" else output.name.toLowerCase()
+                val className = ClassName.bestGuess(Solidity.map[output.type]!!)
+                returnContainerConstructor.addParameter(name, className)
+                returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
+            }
+
+            return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
+        }
+
+        private fun generateStaticArgDecoding(parameters: List<ParameterJson>, function: FunSpec.Builder, locationArgs: MutableCollection<Pair<String, String>>) {
             function.addStatement("")
             function.addComment("Decode arguments")
-            outputs.forEachIndexed { index, outputJson ->
+            parameters.forEachIndexed { index, outputJson ->
                 val className = ClassName.bestGuess(Solidity.map[outputJson.type]!!)
                 when {
                     isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.decode($DECODER_VAR_PARTITIONS_NAME[$index])", className)
