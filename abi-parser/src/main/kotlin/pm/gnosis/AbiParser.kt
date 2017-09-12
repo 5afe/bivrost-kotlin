@@ -14,6 +14,7 @@ class AbiParser {
         private const val DECODER_VAR_PARTITIONS_NAME = "partitions"
         private const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
         private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
+        private const val INDENTATION = "    "
 
         fun generateWrapper(packageName: String, abi: String, output: File) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -23,126 +24,81 @@ class AbiParser {
             val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
             val kotlinFile = KotlinFile.builder(packageName, abiRoot.contractName)
 
-            val companionWithEncoder = generateEncoder(abiRoot)
-            val decoder = generateDecoder(abiRoot)
-            val functionCallDecoder = generateFunctionCallDecoder(abiRoot)
-
-            kotlinClass.addType(companionWithEncoder.first)
-            kotlinClass.addType(companionWithEncoder.second)
-            kotlinClass.addType(decoder)
-            kotlinClass.addType(functionCallDecoder)
-            val build = kotlinFile.addType(kotlinClass.build()).build()
+            kotlinClass.addTypes(generateFunctionObjects(abiRoot))
+            val build = kotlinFile.addType(kotlinClass.build()).indent(INDENTATION).build()
             output.mkdirs()
             build.writeTo(output)
         }
 
+        private fun generateFunctionObjects(abiRoot: AbiRoot) =
+                abiRoot.abi.filter { it.type == "function" }.map { functionJson ->
+                    val functionObject = TypeSpec.objectBuilder(functionJson.name.capitalize())
 
-        private fun generateEncoder(abiRoot: AbiRoot): Pair<TypeSpec, TypeSpec> {
-            val companionObject = TypeSpec.companionObjectBuilder()
-            val encoderObject = TypeSpec.objectBuilder("Encoder")
-
-            abiRoot.abi.filter { it.type == "function" }.forEach { function ->
-                val funSpec = FunSpec.builder(function.name)
-                function.inputs.forEachIndexed { index, parameter ->
-                    val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                    Solidity.map[parameter.type]?.let {
-                        funSpec.addParameter(name, ClassName.bestGuess(it))
+                    //Add method id
+                    val methodId = "${functionJson.name}(${functionJson.inputs.joinToString(",") { it.type }})".generateSolidityMethodId()
+                    functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
+                    functionObject.addFun(generateFunctionEncoder(functionJson))
+                    if (functionJson.outputs.isNotEmpty()) {
+                        val returnHolder = generateParameterHolder("Return", functionJson.outputs)
+                        functionObject.addFun(generateParameterDecoder("decode", functionJson.outputs, returnHolder.name!!))
+                        functionObject.addType(returnHolder)
                     }
+
+                    if (functionJson.inputs.isNotEmpty()) {
+                        val argumentsHolder = generateParameterHolder("Arguments", functionJson.inputs)
+                        functionObject.addFun(generateParameterDecoder("decodeArguments", functionJson.inputs, argumentsHolder.name!!))
+                        functionObject.addType(argumentsHolder)
+                    }
+
+                    functionObject.build()
+                }.toList()
+
+
+        private fun generateFunctionEncoder(functionJson: AbiElementJson): FunSpec {
+            val funSpec = FunSpec.builder("encode")
+            functionJson.inputs.forEachIndexed { index, parameter ->
+                val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
+                Solidity.map[parameter.type]?.let {
+                    funSpec.addParameter(name, ClassName.bestGuess(it))
                 }
-
-                val funWithParams = funSpec.build()
-                val finalFun = funWithParams.toBuilder().returns(String::class)
-                val methodId = "${function.name}(${function.inputs.joinToString(",") { it.type }})".generateSolidityMethodId()
-                val constName = "${function.name.toUpperCase()}_METHOD_ID"
-                companionObject.addProperty(PropertySpec.builder(constName, String::class, KModifier.CONST).initializer("\"$methodId\"").build())
-                finalFun.addStatement("return \"0x\" + ${constName +
-                        if (funWithParams.parameters.isNotEmpty()) {
-                            " + pm.gnosis.model.SolidityBase.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
-                        } else ""}")
-
-                encoderObject.addFun(finalFun.build())
             }
 
-            return companionObject.build() to encoderObject.build()
+            val funWithParams = funSpec.build()
+            val finalFun = funWithParams.toBuilder().returns(String::class)
+            finalFun.addStatement("return \"0x\" + METHOD_ID${if (funWithParams.parameters.isNotEmpty()) {
+                " + pm.gnosis.model.SolidityBase.encodeFunctionArguments(${funWithParams.parameters.joinToString { it.name }})"
+            } else ""}")
+
+            return finalFun.build()
         }
 
-        private fun generateFunctionCallDecoder(abiRoot: AbiRoot): TypeSpec {
-            val decoderObject = TypeSpec.objectBuilder("FunctionCallDecoder")
+        private fun generateParameterDecoder(functionName: String, parameters: List<ParameterJson>, dataClassName: String): FunSpec {
+            val funSpecBuilder = FunSpec.builder(functionName).addParameter(DECODER_FUN_ARG_NAME, String::class)
 
-            abiRoot.abi.filter { it.type == "function" }.filter { it.inputs.isNotEmpty() }.forEach { function ->
-                val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}Call").addParameter(DECODER_FUN_ARG_NAME, String::class)
-                val dataClass = generateDataClassFunctionCall(function)
+            //Set function return
+            val typeName = ClassName("", dataClassName)
+            funSpecBuilder.returns(typeName)
 
-                //Set function return
-                val typeName = ClassName("", dataClass.name!!)
-                funSpecBuilder.returns(typeName)
+            funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
 
-                funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
+            //Generate decodings
+            val locationArgs = ArrayList<Pair<String, String>>()
+            generateStaticArgDecoding(parameters, funSpecBuilder, locationArgs)
+            generateDynamicArgDecoding(locationArgs, funSpecBuilder)
 
-                //Generate decodings
-                val locationArgs = ArrayList<Pair<String, String>>()
-                generateStaticArgDecoding(function.inputs, funSpecBuilder, locationArgs)
-                generateDynamicArgDecoding(locationArgs, funSpecBuilder)
+            funSpecBuilder.addStatement("")
+            funSpecBuilder.addStatement("return $dataClassName(${(0 until parameters.size).joinToString(", ") { "arg$it" }})")
 
-                funSpecBuilder.addStatement("")
-                funSpecBuilder.addStatement("return ${dataClass.name}(${(0 until function.inputs.size).joinToString(", ") { "arg$it" }})")
-
-                decoderObject.addType(dataClass)
-                decoderObject.addFun(funSpecBuilder.build())
-            }
-
-            return decoderObject.build()
+            return funSpecBuilder.build()
         }
 
-        private fun generateDecoder(abiRoot: AbiRoot): TypeSpec {
-            val decoderObject = TypeSpec.objectBuilder("Decoder")
-
-            abiRoot.abi.filter { it.type == "function" }.filter { it.outputs.isNotEmpty() }.forEach { function ->
-                val funSpecBuilder = FunSpec.builder("decode${function.name.capitalize()}").addParameter(DECODER_FUN_ARG_NAME, String::class)
-                val dataClass = generateDataClassResult(function)
-
-                //Set function return
-                val typeName = ClassName("", dataClass.name!!)
-                funSpecBuilder.returns(typeName)
-
-                funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
-
-                //Generate decodings
-                val locationArgs = ArrayList<Pair<String, String>>()
-                generateStaticArgDecoding(function.outputs, funSpecBuilder, locationArgs)
-                generateDynamicArgDecoding(locationArgs, funSpecBuilder)
-
-                funSpecBuilder.addStatement("")
-                funSpecBuilder.addStatement("return ${dataClass.name}(${(0 until function.outputs.size).joinToString(", ") { "arg$it" }})")
-
-                decoderObject.addType(dataClass)
-                decoderObject.addFun(funSpecBuilder.build())
-            }
-
-            return decoderObject.build()
-        }
-
-        private fun generateDataClassResult(function: AbiElementJson): TypeSpec {
-            val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Result").addModifiers(KModifier.DATA)
+        private fun generateParameterHolder(holderName: String, parameters: List<ParameterJson>): TypeSpec {
+            val returnContainerBuilder = TypeSpec.classBuilder(holderName).addModifiers(KModifier.DATA)
             val returnContainerConstructor = FunSpec.constructorBuilder()
 
-            function.outputs.forEachIndexed { index, output ->
-                val name = if (output.name.isEmpty()) "output$index" else output.name.toLowerCase()
-                val className = ClassName.bestGuess(Solidity.map[output.type]!!)
-                returnContainerConstructor.addParameter(name, className)
-                returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
-            }
-
-            return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
-        }
-
-        private fun generateDataClassFunctionCall(function: AbiElementJson): TypeSpec {
-            val returnContainerBuilder = TypeSpec.classBuilder("${function.name.capitalize()}Call").addModifiers(KModifier.DATA)
-            val returnContainerConstructor = FunSpec.constructorBuilder()
-
-            function.inputs.forEachIndexed { index, output ->
-                val name = if (output.name.isEmpty()) "input$index" else output.name.toLowerCase()
-                val className = ClassName.bestGuess(Solidity.map[output.type]!!)
+            parameters.forEachIndexed { index, parameterJson ->
+                val name = if (parameterJson.name.isEmpty()) "param$index" else parameterJson.name.toLowerCase()
+                val className = ClassName.bestGuess(Solidity.map[parameterJson.type]!!)
                 returnContainerConstructor.addParameter(name, className)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
             }
