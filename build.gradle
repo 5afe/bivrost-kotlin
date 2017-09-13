@@ -36,7 +36,7 @@ buildscript {
 
 subprojects { project ->
     group 'pm.gnosis'
-    version '1.0-SNAPSHOT'
+    version getKey('LIBRARY_VERSION', '0.0.42')
 
 
     repositories {
@@ -48,4 +48,12 @@ subprojects { project ->
             url "https://plugins.gradle.org/m2/"
         }
     }
+}
+
+static def getKey(String name, String defaultValue = null) {
+    def value  = System.getenv(name)
+    if (value == null) {
+        return defaultValue
+    }
+    return value
 }
