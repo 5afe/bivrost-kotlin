@@ -8,7 +8,7 @@ targetCompatibility = JavaVersion.VERSION_1_8
 dependencies {
     compileOnly gradleApi()
 
-    implementation project(":abi-parser")
+    implementation project(':bivrost-abi-parser')
     implementation deps.android.gradlePlugin
 }
 

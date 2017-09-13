@@ -1,4 +1,4 @@
-package pm.gnosis.abiparser.plugin
+package pm.gnosis.plugin
 
 import com.android.build.gradle.*
 import com.android.build.gradle.api.BaseVariant
@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
 
-class AbiParserPlugin : Plugin<Project> {
+class BivrostPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         println("Plugin Project: " + project.toString())
         project.plugins.all {
