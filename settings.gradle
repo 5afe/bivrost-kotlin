@@ -4,5 +4,5 @@ include ':bivrost-solidity-types'
 include ':bivrost-solidity-types-generator'
 //include ':sample:app'
 
-rootProject.name = 'abi-parser-kotlin'
+rootProject.name = 'bivrost-kotlin'
 

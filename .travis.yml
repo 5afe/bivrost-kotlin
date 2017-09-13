@@ -1,0 +1,29 @@
+language: android
+android:
+  components:
+    - tools
+    - platform-tools
+    - tools
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+script:
+  - . .ci/prepare_env.sh
+  - ./gradlew check jar --stacktrace
+
+deploy:
+  provider: releases
+  api_key: "${GITHUB_API_KEY}"
+  file_glob: true
+  file: */build/libs/*.jar
+  skip_cleanup: true
+  on:
+    tags: true
