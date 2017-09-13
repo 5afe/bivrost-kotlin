@@ -1,5 +1,9 @@
-#### Abi Parser
+### Bivrost for Kotlin
 
+🔥 🌈 Bridge between Solidity Contracts and Kotlin
+
+[![](https://jitpack.io/v/gnosis/bivrost-kotlin.svg)](https://jitpack.io/#gnosis/bivrost-kotlin)
+[![Build Status](https://travis-ci.org/gnosis/bivrost-kotlin.svg?branch=master)](https://travis-ci.org/gnosis/bivrost-kotlin)
 
 #### Include via jitpack
 
