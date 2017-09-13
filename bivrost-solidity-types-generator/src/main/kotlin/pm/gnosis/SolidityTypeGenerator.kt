@@ -27,7 +27,9 @@ fun generate(path: String, packageName: String) {
 
     //Generate types
     val uInts = generateUInts()
+    val uIntAlias = generateUInt("UInt", 256)
     val ints = generateInts()
+    val intAlias = generateInt("Int", 256)
     val staticBytes = generateStaticBytes()
     val address = generateAddress()
     val bool = generateBool()
@@ -37,7 +39,9 @@ fun generate(path: String, packageName: String) {
 
     //Arrays of dynamic types not supported (only static types)
     val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
+    val arrayOfIntAlias = generateArrayClass(ClassName("", intAlias.name!!))
     val arraysOfUInt = uInts.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
+    val arrayOfUIntAlias = generateArrayClass(ClassName("", uIntAlias.name!!))
     val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
     val arrayOfAddress = generateArrayClass(ClassName("", address.name!!))
     val arrayOfBool = generateArrayClass(ClassName("", bool.name!!))
@@ -45,9 +49,13 @@ fun generate(path: String, packageName: String) {
 
     //Add types to object
     solidityGeneratedObject.addTypes(uInts)
+    solidityGeneratedObject.addType(uIntAlias)
     solidityGeneratedObject.addTypes(ints)
+    solidityGeneratedObject.addType(intAlias)
     solidityGeneratedObject.addTypes(staticBytes)
     solidityGeneratedObject.addTypes(arraysOfInt)
+    solidityGeneratedObject.addType(arrayOfIntAlias)
+    solidityGeneratedObject.addType(arrayOfUIntAlias)
     solidityGeneratedObject.addTypes(arraysOfUInt)
     solidityGeneratedObject.addTypes(arraysOfStaticBytes)
     solidityGeneratedObject.addType(address)
@@ -60,8 +68,9 @@ fun generate(path: String, packageName: String) {
     solidityGeneratedObject.addType(string)
 
     //Generate map
-    val mapContent = (uInts + ints + staticBytes + arraysOfInt + arraysOfUInt + arraysOfStaticBytes + address +
-            arrayOfAddress + bool + arrayOfBool + dynamicBytes + byte + arrayOfByte + string)
+    val mapContent = (uInts + uIntAlias + ints + intAlias + staticBytes + arraysOfInt + arrayOfIntAlias + arraysOfUInt + arrayOfUIntAlias +
+            arraysOfStaticBytes + address + arrayOfAddress + bool + arrayOfBool + dynamicBytes +
+            byte + arrayOfByte + string)
             .map { it.name?.toLowerCase() to it.name }
             .map {
                 if (it.first!!.startsWith("arrayof")) {
@@ -100,27 +109,27 @@ private fun generateDecodeFunction(decodeCode: CodeBlock, className: ClassName):
             .build()
 }
 
-private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map {
-    val name = "UInt$it"
-    TypeSpec.classBuilder(name)
-            .superclass(SolidityBase.UInt::class)
-            .addSuperclassConstructorParameter("%1L, %2L", "value", it)
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1L(%2T.decodeUInt(%3L))", name, SolidityBase::class, "source")
-                            .build()))
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("value", BigInteger::class).build()).build())
-            .addProperty(PropertySpec.builder("value", BigInteger::class)
-                    .initializer("value")
-                    .build())
-            .build()
-}.toList()
+private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map { generateUInt("UInt$it", it) }.toList()
+
+private fun generateUInt(className: String, nBits: Int) =
+        TypeSpec.classBuilder(className)
+                .superclass(SolidityBase.UIntBase::class)
+                .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
+                .companionObject(generateDecoderCompanion(className,
+                        CodeBlock.builder()
+                                .addStatement("return %1L(%2T.decodeUInt(%3L))", className, SolidityBase::class, "source")
+                                .build()))
+                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                        ParameterSpec.builder("value", BigInteger::class).build()).build())
+                .addProperty(PropertySpec.builder("value", BigInteger::class)
+                        .initializer("value")
+                        .build())
+                .build()
 
 private fun generateAddress(): TypeSpec {
     val name = "Address"
     return TypeSpec.classBuilder(name)
-            .superclass(SolidityBase.UInt::class)
+            .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
@@ -138,7 +147,7 @@ private fun generateAddress(): TypeSpec {
 private fun generateBool(): TypeSpec {
     val name = "Bool"
     return TypeSpec.classBuilder(name)
-            .superclass(SolidityBase.UInt::class)
+            .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
             .companionObject(generateDecoderCompanion(name,
                     CodeBlock.builder()
@@ -190,23 +199,23 @@ private fun generateString(): TypeSpec {
             .build()
 }
 
-private fun generateInts() = (8..256 step 8).map {
-    val name = "Int$it"
-    TypeSpec.classBuilder(name)
-            .superclass(SolidityBase.Int::class)
-            .addSuperclassConstructorParameter("%1L, %2L", "value", it)
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1N(%2T.decodeInt(%3L))", name, SolidityBase::class, "source")
-                            .build())
-            )
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("value", BigInteger::class).build()).build())
-            .addProperty(PropertySpec.builder("value", BigInteger::class)
-                    .initializer("value")
-                    .build())
-            .build()
-}.toList()
+private fun generateInts() = (8..256 step 8).map { generateInt("Int$it", it) }.toList()
+
+private fun generateInt(className: String, nBits: Int) =
+        TypeSpec.classBuilder(className)
+                .superclass(SolidityBase.IntBase::class)
+                .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
+                .companionObject(generateDecoderCompanion(className,
+                        CodeBlock.builder()
+                                .addStatement("return %1N(%2T.decodeInt(%3L))", className, SolidityBase::class, "source")
+                                .build())
+                )
+                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                        ParameterSpec.builder("value", BigInteger::class).build()).build())
+                .addProperty(PropertySpec.builder("value", BigInteger::class)
+                        .initializer("value")
+                        .build())
+                .build()
 
 private fun generateStaticBytes() = (1..32).map {
     val name = "Bytes$it"
