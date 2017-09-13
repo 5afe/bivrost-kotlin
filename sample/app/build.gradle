@@ -11,7 +11,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "pm.gnosis:bivrost-gradle-plugin:1.0-SNAPSHOT"
+        classpath "pm.gnosis:bivrost-gradle-plugin:0.0.42"
     }
 }
 
@@ -58,5 +58,5 @@ repositories {
 
 dependencies {
     implementation deps.kotlin.stdLibJre8
-    implementation "pm.gnosis:bivrost-solidity-types:1.0-SNAPSHOT"
+    implementation "pm.gnosis:bivrost-solidity-types:0.0.42"
 }
