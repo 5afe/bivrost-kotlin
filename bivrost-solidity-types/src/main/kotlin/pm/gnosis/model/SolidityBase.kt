@@ -30,7 +30,7 @@ object SolidityBase {
         fun encodeParts(): Parts
     }
 
-    abstract class UInt(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
+    abstract class UIntBase(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
             when {
                 bitLength % 8 != 0 -> throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
@@ -45,7 +45,7 @@ object SolidityBase {
         }
     }
 
-    abstract class Int(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
+    abstract class IntBase(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
         init {
             if (bitLength % 8 != 0) throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
