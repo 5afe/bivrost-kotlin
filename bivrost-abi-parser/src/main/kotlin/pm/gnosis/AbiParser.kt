@@ -9,6 +9,23 @@ import java.math.BigInteger
 import java.util.regex.Pattern
 
 class AbiParser {
+
+    internal interface TypeHolder {
+        fun toTypeName(): TypeName
+    }
+
+    internal class SimpleTypeHolder(private val className: ClassName) : TypeHolder {
+        override fun toTypeName(): TypeName {
+            return className
+        }
+    }
+
+    internal class ArrayTypeHolder(val listType: ClassName, val itemType: TypeHolder, val capacity: Int) : TypeHolder {
+        override fun toTypeName(): TypeName {
+            return ParameterizedTypeName.get(listType, itemType.toTypeName())
+        }
+    }
+
     companion object {
         private const val DECODER_FUN_ARG_NAME = "data"
         private const val DECODER_VAR_PARTITIONS_NAME = "partitions"
@@ -35,16 +52,16 @@ class AbiParser {
             return Solidity.aliases.getOrElse(type, { type })
         }
 
-        internal fun mapType(type: String): TypeName {
+        internal fun mapType(type: String): TypeHolder {
             // uint[5][]
             val matcher = TYPE_PATTERN.matcher(type)
             matcher.find()
             val baseType = Solidity.types[checkType(matcher.group(1))] ?: throw IllegalArgumentException("Unknown type $type!")
             val arrayDef = matcher.group(2)
-            return parseArrayDefinition(arrayDef, ClassName.bestGuess(baseType))
+            return parseArrayDefinition(arrayDef, SimpleTypeHolder(ClassName.bestGuess(baseType)))
         }
 
-        private fun parseArrayDefinition(arrayDef: String, innerType: TypeName): TypeName {
+        private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder): TypeHolder {
             if (arrayDef.isBlank()) {
                 return innerType
             }
@@ -71,8 +88,8 @@ class AbiParser {
             }
             val arraySizeDef = arrayDef.substring(1, closingBracketIndex)
             val arrayType = if (arraySizeDef.isBlank()) SolidityBase.DynamicArray::class else SolidityBase.FixedArray::class
-            System.out.print("${arrayDef.substring(Math.min(length, closingBracketIndex + 1))}: ${Math.min(length, closingBracketIndex)}")
-            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), ParameterizedTypeName.get(arrayType.asTypeName(), innerType))
+            val arraySize = if (arraySizeDef.isBlank()) -1 else arraySizeDef.toInt()
+            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), ArrayTypeHolder(arrayType.asTypeName(), innerType, arraySize))
         }
 
         private fun generateFunctionObjects(abiRoot: AbiRoot) =
@@ -98,11 +115,35 @@ class AbiParser {
                     functionObject.build()
                 }.toList()
 
+        private fun generateCheck(type: TypeHolder, name: String): CodeBlock? {
+            System.out.println("$type : ${type.toTypeName()}")
+            if (type is ArrayTypeHolder) {
+                val builder = CodeBlock.builder()
+                if (type.capacity > 0) {
+                    System.out.println("generate check")
+                    builder.addStatement("%L.checkCapacity(%L)", name, type.capacity)
+                }
+
+                if (type.itemType is ArrayTypeHolder) {
+                    generateCheck(type.itemType, "it")?.let {
+                        builder
+                                .beginControlFlow("%L.items.forEach", name)
+                                .add(it)
+                                .endControlFlow()
+                    }
+                }
+                return builder.build()
+            }
+            return null
+        }
+
         private fun generateFunctionEncoder(functionJson: AbiElementJson): FunSpec {
             val funSpec = FunSpec.builder("encode")
             functionJson.inputs.forEachIndexed { index, parameter ->
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                funSpec.addParameter(name, mapType(parameter.type))
+                val type = mapType(parameter.type)
+                funSpec.addParameter(name, type.toTypeName())
+                generateCheck(type, name)?.let { funSpec.addCode(it) }
             }
 
             val funWithParams = funSpec.build()
@@ -140,7 +181,7 @@ class AbiParser {
 
             parameters.forEachIndexed { index, parameterJson ->
                 val name = if (parameterJson.name.isEmpty()) "param$index" else parameterJson.name.toLowerCase()
-                val className = mapType(parameterJson.type)
+                val className = mapType(parameterJson.type).toTypeName()
                 returnContainerConstructor.addParameter(name, className)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
             }
@@ -154,11 +195,15 @@ class AbiParser {
             parameters.forEachIndexed { index, outputJson ->
                 val className = mapType(outputJson.type)
                 when {
-                    isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className)
-                    else -> {
+                    isSolidityDynamicType(outputJson.type) -> {
                         locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
                         function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME.consume(), 16)", BigInteger::class)
                     }
+                    isSolidityArray(outputJson.type) -> {
+                        val format = buildArrayDecoder(className, forceStatic = true)
+                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = ${format.first}.decode(%L)", *format.second.toTypedArray(), "partitions")
+                    }
+                    else -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className.toTypeName())
                 }
             }
         }
@@ -166,21 +211,49 @@ class AbiParser {
         private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, String>>, function: FunSpec.Builder) {
             (0 until locationArgs.size).forEach {
                 val locationReference = locationArgs[it].first
-                val className = mapType(locationArgs[it].second)
+                val type = locationArgs[it].second
+                val className = mapType(type)
                 val dynamicValName = locationReference.removePrefix("location").decapitalize()
 
-                function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", className, "partitions")
+                if (isSolidityArray(type)) {
+                    val format = buildArrayDecoder(className)
+                    function.addStatement("val $dynamicValName = ${format.first}.decode(%L)", *format.second.toTypedArray(), "partitions")
+                } else {
+                    function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", className.toTypeName(), "partitions")
+                }
             }
+        }
+
+        private fun buildArrayDecoder(className: TypeHolder, forceStatic: Boolean = false): Pair<String, MutableList<TypeName>> {
+            if (forceStatic && (
+                    (className is ArrayTypeHolder && className.listType == SolidityBase.DynamicArray::class.asClassName()) ||
+                            className.toTypeName() == Solidity.Bytes::class.asClassName() || className.toTypeName() == Solidity.String::class.asClassName())) {
+                throw IllegalArgumentException("No dynamic types allowed!")
+            }
+            if (className is ArrayTypeHolder &&
+                    (className.listType == SolidityBase.FixedArray::class.asClassName() ||
+                            className.listType == SolidityBase.DynamicArray::class.asClassName())) {
+                val childClass = className.itemType
+                val codeInfo = buildArrayDecoder(childClass, forceStatic)
+                codeInfo.second.add(0, className.listType)
+                val capacityParam = if (className.capacity > 0) ", ${className.capacity}" else ""
+                return Pair("%T.Decoder(${codeInfo.first}$capacityParam)", codeInfo.second)
+            }
+            val types = ArrayList<TypeName>()
+            types.add(className.toTypeName())
+            return Pair("%T.DECODER", types)
         }
 
         private fun isSolidityStaticType(type: String) = !isSolidityDynamicType(type)
 
-        private fun isSolidityDynamicType(type: String) = isSolidityBytes(type) || isSolidityArray(type) || isSolidityString(type)
+        private fun isSolidityDynamicType(type: String) = isSolidityBytesType(type) || isSolidityStringType(type) || isSolidityDynamicArray(type)
 
-        private fun isSolidityBytes(type: String) = type == "bytes"
+        private fun isSolidityBytesType(type: String) = type.contains("bytes")
+
+        private fun isSolidityStringType(type: String) = type.contains("string")
+
+        private fun isSolidityDynamicArray(type: String) = type.contains("[]")
 
         private fun isSolidityArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
-
-        private fun isSolidityString(type: String) = type == "string"
     }
 }

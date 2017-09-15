@@ -8,6 +8,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
 import java.util.*
+import kotlin.collections.ArrayList
 
 object SolidityBase {
     const val BYTES_PAD = 32
@@ -182,8 +183,15 @@ object SolidityBase {
 
     private fun <T : Type> decodeBaseArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
         if (itemDecoder.isDynamic()) {
-            // TODO: implement decoding of dynamic elements in an array
-            throw UnsupportedOperationException("Dynamic types are not supported in arrays yet!")
+            for (i in 0 until capacity) {
+                source.consume()
+            }
+            val items = ArrayList<T>()
+            for (i in 0 until capacity) {
+                System.out.println(source.index)
+                items.add(itemDecoder.decode(source))
+            }
+            return items
         }
         if (capacity == 0) {
             return emptyList()
@@ -192,10 +200,19 @@ object SolidityBase {
     }
 
     class FixedArray<T : Type>(val items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : BaseArray<T>(hasDynamicItems) {
+
+        fun checkCapacity(targetCapacity: Int) {
+            if (targetCapacity != capacity) {
+                throw IllegalStateException("Array is of wrong capacity!")
+            }
+        }
+
         override fun encode(): String {
             if (hasDynamicItems) {
-                // TODO: implement encoding of dynamic elements in an array
-                throw UnsupportedOperationException("Dynamic types are not supported in arrays yet!")
+                if (items.size != capacity) {
+                    throw IllegalStateException("Capacity mismatch!")
+                }
+                return encodeFixedArray(items)
             }
             if (items.size > capacity) {
                 throw IllegalStateException("Too many items in array!")
@@ -308,7 +325,7 @@ object SolidityBase {
     }
 
     @Suppress("unused")
-    fun encodeFixedArray(vararg args: Type): String {
+    fun encodeFixedArray(args: List<Type>): String {
         val sizeOfStaticBlock = args.size * BYTES_PAD
         val staticArgsBuilder = StringBuilder()
         val dynamicArgsBuilder = StringBuilder()
@@ -332,7 +349,7 @@ object SolidityBase {
         if (type is DynamicType) {
             return true
         }
-        return (type as? BaseArray<*>)?.hasDynamicItems ?: false
+        return (type as? BaseArray<*>)?.hasDynamicItems ?: false || (type is DynamicArray<*>)
     }
 
     @Suppress("MemberVisibilityCanPrivate")
