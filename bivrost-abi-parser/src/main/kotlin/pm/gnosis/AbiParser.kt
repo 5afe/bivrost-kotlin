@@ -5,8 +5,8 @@ import com.squareup.moshi.Moshi
 import pm.gnosis.model.*
 import pm.gnosis.utils.generateSolidityMethodId
 import java.io.File
-import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.regex.Pattern
 
 class AbiParser {
     companion object {
@@ -15,6 +15,7 @@ class AbiParser {
         private const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
         private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
         private const val INDENTATION = "    "
+        private val TYPE_PATTERN = Pattern.compile("^(\\w+)((?>\\[\\d*])*)")
 
         fun generateWrapper(packageName: String, abi: String, output: File) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -30,12 +31,56 @@ class AbiParser {
             build.writeTo(output)
         }
 
+        private fun checkType(type: String): String {
+            return Solidity.aliases.getOrElse(type, { type })
+        }
+
+        internal fun mapType(type: String): TypeName {
+            // uint[5][]
+            val matcher = TYPE_PATTERN.matcher(type)
+            matcher.find()
+            val baseType = Solidity.types[checkType(matcher.group(1))] ?: throw IllegalArgumentException("Unknown type $type!")
+            val arrayDef = matcher.group(2)
+            return parseArrayDefinition(arrayDef, ClassName.bestGuess(baseType))
+        }
+
+        private fun parseArrayDefinition(arrayDef: String, innerType: TypeName): TypeName {
+            if (arrayDef.isBlank()) {
+                return innerType
+            }
+            val length = arrayDef.length
+            if (length < 2 || arrayDef[0] != '[') {
+                // Missing opening bracket or too short
+                throw IllegalArgumentException("Illegal array definition $arrayDef!")
+            }
+
+            var closingBracketIndex = -1
+            for (i in 1 until length) {
+                val c = arrayDef[i]
+                if (c == ']') {
+                    closingBracketIndex = i
+                    break
+                } else if (!c.isDigit()) {
+                    // Size of array not numeric
+                    throw IllegalArgumentException("Illegal array definition $arrayDef!")
+                }
+            }
+            if (closingBracketIndex < 1) {
+                // Missing closing bracket
+                throw IllegalArgumentException("Illegal array definition $arrayDef!")
+            }
+            val arraySizeDef = arrayDef.substring(1, closingBracketIndex)
+            val arrayType = if (arraySizeDef.isBlank()) SolidityBase.DynamicArray::class else SolidityBase.FixedArray::class
+            System.out.print("${arrayDef.substring(Math.min(length, closingBracketIndex + 1))}: ${Math.min(length, closingBracketIndex)}")
+            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), ParameterizedTypeName.get(arrayType.asTypeName(), innerType))
+        }
+
         private fun generateFunctionObjects(abiRoot: AbiRoot) =
                 abiRoot.abi.filter { it.type == "function" }.map { functionJson ->
                     val functionObject = TypeSpec.objectBuilder(functionJson.name.capitalize())
 
                     //Add method id
-                    val methodId = "${functionJson.name}(${functionJson.inputs.joinToString(",") { it.type }})".generateSolidityMethodId()
+                    val methodId = "${functionJson.name}(${functionJson.inputs.joinToString(",") { checkType(it.type) }})".generateSolidityMethodId()
                     functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
                     functionObject.addFun(generateFunctionEncoder(functionJson))
                     if (functionJson.outputs.isNotEmpty()) {
@@ -53,14 +98,11 @@ class AbiParser {
                     functionObject.build()
                 }.toList()
 
-
         private fun generateFunctionEncoder(functionJson: AbiElementJson): FunSpec {
             val funSpec = FunSpec.builder("encode")
             functionJson.inputs.forEachIndexed { index, parameter ->
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                Solidity.map[parameter.type]?.let {
-                    funSpec.addParameter(name, ClassName.bestGuess(it))
-                }
+                funSpec.addParameter(name, mapType(parameter.type))
             }
 
             val funWithParams = funSpec.build()
@@ -79,7 +121,7 @@ class AbiParser {
             val typeName = ClassName("", dataClassName)
             funSpecBuilder.returns(typeName)
 
-            funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.partitionData($DECODER_FUN_ARG_NAME)", SolidityBase::class)
+            funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.of($DECODER_FUN_ARG_NAME)", SolidityBase.PartitionData::class)
 
             //Generate decodings
             val locationArgs = ArrayList<Pair<String, String>>()
@@ -98,7 +140,7 @@ class AbiParser {
 
             parameters.forEachIndexed { index, parameterJson ->
                 val name = if (parameterJson.name.isEmpty()) "param$index" else parameterJson.name.toLowerCase()
-                val className = ClassName.bestGuess(Solidity.map[parameterJson.type]!!)
+                val className = mapType(parameterJson.type)
                 returnContainerConstructor.addParameter(name, className)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
             }
@@ -110,12 +152,12 @@ class AbiParser {
             function.addStatement("")
             function.addComment("Decode arguments")
             parameters.forEachIndexed { index, outputJson ->
-                val className = ClassName.bestGuess(Solidity.map[outputJson.type]!!)
+                val className = mapType(outputJson.type)
                 when {
-                    isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.decode($DECODER_VAR_PARTITIONS_NAME[$index])", className)
+                    isSolidityStaticType(outputJson.type) -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className)
                     else -> {
                         locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
-                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME[$index], 16)", BigInteger::class)
+                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME.consume(), 16)", BigInteger::class)
                     }
                 }
             }
@@ -124,11 +166,10 @@ class AbiParser {
         private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, String>>, function: FunSpec.Builder) {
             (0 until locationArgs.size).forEach {
                 val locationReference = locationArgs[it].first
-                val className = ClassName.bestGuess(Solidity.map[locationArgs[it].second]!!)
+                val className = mapType(locationArgs[it].second)
                 val dynamicValName = locationReference.removePrefix("location").decapitalize()
-                val upperLimit = if (it == locationArgs.size - 1) "data.length" else "%2T(${locationArgs[it + 1].first}).intValueExact() * 2"
 
-                function.addStatement("val $dynamicValName = %1T.decode(data.substring(%2T(${locationArgs[it].first}).intValueExact() * 2, $upperLimit))", className, BigDecimal::class)
+                function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", className, "partitions")
             }
         }
 
