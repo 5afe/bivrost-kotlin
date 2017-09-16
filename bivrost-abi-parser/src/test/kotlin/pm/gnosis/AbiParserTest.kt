@@ -108,7 +108,8 @@ class AbiParserTest {
         val arg4 = Solidity.String("Hello, world!")
         val data = SolidityBase.encodeFunctionArguments(arg1, arg2, arg3, arg4)
 
-        val expected = "0000000000000000000000000000000000000000000000000000000000000123" +
+        val expected = "" +
+                "0000000000000000000000000000000000000000000000000000000000000123" +
                 "0000000000000000000000000000000000000000000000000000000000000080" +
                 "3132333435363738393000000000000000000000000000000000000000000000" +
                 "00000000000000000000000000000000000000000000000000000000000000e0" +
@@ -117,8 +118,42 @@ class AbiParserTest {
                 "0000000000000000000000000000000000000000000000000000000000000789" +
                 "000000000000000000000000000000000000000000000000000000000000000d" +
                 "48656c6c6f2c20776f726c642100000000000000000000000000000000000000"
-        System.out.println(data)
-        System.out.println(expected)
+        assertEquals(data, expected)
+    }
+
+    @Test
+    fun testEncodeFunctionArgumentsWithStaticArray() {
+        /*
+        f(uint32[2],bytes,uint32[])
+        with values
+        ([0x456, 0x789], "Hello, world!", [0x123])
+         */
+
+        val arg1 = SolidityBase.ArrayST(
+                listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2
+        )
+        val arg2 = Solidity.String("Hello, world!")
+        val arg3 = SolidityBase.VectorST(
+                listOf(Solidity.UInt32(BigInteger("123", 16)))
+        )
+        val data = SolidityBase.encodeFunctionArguments(arg1, arg2, arg3)
+
+        val expected = "" +
+                // uint32[2]
+                "0000000000000000000000000000000000000000000000000000000000000456" +
+                "0000000000000000000000000000000000000000000000000000000000000789" +
+                // Pointer to bytes
+                "0000000000000000000000000000000000000000000000000000000000000080" +
+                // Pointer to uint32[]
+                "00000000000000000000000000000000000000000000000000000000000000c0" +
+
+                // Dynamic Part
+                // bytes -> "Hello world!"
+                "000000000000000000000000000000000000000000000000000000000000000d" +
+                "48656c6c6f2c20776f726c642100000000000000000000000000000000000000" +
+                // uint32[] -> [0x123]
+                "0000000000000000000000000000000000000000000000000000000000000001" +
+                "0000000000000000000000000000000000000000000000000000000000000123"
         assertEquals(data, expected)
     }
 

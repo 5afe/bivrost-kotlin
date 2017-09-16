@@ -324,40 +324,35 @@ object SolidityBase {
 
     @Suppress("unused")
     fun encodeFunctionArguments(vararg args: Type): String {
-        val sizeOfStaticBlock = args.size * BYTES_PAD
-        val staticArgsBuilder = StringBuilder()
-        val dynamicArgsBuilder = StringBuilder()
-        val locations = ArrayDeque<kotlin.Int>()
-        args.filter { isDynamic(it) }.forEach {
-            locations.add(sizeOfStaticBlock + dynamicArgsBuilder.length / 2)
-            dynamicArgsBuilder.append(it.encode())
-        }
-        args.forEach {
-            if (isDynamic(it)) {
-                staticArgsBuilder.append(locations.removeFirst().toString(16).padStart(PADDED_HEX_LENGTH, '0'))
-            } else {
-                staticArgsBuilder.append(it.encode())
-            }
-        }
-
-        return staticArgsBuilder.toString() + dynamicArgsBuilder.toString()
+        return encodeFixedArray(args.toList())
     }
 
     @Suppress("unused")
     fun encodeFixedArray(args: List<Type>): String {
-        val sizeOfStaticBlock = args.size * BYTES_PAD
+        val parts = ArrayList<Pair<String, Boolean>>()
+
+        var sizeOfStaticBlock = 0
+        args.forEach {
+            val encoded = it.encode()
+            if (isDynamic(it)) {
+                parts += Pair(encoded, true)
+                // Add length of an address to static block size
+                sizeOfStaticBlock += BYTES_PAD
+            } else {
+                parts += Pair(encoded, false)
+                sizeOfStaticBlock += encoded.length / 2
+            }
+        }
+
         val staticArgsBuilder = StringBuilder()
         val dynamicArgsBuilder = StringBuilder()
-        val locations = ArrayDeque<kotlin.Int>()
-        args.filter { isDynamic(it) }.forEach {
-            locations.add(sizeOfStaticBlock + dynamicArgsBuilder.length / 2)
-            dynamicArgsBuilder.append(it.encode())
-        }
-        args.forEach {
-            if (isDynamic(it)) {
-                staticArgsBuilder.append(locations.removeFirst().toString(16).padStart(PADDED_HEX_LENGTH, '0'))
+        parts.forEach { (encoded, dynamic) ->
+            if (dynamic) {
+                val location = sizeOfStaticBlock + dynamicArgsBuilder.length / 2
+                staticArgsBuilder.append(location.toString(16).padStart(PADDED_HEX_LENGTH, '0'))
+                dynamicArgsBuilder.append(encoded)
             } else {
-                staticArgsBuilder.append(it.encode())
+                staticArgsBuilder.append(encoded)
             }
         }
 
