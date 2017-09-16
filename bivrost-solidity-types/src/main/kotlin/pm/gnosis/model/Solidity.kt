@@ -721,7 +721,7 @@ object Solidity {
             return parts.static + parts.dynamic
         }
 
-        override fun encodeParts(): SolidityBase.DynamicType.Parts {
+        private fun encodeParts(): SolidityBase.DynamicType.Parts {
             val length = items.size.toString(16).padStart(64, '0')
             val contents = items.toHex().padEndMultiple(64, '0')
             return SolidityBase.DynamicType.Parts(length, contents)

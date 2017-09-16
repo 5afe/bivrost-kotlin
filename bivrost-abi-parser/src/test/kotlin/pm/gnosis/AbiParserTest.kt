@@ -1,7 +1,6 @@
 package pm.gnosis
 
 
-import com.squareup.kotlinpoet.ParameterizedTypeName
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.junit.Assert
@@ -11,37 +10,43 @@ import org.junit.Test
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
 import java.math.BigInteger
+import kotlin.reflect.KClass
 
 
 class AbiParserTest {
+
+    private fun assertType(instance: Any, type: KClass<*>) {
+        assertTrue("$instance should be a $type", type.isInstance(instance))
+    }
+
     @Test()
     fun testParseUIntNestedArray() {
         val type = AbiParser.mapType("uint[5][]")
-        assertTrue("Should be a ParameterizedType", type is AbiParser.ArrayTypeHolder)
-        val pType = type as AbiParser.ArrayTypeHolder
-        assertEquals(pType.listType, SolidityBase.DynamicArray::class.asClassName())
+        assertType(type, AbiParser.VectorTypeHolder::class)
+        val pType = type as AbiParser.VectorTypeHolder
+        assertEquals(SolidityBase.VectorST::class.asClassName(), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
-        assertTrue("Should be a ParameterizedType", g1Type is AbiParser.ArrayTypeHolder)
+        assertType(g1Type, AbiParser.ArrayTypeHolder::class)
         val g1pType = g1Type as AbiParser.ArrayTypeHolder
-        assertEquals(g1pType.listType, SolidityBase.FixedArray::class.asClassName())
+        assertEquals(SolidityBase.ArrayST::class.asClassName(), g1pType.listType)
 
         // Second generic type
         val g2Type = g1pType.itemType
-        assertEquals(g2Type.toTypeName(), Solidity.UInt256::class.asTypeName())
+        assertEquals(Solidity.UInt256::class.asTypeName(), g2Type.toTypeName())
     }
 
     @Test()
     fun testParsStringDynamicArray() {
         val type = AbiParser.mapType("string[]")
-        assertTrue("Should be a ParameterizedType", type is AbiParser.ArrayTypeHolder)
-        val pType = type as AbiParser.ArrayTypeHolder
-        assertEquals(pType.listType, SolidityBase.DynamicArray::class.asClassName())
+        assertType(type, AbiParser.VectorTypeHolder::class)
+        val pType = type as AbiParser.VectorTypeHolder
+        assertEquals(SolidityBase.VectorDT::class.asClassName(), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
-        assertEquals(g1Type.toTypeName(), Solidity.String::class.asTypeName())
+        assertEquals(Solidity.String::class.asTypeName(), g1Type.toTypeName())
     }
 
     @Test
@@ -78,7 +83,7 @@ class AbiParserTest {
 
         // Decode dynamic uint32 array
         assertEquals(
-                SolidityBase.DynamicArray.Decoder(Solidity.UInt32.DECODER).decode(testData).items,
+                SolidityBase.VectorST.Decoder(Solidity.UInt32.DECODER).decode(testData).items,
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))))
 
         // Decode bytes
@@ -96,7 +101,7 @@ class AbiParserTest {
          */
 
         val arg1 = Solidity.UInt256(BigInteger("123", 16))
-        val arg2 = SolidityBase.DynamicArray(
+        val arg2 = SolidityBase.VectorST(
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))
         )
         val arg3 = Solidity.Bytes10("1234567890".toByteArray())

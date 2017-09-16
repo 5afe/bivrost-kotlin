@@ -2,7 +2,7 @@ include ':bivrost-abi-parser'
 include ':bivrost-gradle-plugin'
 include ':bivrost-solidity-types'
 include ':bivrost-solidity-types-generator'
-//include ':sample:app'
+include ':sample:app'
 
 rootProject.name = 'bivrost-kotlin'
 

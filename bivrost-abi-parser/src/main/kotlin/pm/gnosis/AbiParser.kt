@@ -12,17 +12,61 @@ class AbiParser {
 
     internal interface TypeHolder {
         fun toTypeName(): TypeName
+
+        fun isDynamic(): Boolean
     }
 
-    internal class SimpleTypeHolder(private val className: ClassName) : TypeHolder {
+    internal class SimpleTypeHolder(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
         override fun toTypeName(): TypeName {
             return className
         }
+
+        override fun isDynamic(): Boolean {
+            return dynamic
+        }
     }
 
-    internal class ArrayTypeHolder(val listType: ClassName, val itemType: TypeHolder, val capacity: Int) : TypeHolder {
+    internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder): TypeHolder
+
+    internal class ArrayTypeHolder(itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(getListType(itemType), itemType) {
+
         override fun toTypeName(): TypeName {
             return ParameterizedTypeName.get(listType, itemType.toTypeName())
+        }
+
+        override fun isDynamic(): Boolean {
+            return itemType.isDynamic()
+        }
+
+        companion object {
+            private fun getListType(itemType: TypeHolder): ClassName {
+                return if (itemType.isDynamic()) {
+                    SolidityBase.ArrayDT::class.asClassName()
+                } else {
+                    SolidityBase.ArrayST::class.asClassName()
+                }
+            }
+        }
+    }
+
+    internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(getListType(itemType), itemType) {
+
+        override fun toTypeName(): TypeName {
+            return ParameterizedTypeName.get(listType, itemType.toTypeName())
+        }
+
+        override fun isDynamic(): Boolean {
+            return true
+        }
+
+        companion object {
+            private fun getListType(itemType: TypeHolder): ClassName {
+                return if (itemType.isDynamic()) {
+                    SolidityBase.VectorDT::class.asClassName()
+                } else {
+                    SolidityBase.VectorST::class.asClassName()
+                }
+            }
         }
     }
 
@@ -56,9 +100,10 @@ class AbiParser {
             // uint[5][]
             val matcher = TYPE_PATTERN.matcher(type)
             matcher.find()
-            val baseType = Solidity.types[checkType(matcher.group(1))] ?: throw IllegalArgumentException("Unknown type $type!")
+            val arrayType = matcher.group(1)
+            val baseType = Solidity.types[checkType(arrayType)] ?: throw IllegalArgumentException("Unknown type $type!")
             val arrayDef = matcher.group(2)
-            return parseArrayDefinition(arrayDef, SimpleTypeHolder(ClassName.bestGuess(baseType)))
+            return parseArrayDefinition(arrayDef, SimpleTypeHolder(ClassName.bestGuess(baseType), isSolidityDynamicType(arrayType)))
         }
 
         private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder): TypeHolder {
@@ -87,9 +132,13 @@ class AbiParser {
                 throw IllegalArgumentException("Illegal array definition $arrayDef!")
             }
             val arraySizeDef = arrayDef.substring(1, closingBracketIndex)
-            val arrayType = if (arraySizeDef.isBlank()) SolidityBase.DynamicArray::class else SolidityBase.FixedArray::class
             val arraySize = if (arraySizeDef.isBlank()) -1 else arraySizeDef.toInt()
-            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), ArrayTypeHolder(arrayType.asTypeName(), innerType, arraySize))
+            val collectionTypeHolder = if (arraySizeDef.isBlank()) {
+                VectorTypeHolder(innerType)
+            } else {
+                ArrayTypeHolder(innerType, arraySize)
+            }
+            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), collectionTypeHolder)
         }
 
         private fun generateFunctionObjects(abiRoot: AbiRoot) =
@@ -116,15 +165,13 @@ class AbiParser {
                 }.toList()
 
         private fun generateCheck(type: TypeHolder, name: String): CodeBlock? {
-            System.out.println("$type : ${type.toTypeName()}")
-            if (type is ArrayTypeHolder) {
+            if (type is CollectionTypeHolder) {
                 val builder = CodeBlock.builder()
-                if (type.capacity > 0) {
-                    System.out.println("generate check")
+                if (type is ArrayTypeHolder) {
                     builder.addStatement("%L.checkCapacity(%L)", name, type.capacity)
                 }
 
-                if (type.itemType is ArrayTypeHolder) {
+                if (type.itemType is CollectionTypeHolder) {
                     generateCheck(type.itemType, "it")?.let {
                         builder
                                 .beginControlFlow("%L.items.forEach", name)
@@ -226,17 +273,16 @@ class AbiParser {
 
         private fun buildArrayDecoder(className: TypeHolder, forceStatic: Boolean = false): Pair<String, MutableList<TypeName>> {
             if (forceStatic && (
-                    (className is ArrayTypeHolder && className.listType == SolidityBase.DynamicArray::class.asClassName()) ||
+                    (className is VectorTypeHolder) ||
+                    (className is ArrayTypeHolder && className.isDynamic()) ||
                             className.toTypeName() == Solidity.Bytes::class.asClassName() || className.toTypeName() == Solidity.String::class.asClassName())) {
                 throw IllegalArgumentException("No dynamic types allowed!")
             }
-            if (className is ArrayTypeHolder &&
-                    (className.listType == SolidityBase.FixedArray::class.asClassName() ||
-                            className.listType == SolidityBase.DynamicArray::class.asClassName())) {
+            if (className is CollectionTypeHolder) {
                 val childClass = className.itemType
                 val codeInfo = buildArrayDecoder(childClass, forceStatic)
                 codeInfo.second.add(0, className.listType)
-                val capacityParam = if (className.capacity > 0) ", ${className.capacity}" else ""
+                val capacityParam = if (className is ArrayTypeHolder) ", ${className.capacity}" else ""
                 return Pair("%T.Decoder(${codeInfo.first}$capacityParam)", codeInfo.second)
             }
             val types = ArrayList<TypeName>()

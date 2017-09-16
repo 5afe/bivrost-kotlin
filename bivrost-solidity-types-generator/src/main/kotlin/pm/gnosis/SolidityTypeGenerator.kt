@@ -223,7 +223,6 @@ private fun generateDynamicBytes(): TypeSpec {
                             .build())
                     .build())
             .addFun(FunSpec.builder("encodeParts")
-                    .addModifiers(KModifier.OVERRIDE)
                     .returns(SolidityBase.DynamicType.Parts::class)
                     .addCode(CodeBlock.builder()
                             .addStatement("val length = items.size.toString(16).padStart(64, '0')")

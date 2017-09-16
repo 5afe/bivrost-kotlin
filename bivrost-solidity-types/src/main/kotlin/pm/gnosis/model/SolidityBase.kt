@@ -29,11 +29,9 @@ object SolidityBase {
 
     interface DynamicType : Type {
         data class Parts(val static: String, val dynamic: String)
-
-        fun encodeParts(): Parts
     }
 
-    abstract class BaseArray<T : Type>(val hasDynamicItems: Boolean = false) : Type
+    abstract class Collection<T : Type>(val hasDynamicItems: Boolean = false) : Type
 
     abstract class UIntBase(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
@@ -181,17 +179,24 @@ object SolidityBase {
         fun decode(source: PartitionData): T
     }
 
-    private fun <T : Type> decodeBaseArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
+    private fun <T : DynamicType> decodeDynamicArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
+        if (!itemDecoder.isDynamic()) {
+            throw IllegalStateException("Item decoder ${itemDecoder::class} should be for dynamic type")
+        }
+        for (i in 0 until capacity) {
+            source.consume()
+        }
+        val items = ArrayList<T>()
+        for (i in 0 until capacity) {
+            System.out.println(source.index)
+            items.add(itemDecoder.decode(source))
+        }
+        return items
+    }
+
+    private fun <T : StaticType> decodeStaticArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
         if (itemDecoder.isDynamic()) {
-            for (i in 0 until capacity) {
-                source.consume()
-            }
-            val items = ArrayList<T>()
-            for (i in 0 until capacity) {
-                System.out.println(source.index)
-                items.add(itemDecoder.decode(source))
-            }
-            return items
+            throw IllegalStateException("Item decoder ${itemDecoder::class} should be for static type")
         }
         if (capacity == 0) {
             return emptyList()
@@ -199,7 +204,7 @@ object SolidityBase {
         return (0 until capacity).map { itemDecoder.decode(source) }.toList()
     }
 
-    class FixedArray<T : Type>(val items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : BaseArray<T>(hasDynamicItems) {
+    abstract class Array<T : Type> internal constructor(val items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : Collection<T>(hasDynamicItems) {
 
         fun checkCapacity(targetCapacity: Int) {
             if (targetCapacity != capacity) {
@@ -208,31 +213,17 @@ object SolidityBase {
         }
 
         override fun encode(): String {
-            if (hasDynamicItems) {
-                if (items.size != capacity) {
-                    throw IllegalStateException("Capacity mismatch!")
-                }
-                return encodeFixedArray(items)
+            if (items.size != capacity) {
+                throw IllegalStateException("Capacity mismatch!")
             }
-            if (items.size > capacity) {
-                throw IllegalStateException("Too many items in array!")
-            }
-            val stringBuilder = StringBuilder()
-            items.forEach {
-                stringBuilder.append(it.encode())
-            }
-            // Fill missing items with 0 bytes
-            for (i in items.size + 1 .. capacity) {
-                stringBuilder.append(EMPTY_BYTE)
-            }
-            return stringBuilder.toString()
+            return encodeFixedArray(items)
         }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
-            other as FixedArray<*>
+            other as Array<*>
 
             if (items != other.items) return false
             if (capacity != other.capacity) return false
@@ -247,20 +238,34 @@ object SolidityBase {
             result = 31 * result + hasDynamicItems.hashCode()
             return result
         }
+    }
 
-        open class Decoder<T : Type>(val itemDecoder: TypeDecoder<T>, val capacity: Int) : TypeDecoder<FixedArray<T>> {
+    class ArrayST<T : StaticType>(items: List<T>, capacity: Int) : Array<T>(items, capacity, false), StaticType {
+        open class Decoder<T : StaticType>(val itemDecoder: TypeDecoder<T>, val capacity: Int) : TypeDecoder<ArrayST<T>> {
             override fun isDynamic(): Boolean {
                 return itemDecoder.isDynamic()
             }
 
-            override fun decode(source: PartitionData): FixedArray<T> {
-                return FixedArray(decodeBaseArray(source, capacity, itemDecoder), capacity, isDynamic())
+            override fun decode(source: PartitionData): ArrayST<T> {
+                return ArrayST(decodeStaticArray(source, capacity, itemDecoder), capacity)
+            }
+        }
+    }
+
+    class ArrayDT<T : DynamicType>(items: List<T>, capacity: Int) : Array<T>(items, capacity, true), DynamicType {
+        open class Decoder<T : DynamicType>(val itemDecoder: TypeDecoder<T>, val capacity: Int) : TypeDecoder<ArrayDT<T>> {
+            override fun isDynamic(): Boolean {
+                return itemDecoder.isDynamic()
+            }
+
+            override fun decode(source: PartitionData): ArrayDT<T> {
+                return ArrayDT(decodeDynamicArray(source, capacity, itemDecoder), capacity)
             }
 
         }
     }
 
-    class DynamicArray<T : Type>(val items: List<T>, hasDynamicItems: Boolean = false) : BaseArray<T>(hasDynamicItems) {
+    abstract class Vector<T : Type>(val items: List<T>, hasDynamicItems: Boolean) : Collection<T>(hasDynamicItems), DynamicType {
 
         override fun encode(): String {
             val parts = encodeParts()
@@ -269,14 +274,14 @@ object SolidityBase {
 
         private fun encodeParts(): DynamicType.Parts {
             val length = items.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
-            return DynamicType.Parts(length, FixedArray(items, items.size, hasDynamicItems).encode())
+            return DynamicType.Parts(length, encodeFixedArray(items))
         }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
 
-            other as DynamicArray<*>
+            other as Vector<*>
 
             if (items != other.items) return false
             if (hasDynamicItems != other.hasDynamicItems) return false
@@ -289,16 +294,30 @@ object SolidityBase {
             result = 31 * result + hasDynamicItems.hashCode()
             return result
         }
+    }
 
-
-        open class Decoder<T : Type>(val itemDecoder: TypeDecoder<T>) : TypeDecoder<DynamicArray<T>> {
+    class VectorST<T : StaticType>(items: List<T>) : Vector<T>(items, false) {
+        open class Decoder<T : StaticType>(val itemDecoder: TypeDecoder<T>) : TypeDecoder<VectorST<T>> {
             override fun isDynamic(): Boolean {
                 return true
             }
 
-            override fun decode(source: PartitionData): DynamicArray<T> {
+            override fun decode(source: PartitionData): VectorST<T> {
                 val capacity = decodeUInt(source.consume()).toInt()
-                return DynamicArray(decodeBaseArray(source, capacity, itemDecoder), itemDecoder.isDynamic())
+                return VectorST(decodeStaticArray(source, capacity, itemDecoder))
+            }
+        }
+    }
+
+    class VectorDT<T : DynamicType>(items: List<T>) : Vector<T>(items, true) {
+        open class Decoder<T : DynamicType>(val itemDecoder: TypeDecoder<T>) : TypeDecoder<VectorDT<T>> {
+            override fun isDynamic(): Boolean {
+                return true
+            }
+
+            override fun decode(source: PartitionData): VectorDT<T> {
+                val capacity = decodeUInt(source.consume()).toInt()
+                return VectorDT(decodeDynamicArray(source, capacity, itemDecoder))
             }
         }
     }
@@ -349,7 +368,7 @@ object SolidityBase {
         if (type is DynamicType) {
             return true
         }
-        return (type as? BaseArray<*>)?.hasDynamicItems ?: false || (type is DynamicArray<*>)
+        return (type as? Collection<*>)?.hasDynamicItems ?: false || (type is Vector<*>)
     }
 
     @Suppress("MemberVisibilityCanPrivate")
