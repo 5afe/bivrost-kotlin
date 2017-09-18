@@ -25,117 +25,116 @@ fun generate(path: String, packageName: String) {
     kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
     solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
 
-    //Generate types
+    // Generate types
     val uInts = generateUInts()
-    val uIntAlias = generateUInt("UInt", 256)
     val ints = generateInts()
-    val intAlias = generateInt("Int", 256)
     val staticBytes = generateStaticBytes()
     val address = generateAddress()
     val bool = generateBool()
     val dynamicBytes = generateDynamicBytes()
-    val byte = generateByte()
     val string = generateString()
 
-    //Arrays of dynamic types not supported (only static types)
-    val arraysOfInt = ints.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
-    val arrayOfIntAlias = generateArrayClass(ClassName("", intAlias.name!!))
-    val arraysOfUInt = uInts.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
-    val arrayOfUIntAlias = generateArrayClass(ClassName("", uIntAlias.name!!))
-    val arraysOfStaticBytes = staticBytes.map { ClassName("", it.name!!) }.map { generateArrayClass(it) }.toList()
-    val arrayOfAddress = generateArrayClass(ClassName("", address.name!!))
-    val arrayOfBool = generateArrayClass(ClassName("", bool.name!!))
-    val arrayOfByte = generateArrayClass(ClassName("", byte.name!!))
-
-    //Add types to object
+    // Add types to object
     solidityGeneratedObject.addTypes(uInts)
-    solidityGeneratedObject.addType(uIntAlias)
     solidityGeneratedObject.addTypes(ints)
-    solidityGeneratedObject.addType(intAlias)
     solidityGeneratedObject.addTypes(staticBytes)
-    solidityGeneratedObject.addTypes(arraysOfInt)
-    solidityGeneratedObject.addType(arrayOfIntAlias)
-    solidityGeneratedObject.addType(arrayOfUIntAlias)
-    solidityGeneratedObject.addTypes(arraysOfUInt)
-    solidityGeneratedObject.addTypes(arraysOfStaticBytes)
     solidityGeneratedObject.addType(address)
-    solidityGeneratedObject.addType(arrayOfAddress)
     solidityGeneratedObject.addType(bool)
-    solidityGeneratedObject.addType(arrayOfBool)
     solidityGeneratedObject.addType(dynamicBytes)
-    solidityGeneratedObject.addType(byte)
-    solidityGeneratedObject.addType(arrayOfByte)
     solidityGeneratedObject.addType(string)
 
-    //Generate map
-    val mapContent = (uInts + uIntAlias + ints + intAlias + staticBytes + arraysOfInt + arrayOfIntAlias + arraysOfUInt + arrayOfUIntAlias +
-            arraysOfStaticBytes + address + arrayOfAddress + bool + arrayOfBool + dynamicBytes +
-            byte + arrayOfByte + string)
-            .map { it.name?.toLowerCase() to it.name }
-            .map {
-                if (it.first!!.startsWith("arrayof")) {
-                    it.first!!.removePrefix("arrayof") + "[]"
-                } else {
-                    it.first!!.toLowerCase()
-                } to it.second
-            }.joinToString(",\n") { "\"${it.first}\" to \"$modelPackageName.$fileName.${it.second}\"" }
-
-    val mapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$mapContent)"))
-
-    //Add map to object
     val mapClassName = ClassName("kotlin.collections", "Map")
     val stringClassName = ClassName("kotlin", "String")
     val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, stringClassName)
-    solidityGeneratedObject.addProperty(PropertySpec.builder("map", mapType).initializer(mapBlock.build()).build())
 
-    //Write object file
+    // Generate aliases map
+    val aliasesMapContent = arrayOf(
+            "int" to "int256",
+            "uint" to "uint256",
+            "byte" to "bytes1"
+    )
+            .joinToString(",\n") { "\"${it.first}\" to \"${it.second}\"" }
+
+    val aliasesMapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$aliasesMapContent)"))
+
+    // Add map to object
+    solidityGeneratedObject.addProperty(PropertySpec.builder("aliases", mapType).initializer(aliasesMapBlock.build()).build())
+
+    // Generate type map
+    val typeMapContent = (uInts + ints + staticBytes + address + bool + dynamicBytes + string)
+            .map { it.name?.toLowerCase() to it.name }
+            .joinToString(",\n") { "\"${it.first}\" to \"$modelPackageName.$fileName.${it.second}\"" }
+
+    val typeMapBlock = CodeBlock.builder().add(CodeBlock.of("mapOf(\n$typeMapContent)"))
+
+    // Add map to object
+    solidityGeneratedObject.addProperty(PropertySpec.builder("types", mapType).initializer(typeMapBlock.build()).build())
+
+    // Write object file
     kotlinFile.indent(indentation).addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
-private fun generateDecoderCompanion(name: String, decodeCode: CodeBlock): TypeSpec {
+private fun generateDecoder(name: String, decodeCode: CodeBlock, isDynamic: Boolean = true): TypeSpec {
     val className = ClassName("", name)
-    return TypeSpec.companionObjectBuilder()
-            .addSuperinterface(ParameterizedTypeName.get(SolidityBase.Type.Decoder::class.asClassName(), className))
-            .addFun(generateDecodeFunction(decodeCode, className))
+    return TypeSpec.classBuilder("Decoder")
+            .addSuperinterface(ParameterizedTypeName.get(SolidityBase.TypeDecoder::class.asClassName(), className))
+            .addFun(generateIsDynamicFunction(isDynamic))
+            .addFun(generateDecodeSourceFunction(decodeCode, className))
             .build()
 }
 
-private fun generateDecodeFunction(decodeCode: CodeBlock, className: ClassName): FunSpec {
+private fun generateDecodeSourceFunction(decodeCode: CodeBlock, className: ClassName): FunSpec {
     return FunSpec.builder("decode")
-            .addParameter("source", String::class)
+            .addParameter("source", SolidityBase.PartitionData::class)
             .addModifiers(KModifier.OVERRIDE)
             .returns(className)
             .addCode(decodeCode)
             .build()
 }
 
+private fun generateIsDynamicFunction(isDynamic: Boolean): FunSpec {
+    return FunSpec.builder("isDynamic")
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(Boolean::class)
+            .addCode(CodeBlock.of("return %L", isDynamic))
+            .build()
+}
+
+private fun generateDecoderCompanion(decoderTypeName: TypeName, decoderInit: CodeBlock): TypeSpec {
+    return TypeSpec.companionObjectBuilder()
+            .addProperty(PropertySpec.builder("DECODER", decoderTypeName)
+                    .initializer(decoderInit)
+                    .build())
+            .build()
+}
+
 private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map { generateUInt("UInt$it", it) }.toList()
 
-private fun generateUInt(className: String, nBits: Int) =
-        TypeSpec.classBuilder(className)
-                .superclass(SolidityBase.UIntBase::class)
-                .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-                .companionObject(generateDecoderCompanion(className,
-                        CodeBlock.builder()
-                                .addStatement("return %1L(%2T.decodeUInt(%3L))", className, SolidityBase::class, "source")
-                                .build()))
-                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                        ParameterSpec.builder("value", BigInteger::class).build()).build())
-                .addProperty(PropertySpec.builder("value", BigInteger::class)
-                        .initializer("value")
-                        .build())
-                .build()
+private fun generateUInt(className: String, nBits: Int): TypeSpec {
+    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", className))
+    return TypeSpec.classBuilder(className)
+            .superclass(SolidityBase.UIntBase::class)
+            .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .addProperty(PropertySpec.builder("value", BigInteger::class)
+                    .initializer("value")
+                    .build())
+            .build()
+}
 
 private fun generateAddress(): TypeSpec {
     val name = "Address"
+    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", name))
     return TypeSpec.classBuilder(name)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16))", name, BigInteger::class, "source")
-                            .build())
-            )
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, name)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", BigInteger::class).build()).build())
             .addProperty(PropertySpec.builder("value", BigInteger::class)
@@ -146,87 +145,54 @@ private fun generateAddress(): TypeSpec {
 
 private fun generateBool(): TypeSpec {
     val name = "Bool"
+    val decoderTypeName = ClassName.bestGuess("Decoder")
     return TypeSpec.classBuilder(name)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1N(%2T(%3L, 16) != %2T.ZERO)", name, BigInteger::class, "source")
-                            .build())
-            )
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("value", Boolean::class).build()).build())
             .addProperty(PropertySpec.builder("value", Boolean::class)
                     .initializer("value")
                     .build())
-            .build()
-}
-
-private fun generateByte(): TypeSpec {
-    val name = "Byte"
-    return TypeSpec.classBuilder(name)
-            .superclass(SolidityBase.StaticBytes::class)
-            .addSuperclassConstructorParameter("%1L, %2L", "value", "1")
-            .companionObject(generateDecoderCompanion(name,
+            .addType(generateDecoder(name,
                     CodeBlock.builder()
-                            .addStatement("return %1N(%2T.decodeStaticBytes(source, 1))", name, SolidityBase::class)
-                            .build())
+                            .addStatement("return %1N(%2T.decodeBool(%3L.consume()))", name, SolidityBase::class, "source")
+                            .build(),
+                    false)
             )
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("value", ByteArray::class).build()).build())
-            .addProperty(PropertySpec.builder("value", ByteArray::class)
-                    .initializer("value")
-                    .build())
-            .build()
-}
-
-private fun generateString(): TypeSpec {
-    val name = "String"
-    val superClass = ClassName.bestGuess("Bytes")
-    return TypeSpec.classBuilder(name)
-            .superclass(superClass)
-            .addSuperclassConstructorParameter("%1L.toByteArray()", "value")
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1N(%2T.decodeString(%3L))", name, SolidityBase::class, "source")
-                            .build())
-            )
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("value", String::class).build()).build())
-            .addProperty(PropertySpec.builder("value", String::class)
-                    .initializer("value")
-                    .build())
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T()", decoderTypeName)))
             .build()
 }
 
 private fun generateInts() = (8..256 step 8).map { generateInt("Int$it", it) }.toList()
 
-private fun generateInt(className: String, nBits: Int) =
-        TypeSpec.classBuilder(className)
-                .superclass(SolidityBase.IntBase::class)
-                .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-                .companionObject(generateDecoderCompanion(className,
-                        CodeBlock.builder()
-                                .addStatement("return %1N(%2T.decodeInt(%3L))", className, SolidityBase::class, "source")
-                                .build())
-                )
-                .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                        ParameterSpec.builder("value", BigInteger::class).build()).build())
-                .addProperty(PropertySpec.builder("value", BigInteger::class)
-                        .initializer("value")
-                        .build())
-                .build()
+private fun generateInt(className: String, nBits: Int): TypeSpec {
+    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.IntBase.Decoder::class.asClassName(), ClassName("", className))
+    return TypeSpec.classBuilder(className)
+            .superclass(SolidityBase.IntBase::class)
+            .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", BigInteger::class).build()).build())
+            .addProperty(PropertySpec.builder("value", BigInteger::class)
+                    .initializer("value")
+                    .build())
+            .build()
+}
 
 private fun generateStaticBytes() = (1..32).map {
     val name = "Bytes$it"
+    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.StaticBytes.Decoder::class.asClassName(), ClassName("", name))
     TypeSpec.classBuilder(name)
             .superclass(SolidityBase.StaticBytes::class)
             .addSuperclassConstructorParameter("%1L, %2L", "bytes", it)
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return %1N(%2T.decodeStaticBytes(source, $it))", name, SolidityBase::class)
-                            .build())
-            )
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T({ %2L(it) }, %3L)", decoderTypeName, name, it)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
                     ParameterSpec.builder("bytes", ByteArray::class).build()).build())
             .addProperty(PropertySpec.builder("bytes", ByteArray::class)
@@ -235,30 +201,9 @@ private fun generateStaticBytes() = (1..32).map {
             .build()
 }.toList()
 
-private fun generateArrayClass(className: ClassName): TypeSpec {
-    val arrayOfStaticBase = ClassName("", SolidityBase.ArrayOfStatic::class.qualifiedName!!)
-    val parameterizedType = ParameterizedTypeName.get(arrayOfStaticBase, className)
-    val listEntryTypeName = ParameterizedTypeName.get(List::class.asClassName(), className)
-    val entryTypeName = className.simpleName()
-    val name = "ArrayOf$entryTypeName"
-    return TypeSpec.classBuilder(name)
-            .superclass(parameterizedType)
-            .addSuperclassConstructorParameter("items")
-            .companionObject(generateDecoderCompanion(name,
-                    CodeBlock.builder()
-                            .addStatement("return $name(SolidityBase.decodeArray(source, $entryTypeName.Companion::decode))")
-                            .build())
-            )
-            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
-                    ParameterSpec.builder("items", listEntryTypeName).build()).build())
-            .addProperty(PropertySpec.builder("items", listEntryTypeName)
-                    .initializer("items")
-                    .build())
-            .build()
-}
-
 private fun generateDynamicBytes(): TypeSpec {
     val name = "Bytes"
+    val decoderTypeName = ClassName.bestGuess("Decoder")
     return TypeSpec.classBuilder(name)
             .addModifiers(KModifier.OPEN)
             .addSuperinterface(SolidityBase.DynamicType::class)
@@ -278,7 +223,6 @@ private fun generateDynamicBytes(): TypeSpec {
                             .build())
                     .build())
             .addFun(FunSpec.builder("encodeParts")
-                    .addModifiers(KModifier.OVERRIDE)
                     .returns(SolidityBase.DynamicType.Parts::class)
                     .addCode(CodeBlock.builder()
                             .addStatement("val length = items.size.toString(16).padStart(64, '0')")
@@ -286,9 +230,35 @@ private fun generateDynamicBytes(): TypeSpec {
                             .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
                             .build())
                     .build())
-            .companionObject(generateDecoderCompanion(name,
+            .addType(generateDecoder(name,
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeBytes(source))", name, SolidityBase::class)
                             .build()))
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T()", decoderTypeName)))
+            .build()
+}
+
+private fun generateString(): TypeSpec {
+    val name = "String"
+    val superClass = ClassName.bestGuess("Bytes")
+    val decoderTypeName = ClassName.bestGuess("Decoder")
+    return TypeSpec.classBuilder(name)
+            .superclass(superClass)
+            .addSuperclassConstructorParameter("%1L.toByteArray()", "value")
+            .primaryConstructor(FunSpec.constructorBuilder().addParameter(
+                    ParameterSpec.builder("value", String::class).build()).build())
+            .addProperty(PropertySpec.builder("value", String::class)
+                    .initializer("value")
+                    .build())
+            .addType(generateDecoder(name,
+                    CodeBlock.builder()
+                            .addStatement("return %1N(%2T.decodeString(%3L))", name, SolidityBase::class, "source")
+                            .build())
+            )
+            .companionObject(generateDecoderCompanion(
+                    decoderTypeName,
+                    CodeBlock.of("%1T()", decoderTypeName)))
             .build()
 }

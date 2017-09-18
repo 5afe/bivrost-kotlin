@@ -29,7 +29,7 @@ class SolidityBaseTest {
     fun testUIntBitOverflow() {
         (8..256 step 8).forEach {
             val upperLimit = BigInteger.valueOf(2).pow(it)
-            val constructor = Class.forName(formatClassName(Solidity.map["uint$it"]!!)).constructors[0]
+            val constructor = Class.forName(formatClassName(Solidity.types["uint$it"]!!)).constructors[0]
             constructor.newInstance(upperLimit.minus(BigInteger.ONE))
             try {
                 constructor.newInstance(upperLimit)
@@ -93,7 +93,7 @@ class SolidityBaseTest {
         (8..256 step 8).forEach {
             val min = BigInteger.valueOf(2).pow(it - 1).negate()
             val max = BigInteger.valueOf(2).pow(it - 1) - BigInteger.ONE
-            val constructor = Class.forName(formatClassName(Solidity.map["int$it"]!!)).constructors[0]
+            val constructor = Class.forName(formatClassName(Solidity.types["int$it"]!!)).constructors[0]
             constructor.newInstance(min)
             constructor.newInstance(max)
             try {
@@ -155,14 +155,13 @@ class SolidityBaseTest {
 
         assertArrayEquals("dave".toByteArray(), SolidityBase.decodeStaticBytes("6461766500000000000000000000000000000000000000000000000000000000", 4))
 
-        assertArrayEquals("dave".toByteArray(), Solidity.Bytes4.decode("6461766500000000000000000000000000000000000000000000000000000000").byteArray)
     }
 
     @Test
     fun testStaticBytesRange() {
         (1..32).forEach {
             val bytes = ByteArray(it, { it.toByte() })
-            val constructor = Class.forName(formatClassName(Solidity.map["bytes$it"]!!)).constructors[0]
+            val constructor = Class.forName(formatClassName(Solidity.types["bytes$it"]!!)).constructors[0]
             constructor.newInstance(bytes)
             try {
                 val oversizedBytes = ByteArray(it + 1, { it.toByte() })
@@ -175,15 +174,60 @@ class SolidityBaseTest {
     }
 
     @Test
-    fun testArrayOfStaticEncoding() {
+    fun testDynamicArrayEncoding() {
         assertEquals("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
-                Solidity.ArrayOfUInt32(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))).encode())
+                SolidityBase.VectorST(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))).encode())
 
         assertEquals("000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
-                Solidity.ArrayOfBool(listOf(Solidity.Bool(true), Solidity.Bool(false))).encode())
+                SolidityBase.VectorST(listOf(Solidity.Bool(true), Solidity.Bool(false))).encode())
 
         assertEquals("0000000000000000000000000000000000000000000000000000000000000000",
-                Solidity.ArrayOfBool(emptyList()).encode())
+                SolidityBase.VectorST(emptyList()).encode())
+    }
+
+    @Test
+    fun testDynamicArrayDecoding() {
+        var testData = "000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
+        assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
+                SolidityBase.VectorST.Decoder(Solidity.UInt256.DECODER).decode(SolidityBase.PartitionData.of(testData)).items)
+
+        testData = "0000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000032100000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
+        val source = SolidityBase.PartitionData.of(testData)
+        val expected = SolidityBase.VectorST(listOf(
+                SolidityBase.ArrayST(listOf(Solidity.UInt256(BigInteger("321", 16))), 1),
+                SolidityBase.ArrayST(listOf(Solidity.UInt256(BigInteger("456", 16))), 1),
+                SolidityBase.ArrayST(listOf(Solidity.UInt256(BigInteger("789", 16))), 1)
+        ))
+        assertEquals(expected, SolidityBase.VectorST.Decoder(SolidityBase.ArrayST.Decoder(Solidity.UInt256.DECODER, 1)).decode(source))
+    }
+
+    @Test
+    fun testFixedArrayEncoding() {
+        assertEquals("00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
+                SolidityBase.ArrayST(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2).encode())
+
+        assertEquals("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
+                SolidityBase.ArrayST(listOf(Solidity.Bool(true), Solidity.Bool(false)), 2).encode())
+
+        assertEquals("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                SolidityBase.ArrayST(listOf(Solidity.Bytes1(kotlin.ByteArray(0)), Solidity.Bytes1(kotlin.ByteArray(0))), 2).encode())
+    }
+
+    @Test
+    fun testFixedArrayDecoding() {
+        val testData = "00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
+        assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
+                SolidityBase.ArrayST.Decoder(Solidity.UInt256.DECODER, 2).decode(SolidityBase.PartitionData.of(testData)).items)
+    }
+
+    @Test
+    fun testMultiTypeDecoding() {
+        val testData = "00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000321000000000000000000000000000000000000000000000000000000000000076500000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
+        val source = SolidityBase.PartitionData.of(testData)
+        assertEquals(listOf(Solidity.UInt256(BigInteger("321", 16)), Solidity.UInt256(BigInteger("765", 16))),
+                SolidityBase.VectorST.Decoder(Solidity.UInt256.DECODER).decode(source).items)
+        assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
+                SolidityBase.ArrayST.Decoder(Solidity.UInt256.DECODER, 2).decode(source).items)
     }
 
     @Test
@@ -219,25 +263,37 @@ class SolidityBaseTest {
     @Test
     fun testDynamicBytesDecoding() {
         assertArrayEquals("Hello, world!".toByteArray(),
-                SolidityBase.decodeBytes("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000"))
+                SolidityBase.decodeBytes(SolidityBase.PartitionData.of("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000")))
 
         assertArrayEquals(byteArrayOf(0),
-                SolidityBase.decodeBytes("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"))
+                SolidityBase.decodeBytes(SolidityBase.PartitionData.of("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000")))
 
         assertArrayEquals(byteArrayOf(0, 1),
-                SolidityBase.decodeBytes("00000000000000000000000000000000000000000000000000000000000000020001000000000000000000000000000000000000000000000000000000000000"))
+                SolidityBase.decodeBytes(SolidityBase.PartitionData.of("00000000000000000000000000000000000000000000000000000000000000020001000000000000000000000000000000000000000000000000000000000000")))
 
         assertArrayEquals(byteArrayOf(0, 1, 2),
-                SolidityBase.decodeBytes("00000000000000000000000000000000000000000000000000000000000000030001020000000000000000000000000000000000000000000000000000000000"))
+                SolidityBase.decodeBytes(SolidityBase.PartitionData.of("00000000000000000000000000000000000000000000000000000000000000030001020000000000000000000000000000000000000000000000000000000000")))
 
         assertArrayEquals("dave".toByteArray(),
-                SolidityBase.decodeBytes("00000000000000000000000000000000000000000000000000000000000000046461766500000000000000000000000000000000000000000000000000000000"))
+                SolidityBase.decodeBytes(SolidityBase.PartitionData.of("00000000000000000000000000000000000000000000000000000000000000046461766500000000000000000000000000000000000000000000000000000000")))
     }
 
     @Test
     fun testStringDecoding() {
         assertEquals("Hello, world!",
-                SolidityBase.decodeString("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000"))
+                SolidityBase.decodeString(SolidityBase.PartitionData.of("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000")))
+    }
+
+    @Test
+    fun testDecodeEncodeDynamicStringArray() {
+        val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
+                Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
+        val endoded = SolidityBase.VectorDT(items).encode()
+        val decoded = SolidityBase.VectorDT.Decoder(Solidity.String.DECODER).decode(SolidityBase.PartitionData.of(endoded))
+        assertEquals(items.size, decoded.items.size)
+        for (i in 0 until items.size) {
+            assertEquals(items[i].value, decoded.items[i].value)
+        }
     }
 
     @Test

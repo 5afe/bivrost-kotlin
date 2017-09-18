@@ -6,7 +6,7 @@
       "inputs": [
         {
           "name": "",
-          "type": "uint256"
+          "type": "uint256[5][7][][]"
         }
       ],
       "name": "owners",
