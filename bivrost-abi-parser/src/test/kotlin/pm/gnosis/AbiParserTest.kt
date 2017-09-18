@@ -19,6 +19,51 @@ class AbiParserTest {
         assertTrue("$instance should be a $type", type.isInstance(instance))
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefOpeningBracketStart() {
+        AbiParser.mapType("uint[[5][]")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefOpeningBracketMiddle() {
+        AbiParser.mapType("uint[5][[]")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefOpeningBracketEnd() {
+        AbiParser.mapType("uint[5][][")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefLetterAsSize() {
+        AbiParser.mapType("uint[a][]")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefClosingBracket() {
+        AbiParser.mapType("uint[5][]]")
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testInvalidArrayDefUnknownType() {
+        AbiParser.mapType("gnosis[1][]")
+    }
+
+    @Test()
+    fun testParseAliasTypes() {
+        val uintType = AbiParser.mapType("uint")
+        assertType(uintType, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.UInt256::class.asClassName(), uintType.toTypeName())
+
+        val intType = AbiParser.mapType("int")
+        assertType(intType, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.Int256::class.asClassName(), intType.toTypeName())
+
+        val byteType = AbiParser.mapType("byte")
+        assertType(byteType, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.Bytes1::class.asClassName(), byteType.toTypeName())
+    }
+
     @Test()
     fun testParseUIntNestedArray() {
         val type = AbiParser.mapType("uint[5][]")
@@ -38,7 +83,7 @@ class AbiParserTest {
     }
 
     @Test()
-    fun testParsStringDynamicArray() {
+    fun testParseStringDynamicArray() {
         val type = AbiParser.mapType("string[]")
         assertType(type, AbiParser.VectorTypeHolder::class)
         val pType = type as AbiParser.VectorTypeHolder

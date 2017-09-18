@@ -76,7 +76,8 @@ class AbiParser {
         private const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
         private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
         private const val INDENTATION = "    "
-        private val TYPE_PATTERN = Pattern.compile("^(\\w+)((?>\\[\\d*])*)")
+        private val TYPE_PATTERN = Pattern.compile("^(\\w+)((?>\\[\\d*])*)$")
+        private val ARRAY_DEF_PATTERN = Pattern.compile("^\\[[0-9]*]")
 
         fun generateWrapper(packageName: String, abi: String, output: File) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -99,10 +100,15 @@ class AbiParser {
         internal fun mapType(type: String): TypeHolder {
             // uint[5][]
             val matcher = TYPE_PATTERN.matcher(type)
-            matcher.find()
+            if (!matcher.find()) {
+                throw IllegalArgumentException("Invalid type definition: $type!")
+            }
             val arrayType = matcher.group(1)
             val baseType = Solidity.types[checkType(arrayType)] ?: throw IllegalArgumentException("Unknown type $type!")
             val arrayDef = matcher.group(2)
+            if (arrayType.length < type.length && arrayDef.isNullOrBlank()) {
+                throw IllegalArgumentException("Invalid type definition: $type!")
+            }
             return parseArrayDefinition(arrayDef, SimpleTypeHolder(ClassName.bestGuess(baseType), isSolidityDynamicType(arrayType)))
         }
 
@@ -110,35 +116,19 @@ class AbiParser {
             if (arrayDef.isBlank()) {
                 return innerType
             }
-            val length = arrayDef.length
-            if (length < 2 || arrayDef[0] != '[') {
-                // Missing opening bracket or too short
+            val matcher = ARRAY_DEF_PATTERN.matcher(arrayDef)
+            if (!matcher.find()) {
                 throw IllegalArgumentException("Illegal array definition $arrayDef!")
             }
-
-            var closingBracketIndex = -1
-            for (i in 1 until length) {
-                val c = arrayDef[i]
-                if (c == ']') {
-                    closingBracketIndex = i
-                    break
-                } else if (!c.isDigit()) {
-                    // Size of array not numeric
-                    throw IllegalArgumentException("Illegal array definition $arrayDef!")
-                }
-            }
-            if (closingBracketIndex < 1) {
-                // Missing closing bracket
-                throw IllegalArgumentException("Illegal array definition $arrayDef!")
-            }
-            val arraySizeDef = arrayDef.substring(1, closingBracketIndex)
+            val match = matcher.group() ?: throw IllegalArgumentException()
+            val arraySizeDef = match.substring(1, match.length - 1)
             val arraySize = if (arraySizeDef.isBlank()) -1 else arraySizeDef.toInt()
             val collectionTypeHolder = if (arraySizeDef.isBlank()) {
                 VectorTypeHolder(innerType)
             } else {
                 ArrayTypeHolder(innerType, arraySize)
             }
-            return parseArrayDefinition(arrayDef.substring(Math.min(length, closingBracketIndex + 1)), collectionTypeHolder)
+            return parseArrayDefinition(arrayDef.removePrefix(match), collectionTypeHolder)
         }
 
         private fun generateFunctionObjects(abiRoot: AbiRoot) =

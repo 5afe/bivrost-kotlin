@@ -7,15 +7,10 @@ import pm.gnosis.utils.toHex
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
-import java.util.*
-import kotlin.collections.ArrayList
 
 object SolidityBase {
     const val BYTES_PAD = 32
-    const val BITS_PAD = BYTES_PAD * 8
     const val PADDED_HEX_LENGTH = BYTES_PAD * 2
-
-    val EMPTY_BYTE = "0".repeat(PADDED_HEX_LENGTH)
 
     interface Type {
         fun encode(): String
@@ -31,7 +26,25 @@ object SolidityBase {
         data class Parts(val static: String, val dynamic: String)
     }
 
-    abstract class Collection<T : Type>(val hasDynamicItems: Boolean = false) : Type
+    abstract class Collection<out T : Type>(val items: List<T>, val hasDynamicItems: Boolean = false) : Type {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Collection<*>
+
+            if (items != other.items) return false
+            if (hasDynamicItems != other.hasDynamicItems) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = items.hashCode()
+            result = 31 * result + hasDynamicItems.hashCode()
+            return result
+        }
+    }
 
     abstract class UIntBase(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
         init {
@@ -204,7 +217,7 @@ object SolidityBase {
         return (0 until capacity).map { itemDecoder.decode(source) }.toList()
     }
 
-    abstract class Array<T : Type> internal constructor(val items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : Collection<T>(hasDynamicItems) {
+    abstract class Array<T : Type> internal constructor(items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : Collection<T>(items, hasDynamicItems) {
 
         fun checkCapacity(targetCapacity: Int) {
             if (targetCapacity != capacity) {
@@ -217,26 +230,6 @@ object SolidityBase {
                 throw IllegalStateException("Capacity mismatch!")
             }
             return encodeFixedArray(items)
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Array<*>
-
-            if (items != other.items) return false
-            if (capacity != other.capacity) return false
-            if (hasDynamicItems != other.hasDynamicItems) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = items.hashCode()
-            result = 31 * result + capacity
-            result = 31 * result + hasDynamicItems.hashCode()
-            return result
         }
     }
 
@@ -265,7 +258,7 @@ object SolidityBase {
         }
     }
 
-    abstract class Vector<T : Type>(val items: List<T>, hasDynamicItems: Boolean) : Collection<T>(hasDynamicItems), DynamicType {
+    abstract class Vector<T : Type>(items: List<T>, hasDynamicItems: Boolean) : Collection<T>(items, hasDynamicItems), DynamicType {
 
         override fun encode(): String {
             val parts = encodeParts()
@@ -275,24 +268,6 @@ object SolidityBase {
         private fun encodeParts(): DynamicType.Parts {
             val length = items.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
             return DynamicType.Parts(length, encodeFixedArray(items))
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as Vector<*>
-
-            if (items != other.items) return false
-            if (hasDynamicItems != other.hasDynamicItems) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = items.hashCode()
-            result = 31 * result + hasDynamicItems.hashCode()
-            return result
         }
     }
 
