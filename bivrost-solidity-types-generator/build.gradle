@@ -21,6 +21,7 @@ task runSolidityTypeGenerator(type: JavaExec) {
 dependencies {
     implementation deps.kotlin.stdLibJre8
 
+    implementation project(':bivrost-utils')
     implementation project(':bivrost-solidity-types')
     implementation 'com.squareup:kotlinpoet:0.4.0'
 

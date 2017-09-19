@@ -6,6 +6,24 @@
       "inputs": [
         {
           "name": "",
+          "type": "tuple[]",
+          "components": [
+            {
+              "name": "a",
+              "type": "uint256"
+            },
+            {
+              "name": "",
+              "type": "uint256[5][7][][]"
+            },
+            {
+              "name": "b",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "",
           "type": "uint256[5][7][][]"
         }
       ],
@@ -13,7 +31,31 @@
       "outputs": [
         {
           "name": "",
-          "type": "address"
+          "type": "tuple",
+          "components": [
+            {
+              "name": "x",
+              "type": "uint256"
+            },
+            {
+              "name": "y",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "",
+          "type": "tuple[]",
+          "components": [
+            {
+              "name": "x",
+              "type": "uint256"
+            },
+            {
+              "name": "y",
+              "type": "uint256"
+            }
+          ]
         }
       ],
       "payable": false,

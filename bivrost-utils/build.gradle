@@ -19,7 +19,6 @@ task runSolidityTypeGenerator(type: JavaExec) {
 
 dependencies {
 
-    implementation project(':bivrost-utils')
     implementation project(':bivrost-solidity-types')
 
     implementation deps.kotlin.stdLibJre8

@@ -2,10 +2,11 @@ package pm.gnosis
 
 import com.squareup.kotlinpoet.*
 import com.squareup.moshi.Moshi
+import org.bouncycastle.crypto.digests.KeccakDigest
 import pm.gnosis.model.*
 import pm.gnosis.utils.generateSolidityMethodId
+import pm.gnosis.utils.toHex
 import java.io.File
-import java.math.BigInteger
 import java.util.regex.Pattern
 
 class AbiParser {
@@ -14,6 +15,8 @@ class AbiParser {
         fun toTypeName(): TypeName
 
         fun isDynamic(): Boolean
+
+        fun hash(): String
     }
 
     internal class SimpleTypeHolder(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
@@ -24,9 +27,17 @@ class AbiParser {
         override fun isDynamic(): Boolean {
             return dynamic
         }
+
+        override fun hash(): String {
+            return generateHash(listOf(className.toString()))
+        }
     }
 
-    internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder): TypeHolder
+    internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder) : TypeHolder {
+        override fun hash(): String {
+            return generateHash(listOf(listType.toString(), itemType.hash()))
+        }
+    }
 
     internal class ArrayTypeHolder(itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(getListType(itemType), itemType) {
 
@@ -70,14 +81,49 @@ class AbiParser {
         }
     }
 
+    internal class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHolder>>) : TypeHolder {
+
+        val name = "Tuple" + (index + 1)
+
+        override fun toTypeName(): TypeName {
+            return ClassName("", name)
+        }
+
+        override fun hash(): String {
+            return generateHash(entries.map { "${it.first}:${it.second.hash()} " })
+        }
+
+        override fun isDynamic(): Boolean {
+            entries.forEach {
+                if (it.second.isDynamic()) {
+                    return true
+                }
+            }
+            return false
+        }
+
+    }
+
+    internal class GeneratorContext(val root: AbiRoot, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
+
     companion object {
         private const val DECODER_FUN_ARG_NAME = "data"
-        private const val DECODER_VAR_PARTITIONS_NAME = "partitions"
-        private const val DECODER_VAR_LOCATION_ARG_PREFIX = "locationArg" //locationArg0, locationArg1...
+        private const val DECODER_VAR_PARTITIONS_NAME = "source"
         private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
         private const val INDENTATION = "    "
         private val TYPE_PATTERN = Pattern.compile("^(\\w+)((?>\\[\\d*])*)$")
         private val ARRAY_DEF_PATTERN = Pattern.compile("^\\[[0-9]*]")
+
+        private fun generateHash(parts: List<String>): String {
+            val digest = KeccakDigest()
+            parts.forEach {
+                val bytes = it.toByteArray()
+                digest.update(bytes, 0, bytes.size)
+            }
+            val hash = ByteArray(digest.digestSize)
+            digest.doFinal(hash, 0)
+            return hash.toHex()
+        }
 
         fun generateWrapper(packageName: String, abi: String, output: File) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
@@ -87,7 +133,10 @@ class AbiParser {
             val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
             val kotlinFile = KotlinFile.builder(packageName, abiRoot.contractName)
 
-            kotlinClass.addTypes(generateFunctionObjects(abiRoot))
+            val context = GeneratorContext(abiRoot)
+            kotlinClass.addTypes(generateFunctionObjects(context))
+            kotlinClass.addTypes(generateTupleObjects(context))
+
             val build = kotlinFile.addType(kotlinClass.build()).indent(INDENTATION).build()
             output.mkdirs()
             build.writeTo(output)
@@ -97,19 +146,34 @@ class AbiParser {
             return Solidity.aliases.getOrElse(type, { type })
         }
 
-        internal fun mapType(type: String): TypeHolder {
-            // uint[5][]
-            val matcher = TYPE_PATTERN.matcher(type)
+        internal fun mapType(parameter: ParameterJson, context: GeneratorContext): TypeHolder {
+            val matcher = TYPE_PATTERN.matcher(parameter.type)
             if (!matcher.find()) {
-                throw IllegalArgumentException("Invalid type definition: $type!")
+                throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
             }
             val arrayType = matcher.group(1)
-            val baseType = Solidity.types[checkType(arrayType)] ?: throw IllegalArgumentException("Unknown type $type!")
+            val baseType = generateElementaryType(arrayType) ?: generateTuple(arrayType, parameter, context) ?: throw IllegalArgumentException("Unknown parameter ${parameter.type}!")
             val arrayDef = matcher.group(2)
-            if (arrayType.length < type.length && arrayDef.isNullOrBlank()) {
-                throw IllegalArgumentException("Invalid type definition: $type!")
+            if (arrayType.length < parameter.type.length && arrayDef.isNullOrBlank()) {
+                throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
             }
-            return parseArrayDefinition(arrayDef, SimpleTypeHolder(ClassName.bestGuess(baseType), isSolidityDynamicType(arrayType)))
+            return parseArrayDefinition(arrayDef, baseType)
+        }
+
+        private fun generateElementaryType(type: String): TypeHolder? {
+            val baseType = Solidity.types[checkType(type)] ?: return null
+            return SimpleTypeHolder(ClassName.bestGuess(baseType), isSolidityDynamicType(type))
+        }
+
+        private fun generateTuple(type: String, parameters: ParameterJson, context: GeneratorContext): TypeHolder? {
+            if (type != "tuple" || parameters.components == null) {
+                return null
+            }
+            val entries = parameters.components.mapIndexed { index, param ->
+                Pair(if (param.name.isEmpty()) "param$index" else param.name.toLowerCase(), mapType(param, context))
+            }
+            val tupleTypeHolder = TupleTypeHolder(context.tuples.size, entries)
+            return context.tuples.getOrPut(tupleTypeHolder.hash(), { tupleTypeHolder })
         }
 
         private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder): TypeHolder {
@@ -126,33 +190,99 @@ class AbiParser {
             val collectionTypeHolder = if (arraySizeDef.isBlank()) {
                 VectorTypeHolder(innerType)
             } else {
+                if (innerType.isDynamic()) {
+                    throw IllegalStateException()
+                }
                 ArrayTypeHolder(innerType, arraySize)
             }
             return parseArrayDefinition(arrayDef.removePrefix(match), collectionTypeHolder)
         }
 
-        private fun generateFunctionObjects(abiRoot: AbiRoot) =
-                abiRoot.abi.filter { it.type == "function" }.map { functionJson ->
+        private fun generateFunctionObjects(context: GeneratorContext) =
+                context.root.abi.filter { it.type == "function" }.map { functionJson ->
                     val functionObject = TypeSpec.objectBuilder(functionJson.name.capitalize())
 
                     //Add method id
                     val methodId = "${functionJson.name}(${functionJson.inputs.joinToString(",") { checkType(it.type) }})".generateSolidityMethodId()
                     functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
-                    functionObject.addFun(generateFunctionEncoder(functionJson))
+                    functionObject.addFun(generateFunctionEncoder(functionJson, context))
                     if (functionJson.outputs.isNotEmpty()) {
-                        val returnHolder = generateParameterHolder("Return", functionJson.outputs)
-                        functionObject.addFun(generateParameterDecoder("decode", functionJson.outputs, returnHolder.name!!))
+                        val returnHolder = generateParameterHolder("Return", functionJson.outputs, context)
+                        functionObject.addFun(generateParameterDecoder("decode", functionJson.outputs, returnHolder.name!!, context))
                         functionObject.addType(returnHolder)
                     }
 
                     if (functionJson.inputs.isNotEmpty()) {
-                        val argumentsHolder = generateParameterHolder("Arguments", functionJson.inputs)
-                        functionObject.addFun(generateParameterDecoder("decodeArguments", functionJson.inputs, argumentsHolder.name!!))
+                        val argumentsHolder = generateParameterHolder("Arguments", functionJson.inputs, context)
+                        functionObject.addFun(generateParameterDecoder("decodeArguments", functionJson.inputs, argumentsHolder.name!!, context))
                         functionObject.addType(argumentsHolder)
                     }
 
                     functionObject.build()
                 }.toList()
+
+        private fun generateTupleObjects(context: GeneratorContext) =
+                context.tuples.map {
+                    val decoderTypeName = ClassName.bestGuess("Decoder")
+                    val typeHolder = it.value
+
+                    val builder = TypeSpec.classBuilder(typeHolder.name)
+                    val constructor = FunSpec.constructorBuilder()
+
+                    typeHolder.entries.forEach { (name, holder) ->
+                        val className = holder.toTypeName()
+                        constructor.addParameter(name, className)
+                        builder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
+                    }
+
+
+                    //Generate decodings
+                    val decodeBlockBuilder = CodeBlock.builder()
+                    val locationArgs = ArrayList<Pair<String, TypeHolder>>()
+                    generateStaticArgDecoding(typeHolder, decodeBlockBuilder, locationArgs)
+                    generateDynamicArgDecoding(locationArgs, decodeBlockBuilder)
+                    decodeBlockBuilder.addStatement("return %1N(${(0 until typeHolder.entries.size).joinToString(", ") { "arg$it" }})", typeHolder.name)
+
+                    builder
+                            .addModifiers(KModifier.DATA)
+                            .addSuperinterface(if (typeHolder.isDynamic()) SolidityBase.DynamicType::class else SolidityBase.StaticType::class)
+                            .addFun(generateTupleEncoder(typeHolder))
+                            .addType(GeneratorUtils.generateDecoder(typeHolder.name, decodeBlockBuilder.build(), typeHolder.isDynamic(), DECODER_VAR_PARTITIONS_NAME))
+                            .companionObject(GeneratorUtils.generateDecoderCompanion(
+                                    decoderTypeName,
+                                    CodeBlock.of("%1T()", decoderTypeName)))
+                    builder.primaryConstructor(constructor.build()).build()
+                }.toList()
+
+
+        private fun generateStaticArgDecoding(typeHolder: TupleTypeHolder, function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>) {
+            typeHolder.entries.forEachIndexed { index, info ->
+                addDecoderStatementForType(function, locationArgs, index, info.second)
+            }
+        }
+
+
+        private fun generateTupleEncoder(typeHolder: TupleTypeHolder): FunSpec {
+            val funSpec = FunSpec.builder("encode")
+            typeHolder.entries.forEach {
+                generateCheck(it.second, it.first)?.let { funSpec.addCode(it) }
+            }
+
+            return funSpec.returns(String::class)
+                    .addModifiers(KModifier.OVERRIDE)
+                    .addStatement("return %T.encodeFunctionArguments(${typeHolder.entries.map { it.first }.joinToString { it }})", SolidityBase::class)
+                    .build()
+        }
+
+
+        /**
+         * We should move this to a
+         * GENERATOR UTILS start
+         */
+
+        /**
+         * GENERATOR UTILS end
+         */
 
         private fun generateCheck(type: TypeHolder, name: String): CodeBlock? {
             if (type is CollectionTypeHolder) {
@@ -174,11 +304,11 @@ class AbiParser {
             return null
         }
 
-        private fun generateFunctionEncoder(functionJson: AbiElementJson): FunSpec {
+        private fun generateFunctionEncoder(functionJson: AbiElementJson, context: GeneratorContext): FunSpec {
             val funSpec = FunSpec.builder("encode")
             functionJson.inputs.forEachIndexed { index, parameter ->
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
-                val type = mapType(parameter.type)
+                val type = mapType(parameter, context)
                 funSpec.addParameter(name, type.toTypeName())
                 generateCheck(type, name)?.let { funSpec.addCode(it) }
             }
@@ -192,7 +322,7 @@ class AbiParser {
             return finalFun.build()
         }
 
-        private fun generateParameterDecoder(functionName: String, parameters: List<ParameterJson>, dataClassName: String): FunSpec {
+        private fun generateParameterDecoder(functionName: String, parameters: List<ParameterJson>, dataClassName: String, context: GeneratorContext): FunSpec {
             val funSpecBuilder = FunSpec.builder(functionName).addParameter(DECODER_FUN_ARG_NAME, String::class)
 
             //Set function return
@@ -200,11 +330,17 @@ class AbiParser {
             funSpecBuilder.returns(typeName)
 
             funSpecBuilder.addStatement("val $DECODER_VAR_PARTITIONS_NAME = %1T.of($DECODER_FUN_ARG_NAME)", SolidityBase.PartitionData::class)
+            funSpecBuilder.addStatement("")
+            funSpecBuilder.addComment("Add decoders")
+
+            val codeBlock = CodeBlock.builder()
 
             //Generate decodings
-            val locationArgs = ArrayList<Pair<String, String>>()
-            generateStaticArgDecoding(parameters, funSpecBuilder, locationArgs)
-            generateDynamicArgDecoding(locationArgs, funSpecBuilder)
+            val locationArgs = ArrayList<Pair<String, TypeHolder>>()
+            generateStaticArgDecoding(parameters, codeBlock, locationArgs, context)
+            generateDynamicArgDecoding(locationArgs, codeBlock)
+
+            funSpecBuilder.addCode(codeBlock.build())
 
             funSpecBuilder.addStatement("")
             funSpecBuilder.addStatement("return $dataClassName(${(0 until parameters.size).joinToString(", ") { "arg$it" }})")
@@ -212,13 +348,13 @@ class AbiParser {
             return funSpecBuilder.build()
         }
 
-        private fun generateParameterHolder(holderName: String, parameters: List<ParameterJson>): TypeSpec {
+        private fun generateParameterHolder(holderName: String, parameters: List<ParameterJson>, context: GeneratorContext): TypeSpec {
             val returnContainerBuilder = TypeSpec.classBuilder(holderName).addModifiers(KModifier.DATA)
             val returnContainerConstructor = FunSpec.constructorBuilder()
 
             parameters.forEachIndexed { index, parameterJson ->
                 val name = if (parameterJson.name.isEmpty()) "param$index" else parameterJson.name.toLowerCase()
-                val className = mapType(parameterJson.type).toTypeName()
+                val className = mapType(parameterJson, context).toTypeName()
                 returnContainerConstructor.addParameter(name, className)
                 returnContainerBuilder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
             }
@@ -226,37 +362,37 @@ class AbiParser {
             return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
         }
 
-        private fun generateStaticArgDecoding(parameters: List<ParameterJson>, function: FunSpec.Builder, locationArgs: MutableCollection<Pair<String, String>>) {
-            function.addStatement("")
-            function.addComment("Decode arguments")
+        private fun generateStaticArgDecoding(parameters: List<ParameterJson>, function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>,
+                                              context: GeneratorContext) {
             parameters.forEachIndexed { index, outputJson ->
-                val className = mapType(outputJson.type)
-                when {
-                    isSolidityDynamicType(outputJson.type) -> {
-                        locationArgs.add("$DECODER_VAR_LOCATION_ARG_PREFIX$index" to outputJson.type)
-                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = %1T($DECODER_VAR_PARTITIONS_NAME.consume(), 16)", BigInteger::class)
-                    }
-                    isSolidityArray(outputJson.type) -> {
-                        val format = buildArrayDecoder(className, forceStatic = true)
-                        function.addStatement("val $DECODER_VAR_LOCATION_ARG_PREFIX$index = ${format.first}.decode(%L)", *format.second.toTypedArray(), "partitions")
-                    }
-                    else -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className.toTypeName())
-                }
+                val className = mapType(outputJson, context)
+                addDecoderStatementForType(function, locationArgs, index, className)
             }
         }
 
-        private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, String>>, function: FunSpec.Builder) {
-            (0 until locationArgs.size).forEach {
-                val locationReference = locationArgs[it].first
-                val type = locationArgs[it].second
-                val className = mapType(type)
-                val dynamicValName = locationReference.removePrefix("location").decapitalize()
+        private fun addDecoderStatementForType(function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>, index: Int, className: TypeHolder) {
+            when {
+                isSolidityDynamicType(className) -> {
+                    locationArgs.add("$index" to className)
+                    function.addStatement("$DECODER_VAR_PARTITIONS_NAME.consume()")
+                }
+                isSolidityArray(className) -> {
+                    val format = buildArrayDecoder(className, forceStatic = true)
+                    function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = ${format.first}.decode(%L)", *format.second.toTypedArray(), DECODER_VAR_PARTITIONS_NAME)
+                }
+                else -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className.toTypeName())
+            }
+        }
+
+        private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, TypeHolder>>, function: CodeBlock.Builder) {
+            locationArgs.forEach { (argIndex, type) ->
+                val dynamicValName = "$DECODER_VAR_ARG_PREFIX$argIndex"
 
                 if (isSolidityArray(type)) {
-                    val format = buildArrayDecoder(className)
-                    function.addStatement("val $dynamicValName = ${format.first}.decode(%L)", *format.second.toTypedArray(), "partitions")
+                    val format = buildArrayDecoder(type)
+                    function.addStatement("val $dynamicValName = ${format.first}.decode(%L)", *format.second.toTypedArray(), DECODER_VAR_PARTITIONS_NAME)
                 } else {
-                    function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", className.toTypeName(), "partitions")
+                    function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", type.toTypeName(), DECODER_VAR_PARTITIONS_NAME)
                 }
             }
         }
@@ -264,7 +400,7 @@ class AbiParser {
         private fun buildArrayDecoder(className: TypeHolder, forceStatic: Boolean = false): Pair<String, MutableList<TypeName>> {
             if (forceStatic && (
                     (className is VectorTypeHolder) ||
-                    (className is ArrayTypeHolder && className.isDynamic()) ||
+                            (className is ArrayTypeHolder && className.isDynamic()) ||
                             className.toTypeName() == Solidity.Bytes::class.asClassName() || className.toTypeName() == Solidity.String::class.asClassName())) {
                 throw IllegalArgumentException("No dynamic types allowed!")
             }
@@ -280,8 +416,6 @@ class AbiParser {
             return Pair("%T.DECODER", types)
         }
 
-        private fun isSolidityStaticType(type: String) = !isSolidityDynamicType(type)
-
         private fun isSolidityDynamicType(type: String) = isSolidityBytesType(type) || isSolidityStringType(type) || isSolidityDynamicArray(type)
 
         private fun isSolidityBytesType(type: String) = type.contains("bytes")
@@ -290,6 +424,8 @@ class AbiParser {
 
         private fun isSolidityDynamicArray(type: String) = type.contains("[]")
 
-        private fun isSolidityArray(type: String) = type.contains(Regex(pattern = "\\[[0-9]*]"))
+        private fun isSolidityDynamicType(type: TypeHolder) = type.isDynamic()
+
+        private fun isSolidityArray(type: TypeHolder) = type is CollectionTypeHolder
     }
 }
