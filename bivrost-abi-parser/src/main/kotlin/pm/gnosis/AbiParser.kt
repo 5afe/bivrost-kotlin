@@ -274,16 +274,6 @@ class AbiParser {
                     .build()
         }
 
-
-        /**
-         * We should move this to a
-         * GENERATOR UTILS start
-         */
-
-        /**
-         * GENERATOR UTILS end
-         */
-
         private fun generateCheck(type: TypeHolder, name: String): CodeBlock? {
             if (type is CollectionTypeHolder) {
                 val builder = CodeBlock.builder()
