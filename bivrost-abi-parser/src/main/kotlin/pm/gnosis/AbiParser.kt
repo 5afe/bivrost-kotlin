@@ -174,9 +174,6 @@ class AbiParser {
             val collectionTypeHolder = if (arraySizeDef.isBlank()) {
                 VectorTypeHolder(innerType)
             } else {
-                if (innerType.isDynamic()) {
-                    throw IllegalStateException()
-                }
                 ArrayTypeHolder(innerType, arraySize)
             }
             return parseArrayDefinition(arrayDef.removePrefix(match), collectionTypeHolder)
@@ -209,7 +206,7 @@ class AbiParser {
                 "(${parameters.joinToString(",") {
                     if (it.type.startsWith(TUPLE_TYPE_NAME)) {
                         it.components ?: return@joinToString ""
-                        generateMethodSignature(it.components) + it.type.replace(TUPLE_TYPE_NAME, "")
+                        generateMethodSignature(it.components) + it.type.removePrefix(TUPLE_TYPE_NAME)
                     } else {
                         checkType(it.type)
                     }

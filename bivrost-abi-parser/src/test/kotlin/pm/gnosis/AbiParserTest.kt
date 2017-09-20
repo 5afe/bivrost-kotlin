@@ -147,6 +147,19 @@ class AbiParserTest {
         assertEquals(Solidity.String::class.asTypeName(), g1Type.toTypeName())
     }
 
+    @Test()
+    fun testParseStringStaticArray() {
+        val type = AbiParser.mapType(testParameter("string[5]"), testContext())
+        assertType(type, AbiParser.ArrayTypeHolder::class)
+        val pType = type as AbiParser.ArrayTypeHolder
+        assertEquals(5, pType.capacity)
+        assertEquals(SolidityBase.ArrayDT::class.asClassName(), pType.listType)
+
+        // First generic type
+        val g1Type = pType.itemType
+        assertEquals(Solidity.String::class.asTypeName(), g1Type.toTypeName())
+    }
+
     @Test
     fun testDecodeFunctionArguments() {
         /*
