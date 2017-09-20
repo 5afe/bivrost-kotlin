@@ -1,12 +1,15 @@
 package pm.gnosis
 
 
+import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import pm.gnosis.model.AbiRoot
+import pm.gnosis.model.ParameterJson
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
 import java.math.BigInteger
@@ -15,58 +18,108 @@ import kotlin.reflect.KClass
 
 class AbiParserTest {
 
+    private fun testContext() = AbiParser.GeneratorContext(AbiRoot(ArrayList(), "Test"))
+
+    private fun testParameter(type: String, name: String = "test", components: List<ParameterJson>? = null)
+            = ParameterJson(name, type, components)
+
     private fun assertType(instance: Any, type: KClass<*>) {
         assertTrue("$instance should be a $type", type.isInstance(instance))
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefOpeningBracketStart() {
-        AbiParser.mapType("uint[[5][]")
+        AbiParser.mapType(testParameter("uint[[5][]"), testContext())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefOpeningBracketMiddle() {
-        AbiParser.mapType("uint[5][[]")
+        AbiParser.mapType(testParameter("uint[5][[]"), testContext())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefOpeningBracketEnd() {
-        AbiParser.mapType("uint[5][][")
+        AbiParser.mapType(testParameter("uint[5][]["), testContext())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefLetterAsSize() {
-        AbiParser.mapType("uint[a][]")
+        AbiParser.mapType(testParameter("uint[a][]"), testContext())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefClosingBracket() {
-        AbiParser.mapType("uint[5][]]")
+        AbiParser.mapType(testParameter("uint[5][]]"), testContext())
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefUnknownType() {
-        AbiParser.mapType("gnosis[1][]")
+        AbiParser.mapType(testParameter("gnosis[1][]"), testContext())
     }
 
     @Test()
     fun testParseAliasTypes() {
-        val uintType = AbiParser.mapType("uint")
+        val uintType = AbiParser.mapType(testParameter("uint"), testContext())
         assertType(uintType, AbiParser.SimpleTypeHolder::class)
         assertEquals(Solidity.UInt256::class.asClassName(), uintType.toTypeName())
 
-        val intType = AbiParser.mapType("int")
+        val intType = AbiParser.mapType(testParameter("int"), testContext())
         assertType(intType, AbiParser.SimpleTypeHolder::class)
         assertEquals(Solidity.Int256::class.asClassName(), intType.toTypeName())
 
-        val byteType = AbiParser.mapType("byte")
+        val byteType = AbiParser.mapType(testParameter("byte"), testContext())
         assertType(byteType, AbiParser.SimpleTypeHolder::class)
         assertEquals(Solidity.Bytes1::class.asClassName(), byteType.toTypeName())
     }
 
     @Test()
+    fun testParseDynamicTupleType() {
+        val components = listOf(testParameter("uint", "a"), testParameter("uint[]", "b"))
+        val tupleType = AbiParser.mapType(testParameter("tuple", components = components), testContext())
+        assertType(tupleType, AbiParser.TupleTypeHolder::class)
+        val pTuple = tupleType as AbiParser.TupleTypeHolder
+        assertEquals(2, pTuple.entries.size)
+        assertEquals("a", pTuple.entries[0].first)
+        assertType(pTuple.entries[0].second, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.UInt256::class.asClassName(), pTuple.entries[0].second.toTypeName())
+
+        assertEquals("b", pTuple.entries[1].first)
+        assertType(pTuple.entries[1].second, AbiParser.VectorTypeHolder::class)
+        val pArray = pTuple.entries[1].second as AbiParser.VectorTypeHolder
+        assertType(pArray.itemType, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.UInt256::class.asClassName(), pArray.itemType.toTypeName())
+
+        assertEquals(true, tupleType.isDynamic())
+        assertEquals("TupleA", tupleType.name)
+        assertEquals(ClassName("", "TupleA"), tupleType.toTypeName())
+    }
+
+    @Test()
+    fun testStaticDynamicTupleType() {
+        val components = listOf(testParameter("uint", "a"), testParameter("uint[5]", "b"))
+        val tupleType = AbiParser.mapType(testParameter("tuple", components = components), testContext())
+        assertType(tupleType, AbiParser.TupleTypeHolder::class)
+        val pTuple = tupleType as AbiParser.TupleTypeHolder
+        assertEquals(2, pTuple.entries.size)
+        assertEquals("a", pTuple.entries[0].first)
+        assertType(pTuple.entries[0].second, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.UInt256::class.asClassName(), pTuple.entries[0].second.toTypeName())
+
+        assertEquals("b", pTuple.entries[1].first)
+        assertType(pTuple.entries[1].second, AbiParser.ArrayTypeHolder::class)
+        val pArray = pTuple.entries[1].second as AbiParser.ArrayTypeHolder
+        assertType(pArray.itemType, AbiParser.SimpleTypeHolder::class)
+        assertEquals(Solidity.UInt256::class.asClassName(), pArray.itemType.toTypeName())
+        assertEquals(5, pArray.capacity)
+
+        assertEquals(false, tupleType.isDynamic())
+        assertEquals("TupleA", tupleType.name)
+        assertEquals(ClassName("", "TupleA"), tupleType.toTypeName())
+    }
+
+    @Test()
     fun testParseUIntNestedArray() {
-        val type = AbiParser.mapType("uint[5][]")
+        val type = AbiParser.mapType(testParameter("uint[5][]"), testContext())
         assertType(type, AbiParser.VectorTypeHolder::class)
         val pType = type as AbiParser.VectorTypeHolder
         assertEquals(SolidityBase.VectorST::class.asClassName(), pType.listType)
@@ -84,10 +137,23 @@ class AbiParserTest {
 
     @Test()
     fun testParseStringDynamicArray() {
-        val type = AbiParser.mapType("string[]")
+        val type = AbiParser.mapType(testParameter("string[]"), testContext())
         assertType(type, AbiParser.VectorTypeHolder::class)
         val pType = type as AbiParser.VectorTypeHolder
         assertEquals(SolidityBase.VectorDT::class.asClassName(), pType.listType)
+
+        // First generic type
+        val g1Type = pType.itemType
+        assertEquals(Solidity.String::class.asTypeName(), g1Type.toTypeName())
+    }
+
+    @Test()
+    fun testParseStringStaticArray() {
+        val type = AbiParser.mapType(testParameter("string[5]"), testContext())
+        assertType(type, AbiParser.ArrayTypeHolder::class)
+        val pType = type as AbiParser.ArrayTypeHolder
+        assertEquals(5, pType.capacity)
+        assertEquals(SolidityBase.ArrayDT::class.asClassName(), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType

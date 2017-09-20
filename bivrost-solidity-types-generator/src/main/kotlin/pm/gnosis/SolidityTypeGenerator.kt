@@ -74,40 +74,6 @@ fun generate(path: String, packageName: String) {
     kotlinFile.indent(indentation).addType(solidityGeneratedObject.build()).build().writeTo(File(path.removeSuffix(modelPackageName)))
 }
 
-private fun generateDecoder(name: String, decodeCode: CodeBlock, isDynamic: Boolean = true): TypeSpec {
-    val className = ClassName("", name)
-    return TypeSpec.classBuilder("Decoder")
-            .addSuperinterface(ParameterizedTypeName.get(SolidityBase.TypeDecoder::class.asClassName(), className))
-            .addFun(generateIsDynamicFunction(isDynamic))
-            .addFun(generateDecodeSourceFunction(decodeCode, className))
-            .build()
-}
-
-private fun generateDecodeSourceFunction(decodeCode: CodeBlock, className: ClassName): FunSpec {
-    return FunSpec.builder("decode")
-            .addParameter("source", SolidityBase.PartitionData::class)
-            .addModifiers(KModifier.OVERRIDE)
-            .returns(className)
-            .addCode(decodeCode)
-            .build()
-}
-
-private fun generateIsDynamicFunction(isDynamic: Boolean): FunSpec {
-    return FunSpec.builder("isDynamic")
-            .addModifiers(KModifier.OVERRIDE)
-            .returns(Boolean::class)
-            .addCode(CodeBlock.of("return %L", isDynamic))
-            .build()
-}
-
-private fun generateDecoderCompanion(decoderTypeName: TypeName, decoderInit: CodeBlock): TypeSpec {
-    return TypeSpec.companionObjectBuilder()
-            .addProperty(PropertySpec.builder("DECODER", decoderTypeName)
-                    .initializer(decoderInit)
-                    .build())
-            .build()
-}
-
 private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map { generateUInt("UInt$it", it) }.toList()
 
 private fun generateUInt(className: String, nBits: Int): TypeSpec {
@@ -115,7 +81,7 @@ private fun generateUInt(className: String, nBits: Int): TypeSpec {
     return TypeSpec.classBuilder(className)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -132,7 +98,7 @@ private fun generateAddress(): TypeSpec {
     return TypeSpec.classBuilder(name)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, name)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -154,13 +120,13 @@ private fun generateBool(): TypeSpec {
             .addProperty(PropertySpec.builder("value", Boolean::class)
                     .initializer("value")
                     .build())
-            .addType(generateDecoder(name,
+            .addType(GeneratorUtils.generateDecoder(name,
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeBool(%3L.consume()))", name, SolidityBase::class, "source")
                             .build(),
                     false)
             )
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()
@@ -173,7 +139,7 @@ private fun generateInt(className: String, nBits: Int): TypeSpec {
     return TypeSpec.classBuilder(className)
             .superclass(SolidityBase.IntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -190,7 +156,7 @@ private fun generateStaticBytes() = (1..32).map {
     TypeSpec.classBuilder(name)
             .superclass(SolidityBase.StaticBytes::class)
             .addSuperclassConstructorParameter("%1L, %2L", "bytes", it)
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) }, %3L)", decoderTypeName, name, it)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -230,11 +196,11 @@ private fun generateDynamicBytes(): TypeSpec {
                             .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
                             .build())
                     .build())
-            .addType(generateDecoder(name,
+            .addType(GeneratorUtils.generateDecoder(name,
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeBytes(source))", name, SolidityBase::class)
                             .build()))
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()
@@ -252,12 +218,12 @@ private fun generateString(): TypeSpec {
             .addProperty(PropertySpec.builder("value", String::class)
                     .initializer("value")
                     .build())
-            .addType(generateDecoder(name,
+            .addType(GeneratorUtils.generateDecoder(name,
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeString(%3L))", name, SolidityBase::class, "source")
                             .build())
             )
-            .companionObject(generateDecoderCompanion(
+            .companionObject(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()
