@@ -20,34 +20,22 @@ class AbiParser {
     }
 
     internal class SimpleTypeHolder(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
-        override fun toTypeName(): TypeName {
-            return className
-        }
+        override fun toTypeName() = className
 
-        override fun isDynamic(): Boolean {
-            return dynamic
-        }
+        override fun isDynamic() = dynamic
 
-        override fun hash(): String {
-            return generateHash(listOf(className.toString()))
-        }
+        override fun hash() = generateHash(listOf(className.toString()))
     }
 
     internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder) : TypeHolder {
-        override fun hash(): String {
-            return generateHash(listOf(listType.toString(), itemType.hash()))
-        }
+        override fun hash() = generateHash(listOf(listType.toString(), itemType.hash()))
     }
 
     internal class ArrayTypeHolder(itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(getListType(itemType), itemType) {
 
-        override fun toTypeName(): TypeName {
-            return ParameterizedTypeName.get(listType, itemType.toTypeName())
-        }
+        override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
-        override fun isDynamic(): Boolean {
-            return itemType.isDynamic()
-        }
+        override fun isDynamic() = itemType.isDynamic()
 
         companion object {
             private fun getListType(itemType: TypeHolder): ClassName {
@@ -62,13 +50,9 @@ class AbiParser {
 
     internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(getListType(itemType), itemType) {
 
-        override fun toTypeName(): TypeName {
-            return ParameterizedTypeName.get(listType, itemType.toTypeName())
-        }
+        override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
-        override fun isDynamic(): Boolean {
-            return true
-        }
+        override fun isDynamic() = true
 
         companion object {
             private fun getListType(itemType: TypeHolder): ClassName {
@@ -85,22 +69,11 @@ class AbiParser {
 
         val name = "Tuple" + numberToLetter(index)
 
-        override fun toTypeName(): TypeName {
-            return ClassName("", name)
-        }
+        override fun toTypeName() = ClassName("", name)
 
-        override fun hash(): String {
-            return generateHash(entries.map { "${it.first}:${it.second.hash()} " })
-        }
+        override fun hash() = generateHash(entries.map { "${it.first}:${it.second.hash()} " })
 
-        override fun isDynamic(): Boolean {
-            entries.forEach {
-                if (it.second.isDynamic()) {
-                    return true
-                }
-            }
-            return false
-        }
+        override fun isDynamic() = entries.any { it.second.isDynamic() }
     }
 
     internal class GeneratorContext(val root: AbiRoot, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
