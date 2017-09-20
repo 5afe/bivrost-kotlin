@@ -5,7 +5,7 @@
       "constant": true,
       "inputs": [
         {
-          "name": "",
+          "name": "c",
           "type": "tuple[]",
           "components": [
             {
@@ -13,12 +13,12 @@
               "type": "uint256"
             },
             {
-              "name": "",
-              "type": "uint256[5][7][][]"
-            },
-            {
               "name": "b",
               "type": "uint256"
+            },
+            {
+              "name": "",
+              "type": "uint256[5][7][][]"
             }
           ]
         },

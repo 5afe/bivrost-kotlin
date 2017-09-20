@@ -83,7 +83,7 @@ class AbiParser {
 
     internal class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHolder>>) : TypeHolder {
 
-        val name = "Tuple" + (index + 1)
+        val name = "Tuple" + numberToLetter(index)
 
         override fun toTypeName(): TypeName {
             return ClassName("", name)
@@ -101,7 +101,6 @@ class AbiParser {
             }
             return false
         }
-
     }
 
     internal class GeneratorContext(val root: AbiRoot, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
@@ -111,8 +110,20 @@ class AbiParser {
         private const val DECODER_VAR_PARTITIONS_NAME = "source"
         private const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
         private const val INDENTATION = "    "
+        private const val TUPLE_TYPE_NAME = "tuple"
+        private val TUPLE_NAME_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray()
         private val TYPE_PATTERN = Pattern.compile("^(\\w+)((?>\\[\\d*])*)$")
         private val ARRAY_DEF_PATTERN = Pattern.compile("^\\[[0-9]*]")
+
+        private fun numberToLetter(index: Int): String {
+            val builder = StringBuilder()
+            var i = index
+            do {
+                builder.append(TUPLE_NAME_ALPHABET[i % TUPLE_NAME_ALPHABET.size])
+                i /= TUPLE_NAME_ALPHABET.size
+            } while (i > 0)
+            return builder.toString()
+        }
 
         private fun generateHash(parts: List<String>): String {
             val digest = KeccakDigest()
@@ -166,7 +177,7 @@ class AbiParser {
         }
 
         private fun generateTuple(type: String, parameters: ParameterJson, context: GeneratorContext): TypeHolder? {
-            if (type != "tuple" || parameters.components == null) {
+            if (type != TUPLE_TYPE_NAME || parameters.components == null) {
                 return null
             }
             val entries = parameters.components.mapIndexed { index, param ->
@@ -203,7 +214,7 @@ class AbiParser {
                     val functionObject = TypeSpec.objectBuilder(functionJson.name.capitalize())
 
                     //Add method id
-                    val methodId = "${functionJson.name}(${functionJson.inputs.joinToString(",") { checkType(it.type) }})".generateSolidityMethodId()
+                    val methodId = "${functionJson.name}${generateMethodSignature(functionJson.inputs)}".generateSolidityMethodId()
                     functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
                     functionObject.addFun(generateFunctionEncoder(functionJson, context))
                     if (functionJson.outputs.isNotEmpty()) {
@@ -221,6 +232,16 @@ class AbiParser {
                     functionObject.build()
                 }.toList()
 
+        private fun generateMethodSignature(parameters: List<ParameterJson>): String =
+                "(${parameters.joinToString(",") {
+                    if (it.type.startsWith(TUPLE_TYPE_NAME)) {
+                        it.components ?: return@joinToString ""
+                        generateMethodSignature(it.components) + it.type.replace(TUPLE_TYPE_NAME, "")
+                    } else {
+                        checkType(it.type)
+                    }
+                }})"
+
         private fun generateTupleObjects(context: GeneratorContext) =
                 context.tuples.map {
                     val decoderTypeName = ClassName.bestGuess("Decoder")
@@ -234,7 +255,6 @@ class AbiParser {
                         constructor.addParameter(name, className)
                         builder.addProperty(PropertySpec.builder(name, className).initializer(name).build())
                     }
-
 
                     //Generate decodings
                     val decodeBlockBuilder = CodeBlock.builder()
