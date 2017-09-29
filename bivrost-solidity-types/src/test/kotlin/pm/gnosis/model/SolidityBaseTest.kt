@@ -288,9 +288,9 @@ class SolidityBaseTest {
     fun testDecodeEncodeDynamicStringArray() {
         val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
                 Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
-        val endoded = SolidityBase.VectorDT(items).encode()
-        assertEquals("Encoded string not correct!", ENCODED_DYNAMIC_STRING_ARRAY, endoded)
-        val decoded = SolidityBase.VectorDT.Decoder(Solidity.String.DECODER).decode(SolidityBase.PartitionData.of(endoded))
+        val encoded = SolidityBase.VectorDT(items).encode()
+        assertEquals("Encoded string not correct!", ENCODED_DYNAMIC_STRING_ARRAY, encoded)
+        val decoded = SolidityBase.VectorDT.Decoder(Solidity.String.DECODER).decode(SolidityBase.PartitionData.of(encoded))
         assertEquals(items.size, decoded.items.size)
         for (i in 0 until items.size) {
             assertEquals(items[i].value, decoded.items[i].value)
@@ -301,9 +301,9 @@ class SolidityBaseTest {
     fun testDecodeEncodeStaticStringArray() {
         val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
                 Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
-        val endoded = SolidityBase.ArrayDT(items, 6).encode()
-        assertEquals("Encoded string not correct!", ENCODED_STATIC_STRING_ARRAY, endoded)
-        val decoded = SolidityBase.ArrayDT.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(endoded))
+        val encoded = SolidityBase.ArrayDT(items, 6).encode()
+        assertEquals("Encoded string not correct!", ENCODED_STATIC_STRING_ARRAY, encoded)
+        val decoded = SolidityBase.ArrayDT.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(encoded))
         assertEquals(items.size, decoded.items.size)
         for (i in 0 until items.size) {
             assertEquals(items[i].value, decoded.items[i].value)
