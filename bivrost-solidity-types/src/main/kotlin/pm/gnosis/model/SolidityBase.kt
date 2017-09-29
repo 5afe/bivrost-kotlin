@@ -229,7 +229,8 @@ object SolidityBase {
             if (items.size != capacity) {
                 throw IllegalStateException("Capacity mismatch!")
             }
-            return encodeFixedArray(items)
+            // Encode the fixed array as a tuple where all parts are of the same time
+            return encodeTuple(items)
         }
     }
 
@@ -267,7 +268,8 @@ object SolidityBase {
 
         private fun encodeParts(): DynamicType.Parts {
             val length = items.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
-            return DynamicType.Parts(length, encodeFixedArray(items))
+            // Encode the dynamic array as the length and a tuple where all parts are of the same time
+            return DynamicType.Parts(length, encodeTuple(items))
         }
     }
 
@@ -299,29 +301,29 @@ object SolidityBase {
 
     @Suppress("unused")
     fun encodeFunctionArguments(vararg args: Type): String {
-        return encodeFixedArray(args.toList())
+        return encodeTuple(args.toList())
     }
 
     @Suppress("unused")
-    fun encodeFixedArray(args: List<Type>): String {
-        val parts = ArrayList<Pair<String, Boolean>>()
+    fun encodeTuple(parts: List<Type>): String {
+        val encodedParts = ArrayList<Pair<String, Boolean>>()
 
         var sizeOfStaticBlock = 0
-        args.forEach {
+        parts.forEach {
             val encoded = it.encode()
             if (isDynamic(it)) {
-                parts += Pair(encoded, true)
+                encodedParts += Pair(encoded, true)
                 // Add length of an address to static block size
                 sizeOfStaticBlock += BYTES_PAD
             } else {
-                parts += Pair(encoded, false)
+                encodedParts += Pair(encoded, false)
                 sizeOfStaticBlock += encoded.length / 2
             }
         }
 
         val staticArgsBuilder = StringBuilder()
         val dynamicArgsBuilder = StringBuilder()
-        parts.forEach { (encoded, dynamic) ->
+        encodedParts.forEach { (encoded, dynamic) ->
             if (dynamic) {
                 val location = sizeOfStaticBlock + dynamicArgsBuilder.length / 2
                 staticArgsBuilder.append(location.toString(16).padStart(PADDED_HEX_LENGTH, '0'))
