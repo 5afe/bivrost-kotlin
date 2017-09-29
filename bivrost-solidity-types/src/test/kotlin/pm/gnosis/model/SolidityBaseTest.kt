@@ -298,6 +298,19 @@ class SolidityBaseTest {
     }
 
     @Test
+    fun testDecodeEncodeStaticStringArray() {
+        val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
+                Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
+        val endoded = SolidityBase.ArrayDT(items, 6).encode()
+        assertEquals("Encoded string not correct!", ENCODED_STATIC_STRING_ARRAY, endoded)
+        val decoded = SolidityBase.ArrayDT.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(endoded))
+        assertEquals(items.size, decoded.items.size)
+        for (i in 0 until items.size) {
+            assertEquals(items[i].value, decoded.items[i].value)
+        }
+    }
+
+    @Test
     fun testStringEncoding() {
         assertEquals("000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000",
                 Solidity.String("Hello, world!").encode())
@@ -316,9 +329,7 @@ class SolidityBaseTest {
 
     companion object {
         // Encoded string of ["Hi", "I", "want", "to", "learn", "Solidity"]
-        const val ENCODED_DYNAMIC_STRING_ARRAY = "" +
-                // Array length
-                "0000000000000000000000000000000000000000000000000000000000000006" +
+        const val ENCODED_STATIC_STRING_ARRAY = "" +
                 // Location of String "Hi"
                 "00000000000000000000000000000000000000000000000000000000000000c0" +
                 // Location of String "I"
@@ -361,5 +372,10 @@ class SolidityBaseTest {
                 "0000000000000000000000000000000000000000000000000000000000000008" +
                 // Byte string of "Solidity"
                 "536f6c6964697479000000000000000000000000000000000000000000000000"
+
+        const val ENCODED_DYNAMIC_STRING_ARRAY = "" +
+                // Array length
+                "0000000000000000000000000000000000000000000000000000000000000006" +
+                ENCODED_STATIC_STRING_ARRAY
     }
 }
