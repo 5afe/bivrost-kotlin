@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 
 class AbiParserTest {
 
-    private fun testContext() = AbiParser.GeneratorContext(AbiRoot(ArrayList(), "Test"))
+    private fun testContext() = AbiParser.GeneratorContext(AbiRoot(ArrayList(), "Test"), AbiParser.ArraysMap("com.example"))
 
     private fun testParameter(type: String, name: String = "test", components: List<ParameterJson>? = null)
             = ParameterJson(name, type, components)
@@ -128,7 +128,7 @@ class AbiParserTest {
         val g1Type = pType.itemType
         assertType(g1Type, AbiParser.ArrayTypeHolder::class)
         val g1pType = g1Type as AbiParser.ArrayTypeHolder
-        assertEquals(SolidityBase.Array::class.asClassName(), g1pType.listType)
+        assertEquals(ClassName("com.example.arrays", "Array5"), g1pType.listType)
 
         // Second generic type
         val g2Type = g1pType.itemType
@@ -153,7 +153,7 @@ class AbiParserTest {
         assertType(type, AbiParser.ArrayTypeHolder::class)
         val pType = type as AbiParser.ArrayTypeHolder
         assertEquals(5, pType.capacity)
-        assertEquals(SolidityBase.Array::class.asClassName(), pType.listType)
+        assertEquals(ClassName("com.example.arrays", "Array5"), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
@@ -240,7 +240,7 @@ class AbiParserTest {
         ([0x456, 0x789], "Hello, world!", [0x123])
          */
 
-        val arg1 = SolidityBase.Array(
+        val arg1 = TestArray(
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2
         )
         val arg2 = Solidity.String("Hello, world!")
@@ -267,5 +267,7 @@ class AbiParserTest {
                 "0000000000000000000000000000000000000000000000000000000000000123"
         assertEquals(data, expected)
     }
+
+    private class TestArray<out T : SolidityBase.Type>(items: List<T>, capacity: Int) : SolidityBase.Array<T>(items, capacity)
 
 }
