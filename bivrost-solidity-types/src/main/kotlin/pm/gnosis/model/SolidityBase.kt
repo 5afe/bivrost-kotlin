@@ -322,7 +322,7 @@ object SolidityBase {
     @Suppress("MemberVisibilityCanPrivate")
     fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of ${PADDED_HEX_LENGTH}")
+        if (noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {

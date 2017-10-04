@@ -186,6 +186,17 @@ class SolidityBaseTest {
     }
 
     @Test
+    fun testZeroLengthArray() {
+        val testData = ""
+        val source = SolidityBase.PartitionData.of(testData)
+        val expected = TestArray<Solidity.UInt256>(emptyList(), 0)
+        // Check that the expected does correct encoding
+        assertEquals("", expected.encode())
+        // Check that the decoding returns the expected
+        assertEquals(expected, TestArray.Decoder(Solidity.UInt256.DECODER, 0).decode(source))
+    }
+
+    @Test
     fun testDynamicArrayDecoding() {
         var testData = "000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
         assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
@@ -194,30 +205,30 @@ class SolidityBaseTest {
         testData = "0000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000032100000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
         val source = SolidityBase.PartitionData.of(testData)
         val expected = SolidityBase.Vector(listOf(
-                SolidityBase.Array(listOf(Solidity.UInt256(BigInteger("321", 16))), 1),
-                SolidityBase.Array(listOf(Solidity.UInt256(BigInteger("456", 16))), 1),
-                SolidityBase.Array(listOf(Solidity.UInt256(BigInteger("789", 16))), 1)
+                TestArray(listOf(Solidity.UInt256(BigInteger("321", 16))), 1),
+                TestArray(listOf(Solidity.UInt256(BigInteger("456", 16))), 1),
+                TestArray(listOf(Solidity.UInt256(BigInteger("789", 16))), 1)
         ))
-        assertEquals(expected, SolidityBase.Vector.Decoder(SolidityBase.Array.Decoder(Solidity.UInt256.DECODER, 1)).decode(source))
+        assertEquals(expected, SolidityBase.Vector.Decoder(TestArray.Decoder(Solidity.UInt256.DECODER, 1)).decode(source))
     }
 
     @Test
     fun testFixedArrayEncoding() {
         assertEquals("00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
-                SolidityBase.Array(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2).encode())
+                TestArray(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2).encode())
 
         assertEquals("00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
-                SolidityBase.Array(listOf(Solidity.Bool(true), Solidity.Bool(false)), 2).encode())
+                TestArray(listOf(Solidity.Bool(true), Solidity.Bool(false)), 2).encode())
 
         assertEquals("00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-                SolidityBase.Array(listOf(Solidity.Bytes1(kotlin.ByteArray(0)), Solidity.Bytes1(kotlin.ByteArray(0))), 2).encode())
+                TestArray(listOf(Solidity.Bytes1(kotlin.ByteArray(0)), Solidity.Bytes1(kotlin.ByteArray(0))), 2).encode())
     }
 
     @Test
     fun testFixedArrayDecoding() {
         val testData = "00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789"
         assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
-                SolidityBase.Array.Decoder(Solidity.UInt256.DECODER, 2).decode(SolidityBase.PartitionData.of(testData)).items)
+                TestArray.Decoder(Solidity.UInt256.DECODER, 2).decode(SolidityBase.PartitionData.of(testData)).items)
     }
 
     @Test
@@ -227,7 +238,7 @@ class SolidityBaseTest {
         assertEquals(listOf(Solidity.UInt256(BigInteger("321", 16)), Solidity.UInt256(BigInteger("765", 16))),
                 SolidityBase.Vector.Decoder(Solidity.UInt256.DECODER).decode(source).items)
         assertEquals(listOf(Solidity.UInt256(BigInteger("456", 16)), Solidity.UInt256(BigInteger("789", 16))),
-                SolidityBase.Array.Decoder(Solidity.UInt256.DECODER, 2).decode(source).items)
+                TestArray.Decoder(Solidity.UInt256.DECODER, 2).decode(source).items)
     }
 
     @Test
@@ -301,9 +312,9 @@ class SolidityBaseTest {
     fun testDecodeEncodeStaticStringArray() {
         val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
                 Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
-        val encoded = SolidityBase.Array(items, 6).encode()
+        val encoded = TestArray(items, 6).encode()
         assertEquals("Encoded string not correct!", ENCODED_STATIC_STRING_ARRAY, encoded)
-        val decoded = SolidityBase.Array.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(encoded))
+        val decoded = TestArray.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(encoded))
         assertEquals(items.size, decoded.items.size)
         for (i in 0 until items.size) {
             assertEquals(items[i].value, decoded.items[i].value)
@@ -325,6 +336,14 @@ class SolidityBaseTest {
     private fun formatClassName(clazz: String): String {
         val index = clazz.lastIndexOf(".")
         return clazz.replaceRange(index, index + 1, "$")
+    }
+
+    private class TestArray<out T : SolidityBase.Type>(items: List<T>, capacity: Int) : SolidityBase.Array<T>(items, capacity) {
+
+        class Decoder<out T : SolidityBase.Type>(val itemDecoder: SolidityBase.TypeDecoder<T>, val capacity: Int) : SolidityBase.TypeDecoder<TestArray<T>> {
+            override fun isDynamic(): Boolean = itemDecoder.isDynamic()
+            override fun decode(source: SolidityBase.PartitionData): TestArray<T> = TestArray(SolidityBase.decodeList(source, capacity, itemDecoder), capacity)
+        }
     }
 
     companion object {
