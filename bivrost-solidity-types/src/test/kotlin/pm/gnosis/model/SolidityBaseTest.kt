@@ -288,8 +288,22 @@ class SolidityBaseTest {
     fun testDecodeEncodeDynamicStringArray() {
         val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
                 Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
-        val endoded = SolidityBase.VectorDT(items).encode()
-        val decoded = SolidityBase.VectorDT.Decoder(Solidity.String.DECODER).decode(SolidityBase.PartitionData.of(endoded))
+        val encoded = SolidityBase.VectorDT(items).encode()
+        assertEquals("Encoded string not correct!", ENCODED_DYNAMIC_STRING_ARRAY, encoded)
+        val decoded = SolidityBase.VectorDT.Decoder(Solidity.String.DECODER).decode(SolidityBase.PartitionData.of(encoded))
+        assertEquals(items.size, decoded.items.size)
+        for (i in 0 until items.size) {
+            assertEquals(items[i].value, decoded.items[i].value)
+        }
+    }
+
+    @Test
+    fun testDecodeEncodeStaticStringArray() {
+        val items = listOf(Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
+                Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity"))
+        val encoded = SolidityBase.ArrayDT(items, 6).encode()
+        assertEquals("Encoded string not correct!", ENCODED_STATIC_STRING_ARRAY, encoded)
+        val decoded = SolidityBase.ArrayDT.Decoder(Solidity.String.DECODER, 6).decode(SolidityBase.PartitionData.of(encoded))
         assertEquals(items.size, decoded.items.size)
         for (i in 0 until items.size) {
             assertEquals(items[i].value, decoded.items[i].value)
@@ -311,5 +325,57 @@ class SolidityBaseTest {
     private fun formatClassName(clazz: String): String {
         val index = clazz.lastIndexOf(".")
         return clazz.replaceRange(index, index + 1, "$")
+    }
+
+    companion object {
+        // Encoded string of ["Hi", "I", "want", "to", "learn", "Solidity"]
+        const val ENCODED_STATIC_STRING_ARRAY = "" +
+                // Location of String "Hi"
+                "00000000000000000000000000000000000000000000000000000000000000c0" +
+                // Location of String "I"
+                "0000000000000000000000000000000000000000000000000000000000000100" +
+                // Location of String "want"
+                "0000000000000000000000000000000000000000000000000000000000000140" +
+                // Location of String "to"
+                "0000000000000000000000000000000000000000000000000000000000000180" +
+                // Location of String "learn"
+                "00000000000000000000000000000000000000000000000000000000000001c0" +
+                // Location of String "Solidity"
+                "0000000000000000000000000000000000000000000000000000000000000200" +
+
+                // Length of "Hi"
+                "0000000000000000000000000000000000000000000000000000000000000002" +
+                // Byte string of "Hi"
+                "4869000000000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "I"
+                "0000000000000000000000000000000000000000000000000000000000000001" +
+                // Byte string of "I"
+                "4900000000000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "want"
+                "0000000000000000000000000000000000000000000000000000000000000004" +
+                // Byte string of "Want"
+                "77616e7400000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "to"
+                "0000000000000000000000000000000000000000000000000000000000000002" +
+                // Byte string of "to"
+                "746f000000000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "learn"
+                "0000000000000000000000000000000000000000000000000000000000000005" +
+                // Byte string of "learn"
+                "6c6561726e000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "Solidity"
+                "0000000000000000000000000000000000000000000000000000000000000008" +
+                // Byte string of "Solidity"
+                "536f6c6964697479000000000000000000000000000000000000000000000000"
+
+        const val ENCODED_DYNAMIC_STRING_ARRAY = "" +
+                // Array length
+                "0000000000000000000000000000000000000000000000000000000000000006" +
+                ENCODED_STATIC_STRING_ARRAY
     }
 }
