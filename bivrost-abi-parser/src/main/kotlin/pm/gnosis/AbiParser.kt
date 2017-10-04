@@ -31,38 +31,18 @@ class AbiParser {
         override fun hash() = generateHash(listOf(listType.toString(), itemType.hash()))
     }
 
-    internal class ArrayTypeHolder(itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(getListType(itemType), itemType) {
+    internal class ArrayTypeHolder(arraysMap: ArraysMap, itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(arraysMap.get(capacity), itemType) {
 
         override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
-        override fun isDynamic() = itemType.isDynamic()
-
-        companion object {
-            private fun getListType(itemType: TypeHolder): ClassName {
-                return if (itemType.isDynamic()) {
-                    SolidityBase.ArrayDT::class.asClassName()
-                } else {
-                    SolidityBase.ArrayST::class.asClassName()
-                }
-            }
-        }
+        override fun isDynamic() = capacity > 0 && itemType.isDynamic()
     }
 
-    internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(getListType(itemType), itemType) {
+    internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(SolidityBase.Vector::class.asClassName(), itemType) {
 
         override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
         override fun isDynamic() = true
-
-        companion object {
-            private fun getListType(itemType: TypeHolder): ClassName {
-                return if (itemType.isDynamic()) {
-                    SolidityBase.VectorDT::class.asClassName()
-                } else {
-                    SolidityBase.VectorST::class.asClassName()
-                }
-            }
-        }
     }
 
     internal class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHolder>>) : TypeHolder {
@@ -76,7 +56,55 @@ class AbiParser {
         override fun isDynamic() = entries.any { it.second.isDynamic() }
     }
 
-    internal class GeneratorContext(val root: AbiRoot, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
+    class ArraysMap(basePackageName: String, private val map: MutableMap<Int, ClassName> = HashMap()) {
+
+        private val arraysPackageName = basePackageName + ".arrays"
+
+        fun get(capacity: Int) = map.getOrPut(capacity, { ClassName(arraysPackageName, "Array" + capacity) })
+
+        fun generate(output: File) {
+            map.forEach {
+                val capacity = it.key
+                val arrayType = it.value
+
+                val kotlinFile = KotlinFile.builder(arraysPackageName, arrayType.simpleName())
+
+                val typeVariable = TypeVariableName.Companion.invoke("T", SolidityBase.Type::class)
+                val itemsType = ParameterizedTypeName.get(List::class.asClassName(), typeVariable)
+
+                val parameterizedClassType = ParameterizedTypeName.get(arrayType, typeVariable)
+                val parameterizedItemDecoderType = ParameterizedTypeName.get(SolidityBase.TypeDecoder::class.asClassName(), typeVariable)
+                val isDynamicBlock = CodeBlock.of("return " + if (capacity > 0) "$VARIABLE_NAME_ITEM_DECODER.isDynamic()" else "false")
+                val decodeBlock =
+                        CodeBlock.builder()
+                                .addStatement("return %1T(%2T.decodeList(%3L, %4L, %5L))", arrayType, SolidityBase::class, "source", capacity, VARIABLE_NAME_ITEM_DECODER)
+                                .build()
+                val decoderBuilder = GeneratorUtils.generateDecoderBuilder(parameterizedClassType, decodeBlock, isDynamicBlock)
+                        .addTypeVariable(typeVariable)
+                        .addProperty(PropertySpec.builder(VARIABLE_NAME_ITEM_DECODER, parameterizedItemDecoderType).initializer(VARIABLE_NAME_ITEM_DECODER).build())
+                        .primaryConstructor(FunSpec.constructorBuilder().addParameter(VARIABLE_NAME_ITEM_DECODER, parameterizedItemDecoderType).build())
+
+                val kotlinClass = TypeSpec.classBuilder(arrayType)
+                        .superclass(ParameterizedTypeName.get(SolidityBase.Array::class.asClassName(), typeVariable))
+                        .addSuperclassConstructorParameter("items, %L", capacity)
+                        .addTypeVariable(typeVariable)
+                        .primaryConstructor(
+                                FunSpec.constructorBuilder()
+                                        .addParameter(ParameterSpec.builder("items", itemsType).build())
+                                        .build()
+                        )
+                        .addType(decoderBuilder.build())
+                val build = kotlinFile.addType(kotlinClass.build()).indent(INDENTATION).build()
+                output.mkdirs()
+                build.writeTo(output)
+            }
+        }
+        companion object {
+            const val VARIABLE_NAME_ITEM_DECODER = "itemDecoder"
+        }
+    }
+
+    internal class GeneratorContext(val root: AbiRoot, val arrays: ArraysMap, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
 
     companion object {
         private const val DECODER_FUN_ARG_NAME = "data"
@@ -109,7 +137,7 @@ class AbiParser {
             return hash.toHex()
         }
 
-        fun generateWrapper(packageName: String, abi: String, output: File) {
+        fun generateWrapper(packageName: String, abi: String, output: File, arraysMap: ArraysMap) {
             val jsonAdapter = Moshi.Builder().build().adapter(AbiRoot::class.java)
 
             val abiRoot = jsonAdapter.fromJson(abi) ?: return
@@ -117,7 +145,7 @@ class AbiParser {
             val kotlinClass = TypeSpec.classBuilder(abiRoot.contractName)
             val kotlinFile = KotlinFile.builder(packageName, abiRoot.contractName)
 
-            val context = GeneratorContext(abiRoot)
+            val context = GeneratorContext(abiRoot, arraysMap)
             kotlinClass.addTypes(generateFunctionObjects(context))
             kotlinClass.addTypes(generateTupleObjects(context))
 
@@ -141,7 +169,7 @@ class AbiParser {
             if (arrayType.length < parameter.type.length && arrayDef.isNullOrBlank()) {
                 throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
             }
-            return parseArrayDefinition(arrayDef, baseType)
+            return parseArrayDefinition(arrayDef, baseType, context)
         }
 
         private fun generateElementaryType(type: String): TypeHolder? {
@@ -160,7 +188,7 @@ class AbiParser {
             return context.tuples.getOrPut(tupleTypeHolder.hash(), { tupleTypeHolder })
         }
 
-        private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder): TypeHolder {
+        private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder, context: GeneratorContext): TypeHolder {
             if (arrayDef.isBlank()) {
                 return innerType
             }
@@ -174,9 +202,9 @@ class AbiParser {
             val collectionTypeHolder = if (arraySizeDef.isBlank()) {
                 VectorTypeHolder(innerType)
             } else {
-                ArrayTypeHolder(innerType, arraySize)
+                ArrayTypeHolder(context.arrays, innerType, arraySize)
             }
-            return parseArrayDefinition(arrayDef.removePrefix(match), collectionTypeHolder)
+            return parseArrayDefinition(arrayDef.removePrefix(match), collectionTypeHolder, context)
         }
 
         private fun generateFunctionObjects(context: GeneratorContext) =
@@ -252,37 +280,12 @@ class AbiParser {
         }
 
 
-        private fun generateTupleEncoder(typeHolder: TupleTypeHolder): FunSpec {
-            val funSpec = FunSpec.builder("encode")
-            typeHolder.entries.forEach {
-                generateCheck(it.second, it.first)?.let { funSpec.addCode(it) }
-            }
-
-            return funSpec.returns(String::class)
-                    .addModifiers(KModifier.OVERRIDE)
-                    .addStatement("return %T.encodeFunctionArguments(${typeHolder.entries.map { it.first }.joinToString { it }})", SolidityBase::class)
-                    .build()
-        }
-
-        private fun generateCheck(type: TypeHolder, name: String): CodeBlock? {
-            if (type is CollectionTypeHolder) {
-                val builder = CodeBlock.builder()
-                if (type is ArrayTypeHolder) {
-                    builder.addStatement("%L.checkCapacity(%L)", name, type.capacity)
-                }
-
-                if (type.itemType is CollectionTypeHolder) {
-                    generateCheck(type.itemType, "it")?.let {
-                        builder
-                                .beginControlFlow("%L.items.forEach", name)
-                                .add(it)
-                                .endControlFlow()
-                    }
-                }
-                return builder.build()
-            }
-            return null
-        }
+        private fun generateTupleEncoder(typeHolder: TupleTypeHolder) =
+                FunSpec.builder("encode")
+                        .returns(String::class)
+                        .addModifiers(KModifier.OVERRIDE)
+                        .addStatement("return %T.encodeFunctionArguments(${typeHolder.entries.map { it.first }.joinToString { it }})", SolidityBase::class)
+                        .build()
 
         private fun generateFunctionEncoder(functionJson: AbiElementJson, context: GeneratorContext): FunSpec {
             val funSpec = FunSpec.builder("encode")
@@ -290,7 +293,6 @@ class AbiParser {
                 val name = if (parameter.name.isEmpty()) "arg${index + 1}" else parameter.name
                 val type = mapType(parameter, context)
                 funSpec.addParameter(name, type.toTypeName())
-                generateCheck(type, name)?.let { funSpec.addCode(it) }
             }
 
             val funWithParams = funSpec.build()
@@ -388,8 +390,7 @@ class AbiParser {
                 val childClass = className.itemType
                 val codeInfo = buildArrayDecoder(childClass, forceStatic)
                 codeInfo.second.add(0, className.listType)
-                val capacityParam = if (className is ArrayTypeHolder) ", ${className.capacity}" else ""
-                return Pair("%T.Decoder(${codeInfo.first}$capacityParam)", codeInfo.second)
+                return Pair("%T.Decoder(${codeInfo.first})", codeInfo.second)
             }
             val types = ArrayList<TypeName>()
             types.add(className.toTypeName())

@@ -11,26 +11,27 @@ object GeneratorUtils {
                     .build())
             .build()
 
-    fun generateDecoder(name: String, decodeCode: CodeBlock, isDynamic: Boolean = true, paramName: String = "source"): TypeSpec {
-        val className = ClassName("", name)
+    fun generateDecoder(name: String, decodeCode: CodeBlock, isDynamic: Boolean = true, paramName: String = "source")
+        = generateDecoderBuilder(ClassName("", name), decodeCode, CodeBlock.of("return %L", isDynamic), paramName).build()
+
+    fun generateDecoderBuilder(forClass: TypeName, decodeCode: CodeBlock, isDynamicBlock: CodeBlock, paramName: String = "source"): TypeSpec.Builder {
         return TypeSpec.classBuilder("Decoder")
-                .addSuperinterface(ParameterizedTypeName.get(SolidityBase.TypeDecoder::class.asClassName(), className))
-                .addFun(generateIsDynamicFunction(isDynamic))
-                .addFun(generateDecodeSourceFunction(decodeCode, className, paramName))
-                .build()
+                .addSuperinterface(ParameterizedTypeName.get(SolidityBase.TypeDecoder::class.asClassName(), forClass))
+                .addFun(generateIsDynamicFunction(isDynamicBlock))
+                .addFun(generateDecodeSourceFunction(decodeCode, forClass, paramName))
     }
 
-    fun generateDecodeSourceFunction(decodeCode: CodeBlock, className: ClassName, paramName: String) =
+    fun generateDecodeSourceFunction(decodeCode: CodeBlock, returnType: TypeName, paramName: String) =
             FunSpec.builder("decode")
                     .addParameter(paramName, SolidityBase.PartitionData::class)
                     .addModifiers(KModifier.OVERRIDE)
-                    .returns(className)
+                    .returns(returnType)
                     .addCode(decodeCode)
                     .build()
 
-    fun generateIsDynamicFunction(isDynamic: Boolean): FunSpec = FunSpec.builder("isDynamic")
+    fun generateIsDynamicFunction(isDynamicBlock: CodeBlock): FunSpec = FunSpec.builder("isDynamic")
             .addModifiers(KModifier.OVERRIDE)
             .returns(Boolean::class)
-            .addCode(CodeBlock.of("return %L", isDynamic))
+            .addCode(isDynamicBlock)
             .build()
 }
