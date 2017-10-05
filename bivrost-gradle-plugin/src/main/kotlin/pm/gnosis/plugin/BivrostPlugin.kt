@@ -40,7 +40,6 @@ class BivrostPlugin : Plugin<Project> {
         variants.all { variant ->
             val outputDir = project.buildDir.resolve(
                     "generated/source/abi/${variant.dirName}")
-
             val task = project.tasks.create("pm.gnosis.generate${variant.name.capitalize()}AbiWrapper")
             task.outputs.dir(outputDir)
             variant.registerJavaGeneratingTask(task, outputDir)
@@ -60,11 +59,16 @@ class BivrostPlugin : Plugin<Project> {
                         inputs.files(abiFolder.listFiles())
 
                         doLast {
+                            val packageName = variant.applicationId
+                            // We can reuse arrays for all ABIs
+                            val arraysMap = AbiParser.ArraysMap(packageName)
+
                             abiFolder.listFiles().forEach {
                                 println("Generating wrapper for <$it>")
-                                AbiParser.generateWrapper(variant.applicationId, it.readText(), outputDir)
+                                AbiParser.generateWrapper(packageName, it.readText(), outputDir, arraysMap)
                             }
 
+                            arraysMap.generate(outputDir)
                         }
                     }
                 }

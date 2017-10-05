@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 
 class AbiParserTest {
 
-    private fun testContext() = AbiParser.GeneratorContext(AbiRoot(ArrayList(), "Test"))
+    private fun testContext() = AbiParser.GeneratorContext(AbiRoot(ArrayList(), "Test"), AbiParser.ArraysMap("com.example"))
 
     private fun testParameter(type: String, name: String = "test", components: List<ParameterJson>? = null)
             = ParameterJson(name, type, components)
@@ -122,13 +122,13 @@ class AbiParserTest {
         val type = AbiParser.mapType(testParameter("uint[5][]"), testContext())
         assertType(type, AbiParser.VectorTypeHolder::class)
         val pType = type as AbiParser.VectorTypeHolder
-        assertEquals(SolidityBase.VectorST::class.asClassName(), pType.listType)
+        assertEquals(SolidityBase.Vector::class.asClassName(), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
         assertType(g1Type, AbiParser.ArrayTypeHolder::class)
         val g1pType = g1Type as AbiParser.ArrayTypeHolder
-        assertEquals(SolidityBase.ArrayST::class.asClassName(), g1pType.listType)
+        assertEquals(ClassName("com.example.arrays", "Array5"), g1pType.listType)
 
         // Second generic type
         val g2Type = g1pType.itemType
@@ -140,7 +140,7 @@ class AbiParserTest {
         val type = AbiParser.mapType(testParameter("string[]"), testContext())
         assertType(type, AbiParser.VectorTypeHolder::class)
         val pType = type as AbiParser.VectorTypeHolder
-        assertEquals(SolidityBase.VectorDT::class.asClassName(), pType.listType)
+        assertEquals(SolidityBase.Vector::class.asClassName(), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
@@ -153,7 +153,7 @@ class AbiParserTest {
         assertType(type, AbiParser.ArrayTypeHolder::class)
         val pType = type as AbiParser.ArrayTypeHolder
         assertEquals(5, pType.capacity)
-        assertEquals(SolidityBase.ArrayDT::class.asClassName(), pType.listType)
+        assertEquals(ClassName("com.example.arrays", "Array5"), pType.listType)
 
         // First generic type
         val g1Type = pType.itemType
@@ -194,7 +194,7 @@ class AbiParserTest {
 
         // Decode dynamic uint32 array
         assertEquals(
-                SolidityBase.VectorST.Decoder(Solidity.UInt32.DECODER).decode(testData).items,
+                SolidityBase.Vector.Decoder(Solidity.UInt32.DECODER).decode(testData).items,
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))))
 
         // Decode bytes
@@ -212,7 +212,7 @@ class AbiParserTest {
          */
 
         val arg1 = Solidity.UInt256(BigInteger("123", 16))
-        val arg2 = SolidityBase.VectorST(
+        val arg2 = SolidityBase.Vector(
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))
         )
         val arg3 = Solidity.Bytes10("1234567890".toByteArray())
@@ -240,11 +240,11 @@ class AbiParserTest {
         ([0x456, 0x789], "Hello, world!", [0x123])
          */
 
-        val arg1 = SolidityBase.ArrayST(
+        val arg1 = TestArray(
                 listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2
         )
         val arg2 = Solidity.String("Hello, world!")
-        val arg3 = SolidityBase.VectorST(
+        val arg3 = SolidityBase.Vector(
                 listOf(Solidity.UInt32(BigInteger("123", 16)))
         )
         val data = SolidityBase.encodeFunctionArguments(arg1, arg2, arg3)
@@ -267,5 +267,7 @@ class AbiParserTest {
                 "0000000000000000000000000000000000000000000000000000000000000123"
         assertEquals(data, expected)
     }
+
+    private class TestArray<out T : SolidityBase.Type>(items: List<T>, capacity: Int) : SolidityBase.Array<T>(items, capacity)
 
 }
