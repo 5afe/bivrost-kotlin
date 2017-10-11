@@ -14,10 +14,6 @@ object SolidityBase {
 
     interface Type {
         fun encode(): String
-
-        interface Decoder<out T : Type> {
-            fun decode(source: String): T
-        }
     }
 
     interface StaticType : Type
