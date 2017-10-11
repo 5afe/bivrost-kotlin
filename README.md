@@ -32,6 +32,7 @@ apply plugin: 'bivrost'
 * Optional: Generate the Solidity types:
   - `./gradlew :bivrost-solidity-types-generator:runSolidityTypeGenerator`
 * Add library artifacts to local maven:
+  - `./gradlew :bivrost-utils:uploadArchives`
   - `./gradlew :bivrost-solidity-types:uploadArchives`
   - `./gradlew :bivrost-abi-parser:uploadArchives`
   - `./gradlew :bivrost-gradle-plugin:uploadArchives`

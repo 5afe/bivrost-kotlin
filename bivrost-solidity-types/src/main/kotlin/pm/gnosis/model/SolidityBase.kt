@@ -7,6 +7,8 @@ import pm.gnosis.utils.toHex
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
+import java.util.*
+import kotlin.collections.ArrayList
 
 object SolidityBase {
     const val BYTES_PAD = 32
@@ -22,7 +24,7 @@ object SolidityBase {
         data class Parts(val static: String, val dynamic: String)
     }
 
-    abstract class Collection<out T : Type>(val items: List<T>, val hasDynamicItems: Boolean = false) : Type {
+    abstract class Collection<out T : Type>(val items: List<T>) : Type {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -30,16 +32,15 @@ object SolidityBase {
             other as Collection<*>
 
             if (items != other.items) return false
-            if (hasDynamicItems != other.hasDynamicItems) return false
 
             return true
         }
 
         override fun hashCode(): Int {
-            var result = items.hashCode()
-            result = 31 * result + hasDynamicItems.hashCode()
-            return result
+            return items.hashCode()
         }
+
+        abstract fun isDynamic(): Boolean
     }
 
     abstract class UIntBase(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
@@ -188,73 +189,60 @@ object SolidityBase {
         fun decode(source: PartitionData): T
     }
 
-    private fun <T : DynamicType> decodeDynamicArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
-        if (!itemDecoder.isDynamic()) {
-            throw IllegalStateException("Item decoder ${itemDecoder::class} should be for dynamic type")
-        }
+    fun <T : Type> decodeList(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
+        val decodeParams = ArrayList<T?>()
+        val dynamicDecoders = LinkedList<TypeDecoder<T>>()
+
         for (i in 0 until capacity) {
-            source.consume()
-        }
-        val items = ArrayList<T>()
-        for (i in 0 until capacity) {
-            System.out.println(source.index)
-            items.add(itemDecoder.decode(source))
-        }
-        return items
-    }
-
-    private fun <T : StaticType> decodeStaticArray(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
-        if (itemDecoder.isDynamic()) {
-            throw IllegalStateException("Item decoder ${itemDecoder::class} should be for static type")
-        }
-        if (capacity == 0) {
-            return emptyList()
-        }
-        return (0 until capacity).map { itemDecoder.decode(source) }.toList()
-    }
-
-    abstract class Array<T : Type> internal constructor(items: List<T>, val capacity: Int, hasDynamicItems: Boolean = false) : Collection<T>(items, hasDynamicItems) {
-
-        fun checkCapacity(targetCapacity: Int) {
-            if (targetCapacity != capacity) {
-                throw IllegalStateException("Array is of wrong capacity!")
+            if (itemDecoder.isDynamic()) {
+                // We cannot decode it right away, remember the decoder for later
+                decodeParams.add(null)
+                dynamicDecoders.push(itemDecoder)
+                // consume location of dynamic value
+                source.consume()
+            } else {
+                decodeParams += itemDecoder.decode(source)
             }
         }
 
+        return decodeParams.map {
+            it ?: dynamicDecoders.removeFirst().decode(source)
+        }
+    }
+
+    abstract class Array<out T : Type>(items: List<T>, val capacity: Int) : Collection<T>(checkCapacity(items, capacity)) {
         override fun encode(): String {
             if (items.size != capacity) {
                 throw IllegalStateException("Capacity mismatch!")
             }
-            return encodeFixedArray(items)
+            // Encode the fixed array as a tuple where all parts are of the same time
+            return encodeTuple(items)
+        }
+
+        override fun isDynamic(): Boolean {
+            if (capacity == 0) {
+                return false
+            }
+            items.forEach {
+                if (isDynamic(it)) {
+                    return true
+                }
+            }
+            return false
+        }
+
+        companion object {
+            private fun <T : Type> checkCapacity(items: List<T>, capacity: Int): List<T> {
+                if (items.size != capacity) {
+                    throw IllegalStateException("Array is of wrong capacity!")
+                }
+                return ArrayList(items)
+            }
+
         }
     }
 
-    class ArrayST<T : StaticType>(items: List<T>, capacity: Int) : Array<T>(items, capacity, false), StaticType {
-        open class Decoder<T : StaticType>(val itemDecoder: TypeDecoder<T>, val capacity: Int) : TypeDecoder<ArrayST<T>> {
-            override fun isDynamic(): Boolean {
-                return itemDecoder.isDynamic()
-            }
-
-            override fun decode(source: PartitionData): ArrayST<T> {
-                return ArrayST(decodeStaticArray(source, capacity, itemDecoder), capacity)
-            }
-        }
-    }
-
-    class ArrayDT<T : DynamicType>(items: List<T>, capacity: Int) : Array<T>(items, capacity, true), DynamicType {
-        open class Decoder<T : DynamicType>(val itemDecoder: TypeDecoder<T>, val capacity: Int) : TypeDecoder<ArrayDT<T>> {
-            override fun isDynamic(): Boolean {
-                return itemDecoder.isDynamic()
-            }
-
-            override fun decode(source: PartitionData): ArrayDT<T> {
-                return ArrayDT(decodeDynamicArray(source, capacity, itemDecoder), capacity)
-            }
-
-        }
-    }
-
-    abstract class Vector<T : Type>(items: List<T>, hasDynamicItems: Boolean) : Collection<T>(items, hasDynamicItems), DynamicType {
+    class Vector<out T : Type>(items: List<T>) : Collection<T>(items), DynamicType {
 
         override fun encode(): String {
             val parts = encodeParts()
@@ -263,61 +251,51 @@ object SolidityBase {
 
         private fun encodeParts(): DynamicType.Parts {
             val length = items.size.toString(16).padStart(PADDED_HEX_LENGTH, '0')
-            return DynamicType.Parts(length, encodeFixedArray(items))
+            // Encode the dynamic array as the length and a tuple where all parts are of the same time
+            return DynamicType.Parts(length, encodeTuple(items))
         }
-    }
 
-    class VectorST<T : StaticType>(items: List<T>) : Vector<T>(items, false) {
-        open class Decoder<T : StaticType>(val itemDecoder: TypeDecoder<T>) : TypeDecoder<VectorST<T>> {
+        override fun isDynamic(): Boolean {
+            return true
+        }
+
+        class Decoder<out T : Type>(private val itemDecoder: TypeDecoder<T>) : TypeDecoder<Vector<T>> {
             override fun isDynamic(): Boolean {
                 return true
             }
 
-            override fun decode(source: PartitionData): VectorST<T> {
+            override fun decode(source: PartitionData): Vector<T> {
                 val capacity = decodeUInt(source.consume()).toInt()
-                return VectorST(decodeStaticArray(source, capacity, itemDecoder))
-            }
-        }
-    }
-
-    class VectorDT<T : DynamicType>(items: List<T>) : Vector<T>(items, true) {
-        open class Decoder<T : DynamicType>(val itemDecoder: TypeDecoder<T>) : TypeDecoder<VectorDT<T>> {
-            override fun isDynamic(): Boolean {
-                return true
-            }
-
-            override fun decode(source: PartitionData): VectorDT<T> {
-                val capacity = decodeUInt(source.consume()).toInt()
-                return VectorDT(decodeDynamicArray(source, capacity, itemDecoder))
+                return Vector(decodeList(source, capacity, itemDecoder))
             }
         }
     }
 
     @Suppress("unused")
     fun encodeFunctionArguments(vararg args: Type): String {
-        return encodeFixedArray(args.toList())
+        return encodeTuple(args.toList())
     }
 
     @Suppress("unused")
-    fun encodeFixedArray(args: List<Type>): String {
-        val parts = ArrayList<Pair<String, Boolean>>()
+    fun encodeTuple(parts: List<Type>): String {
+        val encodedParts = ArrayList<Pair<String, Boolean>>()
 
         var sizeOfStaticBlock = 0
-        args.forEach {
+        parts.forEach {
             val encoded = it.encode()
             if (isDynamic(it)) {
-                parts += Pair(encoded, true)
+                encodedParts += Pair(encoded, true)
                 // Add length of an address to static block size
                 sizeOfStaticBlock += BYTES_PAD
             } else {
-                parts += Pair(encoded, false)
+                encodedParts += Pair(encoded, false)
                 sizeOfStaticBlock += encoded.length / 2
             }
         }
 
         val staticArgsBuilder = StringBuilder()
         val dynamicArgsBuilder = StringBuilder()
-        parts.forEach { (encoded, dynamic) ->
+        encodedParts.forEach { (encoded, dynamic) ->
             if (dynamic) {
                 val location = sizeOfStaticBlock + dynamicArgsBuilder.length / 2
                 staticArgsBuilder.append(location.toString(16).padStart(PADDED_HEX_LENGTH, '0'))
@@ -334,13 +312,13 @@ object SolidityBase {
         if (type is DynamicType) {
             return true
         }
-        return (type as? Collection<*>)?.hasDynamicItems ?: false || (type is Vector<*>)
+        return (type as? Collection<*>)?.isDynamic() ?: false || (type is Vector<*>)
     }
 
     @Suppress("MemberVisibilityCanPrivate")
     fun partitionData(data: String): List<String> {
         var noPrefix = data.removePrefix("0x")
-        if (noPrefix.isEmpty() || noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of ${PADDED_HEX_LENGTH}")
+        if (noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
         val properties = arrayListOf<String>()
 
         while (noPrefix.length >= PADDED_HEX_LENGTH) {
