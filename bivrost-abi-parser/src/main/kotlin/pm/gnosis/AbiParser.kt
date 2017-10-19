@@ -99,6 +99,7 @@ class AbiParser {
                 build.writeTo(output)
             }
         }
+
         companion object {
             const val VARIABLE_NAME_ITEM_DECODER = "itemDecoder"
         }
@@ -208,27 +209,34 @@ class AbiParser {
         }
 
         private fun generateFunctionObjects(context: GeneratorContext) =
-                context.root.abi.filter { it.type == "function" }.map { functionJson ->
-                    val functionObject = TypeSpec.objectBuilder(functionJson.name.capitalize())
+                context.root.abi
+                        .filter { it.type == "function" }
+                        .groupBy { it.name }
+                        .flatMap { (_, value) -> value.map { Pair(it, value.size > 1) } }
+                        .map { (functionJson, useMethodId) ->
 
-                    //Add method id
-                    val methodId = "${functionJson.name}${generateMethodSignature(functionJson.inputs)}".generateSolidityMethodId()
-                    functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
-                    functionObject.addFun(generateFunctionEncoder(functionJson, context))
-                    if (functionJson.outputs.isNotEmpty()) {
-                        val returnHolder = generateParameterHolder("Return", functionJson.outputs, context)
-                        functionObject.addFun(generateParameterDecoder("decode", functionJson.outputs, returnHolder.name!!, context))
-                        functionObject.addType(returnHolder)
-                    }
+                            //Add method id
+                            val methodId = "${functionJson.name}${generateMethodSignature(functionJson.inputs)}".generateSolidityMethodId()
+                            val baseName = functionJson.name.capitalize()
+                            val name = if (useMethodId) "${baseName}_$methodId" else baseName
+                            val functionObject = TypeSpec.objectBuilder(name)
 
-                    if (functionJson.inputs.isNotEmpty()) {
-                        val argumentsHolder = generateParameterHolder("Arguments", functionJson.inputs, context)
-                        functionObject.addFun(generateParameterDecoder("decodeArguments", functionJson.inputs, argumentsHolder.name!!, context))
-                        functionObject.addType(argumentsHolder)
-                    }
+                            functionObject.addProperty(PropertySpec.builder("METHOD_ID", String::class, KModifier.CONST).initializer("\"$methodId\"").build())
+                            functionObject.addFun(generateFunctionEncoder(functionJson, context))
+                            if (functionJson.outputs.isNotEmpty()) {
+                                val returnHolder = generateParameterHolder("Return", functionJson.outputs, context)
+                                functionObject.addFun(generateParameterDecoder("decode", functionJson.outputs, returnHolder.name!!, context))
+                                functionObject.addType(returnHolder)
+                            }
 
-                    functionObject.build()
-                }.toList()
+                            if (functionJson.inputs.isNotEmpty()) {
+                                val argumentsHolder = generateParameterHolder("Arguments", functionJson.inputs, context)
+                                functionObject.addFun(generateParameterDecoder("decodeArguments", functionJson.inputs, argumentsHolder.name!!, context))
+                                functionObject.addType(argumentsHolder)
+                            }
+
+                            functionObject.build()
+                        }.toList()
 
         private fun generateMethodSignature(parameters: List<ParameterJson>): String =
                 "(${parameters.joinToString(",") {
