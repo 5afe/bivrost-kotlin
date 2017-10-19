@@ -78,6 +78,23 @@
       "constant": false,
       "inputs": [
         {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ],
+      "name": "removeOwner",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
           "name": "transactionId",
           "type": "uint256"
         }
