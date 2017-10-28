@@ -405,13 +405,7 @@ class AbiParser {
             return Pair("%T.DECODER", types)
         }
 
-        private fun isSolidityDynamicType(type: String) = isSolidityBytesType(type) || isSolidityStringType(type) || isSolidityDynamicArray(type)
-
-        private fun isSolidityBytesType(type: String) = type.contains("bytes")
-
-        private fun isSolidityStringType(type: String) = type.contains("string")
-
-        private fun isSolidityDynamicArray(type: String) = type.contains("[]")
+        private fun isSolidityDynamicType(type: String) = SolidityBase.dynamicTypes.contains(type.toLowerCase())
 
         private fun isSolidityDynamicType(type: TypeHolder) = type.isDynamic()
 
