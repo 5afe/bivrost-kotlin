@@ -5,8 +5,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName
 import com.squareup.kotlinpoet.asTypeName
 import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 import pm.gnosis.model.AbiRoot
 import pm.gnosis.model.ParameterJson
@@ -55,6 +54,27 @@ class AbiParserTest {
     @Test(expected = IllegalArgumentException::class)
     fun testInvalidArrayDefUnknownType() {
         AbiParser.mapType(testParameter("gnosis[1][]"), testContext())
+    }
+
+    @Test()
+    fun testSimpleTypeHolder() {
+        assertEquals("Unknown type should return null", AbiParser.SimpleTypeHolder.forType("unknown"), null)
+        assertEquals("Tuple type should return null", AbiParser.SimpleTypeHolder.forType("tuple"), null)
+
+        val bytes32 = AbiParser.SimpleTypeHolder.forType("bytes32")!!
+        assertFalse("bytes32 should be static", bytes32.isDynamic())
+
+        val uint = AbiParser.SimpleTypeHolder.forType("uint")!!
+        assertFalse("uint should be static", uint.isDynamic())
+
+        val int = AbiParser.SimpleTypeHolder.forType("int")!!
+        assertFalse("int should be static", int.isDynamic())
+
+        val bytes = AbiParser.SimpleTypeHolder.forType("bytes")!!
+        assertTrue("bytes should be dynamic", bytes.isDynamic())
+
+        val string = AbiParser.SimpleTypeHolder.forType("string")!!
+        assertTrue("string should be dynamic", string.isDynamic())
     }
 
     @Test()
@@ -158,6 +178,36 @@ class AbiParserTest {
         // First generic type
         val g1Type = pType.itemType
         assertEquals(Solidity.String::class.asTypeName(), g1Type.toTypeName())
+    }
+
+    @Test()
+    fun testParseBytesArray() {
+        val type = AbiParser.mapType(testParameter("bytes[5]"), testContext())
+        assertType(type, AbiParser.ArrayTypeHolder::class)
+        val pType = type as AbiParser.ArrayTypeHolder
+        assertEquals(5, pType.capacity)
+        assertTrue(pType.isDynamic())
+        assertEquals(ClassName("com.example.arrays", "Array5"), pType.listType)
+
+        // First generic type
+        val g1Type = pType.itemType
+        assertEquals(Solidity.Bytes::class.asTypeName(), g1Type.toTypeName())
+        assertTrue(g1Type.isDynamic())
+    }
+
+    @Test()
+    fun testParseBytesXArray() {
+        val type = AbiParser.mapType(testParameter("bytes32[5]"), testContext())
+        assertType(type, AbiParser.ArrayTypeHolder::class)
+        val pType = type as AbiParser.ArrayTypeHolder
+        assertEquals(5, pType.capacity)
+        assertFalse(pType.isDynamic())
+        assertEquals(ClassName("com.example.arrays", "Array5"), pType.listType)
+
+        // First generic type
+        val g1Type = pType.itemType
+        assertEquals(Solidity.Bytes32::class.asTypeName(), g1Type.toTypeName())
+        assertFalse(g1Type.isDynamic())
     }
 
     @Test

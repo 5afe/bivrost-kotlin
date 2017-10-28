@@ -11,7 +11,7 @@ import java.util.regex.Pattern
 
 class AbiParser {
 
-    private interface TypeHolder {
+    internal interface TypeHolder {
         fun toTypeName(): TypeName
 
         fun isDynamic(): Boolean
@@ -19,7 +19,7 @@ class AbiParser {
         fun hash(): String
     }
 
-    private class SimpleTypeHolder private constructor(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
+    internal class SimpleTypeHolder private constructor(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
         override fun toTypeName() = className
 
         override fun isDynamic() = dynamic
@@ -38,25 +38,25 @@ class AbiParser {
         }
     }
 
-    private abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder) : TypeHolder {
+    internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder) : TypeHolder {
         override fun hash() = generateHash(listOf(listType.toString(), itemType.hash()))
     }
 
-    private class ArrayTypeHolder(arraysMap: ArraysMap, itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(arraysMap.get(capacity), itemType) {
+    internal class ArrayTypeHolder(arraysMap: ArraysMap, itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(arraysMap.get(capacity), itemType) {
 
         override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
         override fun isDynamic() = capacity > 0 && itemType.isDynamic()
     }
 
-    private class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(SolidityBase.Vector::class.asClassName(), itemType) {
+    internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(SolidityBase.Vector::class.asClassName(), itemType) {
 
         override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
 
         override fun isDynamic() = true
     }
 
-    private class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHolder>>) : TypeHolder {
+    internal class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHolder>>) : TypeHolder {
 
         val name = "Tuple" + numberToLetter(index)
 
@@ -116,7 +116,7 @@ class AbiParser {
         }
     }
 
-    private class GeneratorContext(val root: AbiRoot, val arrays: ArraysMap, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
+    internal class GeneratorContext(val root: AbiRoot, val arrays: ArraysMap, val tuples: MutableMap<String, TupleTypeHolder> = HashMap())
 
     companion object {
         private const val DECODER_FUN_ARG_NAME = "data"
@@ -170,7 +170,7 @@ class AbiParser {
             return Solidity.aliases.getOrElse(type, { type })
         }
 
-        private fun mapType(parameter: ParameterJson, context: GeneratorContext): TypeHolder {
+        internal fun mapType(parameter: ParameterJson, context: GeneratorContext): TypeHolder {
             val matcher = TYPE_PATTERN.matcher(parameter.type)
             if (!matcher.find()) {
                 throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
