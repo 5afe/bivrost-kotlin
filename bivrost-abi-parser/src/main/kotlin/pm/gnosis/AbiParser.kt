@@ -19,12 +19,23 @@ class AbiParser {
         fun hash(): String
     }
 
-    internal class SimpleTypeHolder(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
+    internal class SimpleTypeHolder private constructor(private val className: ClassName, private val dynamic: Boolean) : TypeHolder {
         override fun toTypeName() = className
 
         override fun isDynamic() = dynamic
 
         override fun hash() = generateHash(listOf(className.toString()))
+
+        companion object {
+            /**
+             * Create a SimpleTypeHolder for a given type if possible.
+             * If the given type is not a simple type (e.g. Tuple) null will be returned.
+             */
+            fun forType(type: String): SimpleTypeHolder? {
+                val baseType = Solidity.types[checkType(type)] ?: return null
+                return SimpleTypeHolder(ClassName.bestGuess(baseType), SolidityBase.dynamicTypes.contains(type.toLowerCase()))
+            }
+        }
     }
 
     internal abstract class CollectionTypeHolder(val listType: ClassName, val itemType: TypeHolder) : TypeHolder {
@@ -165,17 +176,12 @@ class AbiParser {
                 throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
             }
             val arrayType = matcher.group(1)
-            val baseType = generateElementaryType(arrayType) ?: generateTuple(arrayType, parameter, context) ?: throw IllegalArgumentException("Unknown parameter ${parameter.type}!")
+            val baseType = SimpleTypeHolder.forType(arrayType) ?: generateTuple(arrayType, parameter, context) ?: throw IllegalArgumentException("Unknown parameter ${parameter.type}!")
             val arrayDef = matcher.group(2)
             if (arrayType.length < parameter.type.length && arrayDef.isNullOrBlank()) {
                 throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
             }
             return parseArrayDefinition(arrayDef, baseType, context)
-        }
-
-        private fun generateElementaryType(type: String): TypeHolder? {
-            val baseType = Solidity.types[checkType(type)] ?: return null
-            return SimpleTypeHolder(ClassName.bestGuess(baseType), isSolidityDynamicType(type))
         }
 
         private fun generateTuple(type: String, parameters: ParameterJson, context: GeneratorContext): TypeHolder? {
@@ -404,14 +410,6 @@ class AbiParser {
             types.add(className.toTypeName())
             return Pair("%T.DECODER", types)
         }
-
-        private fun isSolidityDynamicType(type: String) = isSolidityBytesType(type) || isSolidityStringType(type) || isSolidityDynamicArray(type)
-
-        private fun isSolidityBytesType(type: String) = type.contains("bytes")
-
-        private fun isSolidityStringType(type: String) = type.contains("string")
-
-        private fun isSolidityDynamicArray(type: String) = type.contains("[]")
 
         private fun isSolidityDynamicType(type: TypeHolder) = type.isDynamic()
 

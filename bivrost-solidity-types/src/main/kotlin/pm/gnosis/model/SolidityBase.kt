@@ -14,6 +14,8 @@ object SolidityBase {
     const val BYTES_PAD = 32
     const val PADDED_HEX_LENGTH = BYTES_PAD * 2
 
+    val dynamicTypes: List<kotlin.String> = listOf("bytes", "string")
+
     interface Type {
         fun encode(): String
     }
