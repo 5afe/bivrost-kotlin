@@ -170,7 +170,7 @@ object SolidityBase {
         var index: Int = 0
 
         fun consume(): String {
-            return partitions[index++]
+            return partitions[index++].removePrefix("0x")
         }
 
         fun reset() {

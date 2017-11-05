@@ -19,7 +19,7 @@ fun generate(path: String, packageName: String) {
     val indentation = "    "
 
     val modelPackageName = "$packageName.model"
-    val kotlinFile = KotlinFile.builder(modelPackageName, fileName)
+    val kotlinFile = FileSpec.builder(modelPackageName, fileName)
     val solidityGeneratedObject = TypeSpec.objectBuilder(fileName)
 
     kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
@@ -180,7 +180,7 @@ private fun generateDynamicBytes(): TypeSpec {
             .addInitializerBlock(CodeBlock.builder()
                     .addStatement("if (%1T(items.size.toString(10)) > %1T.valueOf(2).pow(256)) throw %2T()", BigInteger::class, Exception::class)
                     .build())
-            .addFun(FunSpec.builder("encode")
+            .addFunction(FunSpec.builder("encode")
                     .addModifiers(KModifier.OVERRIDE)
                     .returns(String::class)
                     .addCode(CodeBlock.builder()
@@ -188,7 +188,8 @@ private fun generateDynamicBytes(): TypeSpec {
                             .addStatement("return parts.static + parts.dynamic")
                             .build())
                     .build())
-            .addFun(FunSpec.builder("encodeParts")
+            .addFunction(FunSpec.builder("encodeParts")
+                    .addModifiers(KModifier.PRIVATE)
                     .returns(SolidityBase.DynamicType.Parts::class)
                     .addCode(CodeBlock.builder()
                             .addStatement("val length = items.size.toString(16).padStart(64, '0')")
