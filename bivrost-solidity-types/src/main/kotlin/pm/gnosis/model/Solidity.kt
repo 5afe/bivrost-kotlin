@@ -1,9 +1,12 @@
 package pm.gnosis.model
 
-import pm.gnosis.utils.padEndMultiple
-import pm.gnosis.utils.toHex
 import java.lang.Exception
 import java.math.BigInteger
+import kotlin.Boolean
+import kotlin.ByteArray
+import kotlin.collections.Map
+import pm.gnosis.utils.padEndMultiple
+import pm.gnosis.utils.toHex
 
 /**
  * Generated code. Do not modify

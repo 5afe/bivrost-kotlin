@@ -10,7 +10,6 @@ import pm.gnosis.AbiParser
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KClass
 
-
 class BivrostPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         println("Plugin Project: " + project.toString())
