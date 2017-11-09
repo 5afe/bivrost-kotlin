@@ -1,0 +1,3 @@
+package expected
+
+class EmptyContract

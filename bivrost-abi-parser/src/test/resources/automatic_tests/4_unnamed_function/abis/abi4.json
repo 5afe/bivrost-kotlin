@@ -1,0 +1,9 @@
+{
+  "contract_name": "Abi4",
+  "abi": [
+    {
+      "constant": true,
+      "payable": false
+    }
+  ]
+}

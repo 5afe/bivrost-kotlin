@@ -1,0 +1,10 @@
+{
+  "contract_name": "Abi3",
+  "abi": [
+    {
+      "constant": true,
+      "name": "function",
+      "payable": false
+    }
+  ]
+}

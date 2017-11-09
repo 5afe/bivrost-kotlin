@@ -23,8 +23,8 @@ object AbiParser {
         val kotlinFile = FileSpec.builder(packageName, abiRoot.contractName)
 
         kotlinClass.addTypes(generateFunctionObjects())
+        EventParser.generateEventObjects()?.let { kotlinClass.addType(it) }
         kotlinClass.addTypes(generateTupleObjects())
-        kotlinClass.addType(EventParser.generateEventObjects())
 
         val build = kotlinFile.addType(kotlinClass.build()).indent(INDENTATION).build()
         output.mkdirs()
@@ -84,7 +84,7 @@ object AbiParser {
 
     private fun generateFunctionObjects() =
             context.root.abi
-                    .filter { it.type == "function" }
+                    .filter { it.type == "function" && it.name.isNotBlank() }
                     .groupBy { it.name }
                     .flatMap { (_, value) -> value.map { Pair(it, value.size > 1) } }
                     .map { (functionJson, useMethodId) ->
