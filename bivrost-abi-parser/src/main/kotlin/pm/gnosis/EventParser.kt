@@ -16,8 +16,11 @@ internal object EventParser {
     private const val TOPIC_ARG_NAME = "topics"
     private const val TOPICS_PARTITION_DATA_NAME = "topicsSource"
 
-    internal fun generateEventObjects(): TypeSpec {
+    internal fun generateEventObjects(): TypeSpec? {
         val eventsObject = TypeSpec.objectBuilder(ROOT_OBJECT_NAME)
+        if (!context.root.abi.any { it.type == ABI_SPEC_EVENT_TYPE }) {
+            return null
+        }
 
         context.root.abi.filter { it.type == ABI_SPEC_EVENT_TYPE }
                 .map { generateEventObject(it) }
@@ -27,14 +30,16 @@ internal object EventParser {
     }
 
     private fun generateEventObject(abiElementJson: AbiElementJson): TypeSpec {
-        val eventObject = TypeSpec.objectBuilder(abiElementJson.name)
+        val eventObject = TypeSpec.objectBuilder(abiElementJson.name.capitalize())
 
         val eventId = "${abiElementJson.name}(${abiElementJson.inputs.joinToString(",") { it.type }})".keccak256()
         eventObject.addProperty(PropertySpec.builder(EVENT_ID_PROPERTY_NAME, String::class, KModifier.CONST).initializer("\"$eventId\"").build())
 
-        val holder = generateEventParameterHolder(EVENT_ARGUMENTS_CLASS_NAME, abiElementJson.inputs)
-        eventObject.addFunction(generateEventDecoder(abiElementJson, holder.name!!))
-        eventObject.addType(holder)
+        if (abiElementJson.inputs.isNotEmpty()) {
+            val holder = generateEventParameterHolder(EVENT_ARGUMENTS_CLASS_NAME, abiElementJson.inputs)
+            eventObject.addFunction(generateEventDecoder(abiElementJson, holder.name!!))
+            eventObject.addType(holder)
+        }
 
         return eventObject.build()
     }

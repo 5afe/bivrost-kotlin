@@ -1,0 +1,15 @@
+{
+  "contract_name": "Abi10",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+      ],
+      "name": "executed",
+      "outputs": [
+      ],
+      "payable": false,
+      "type": "event"
+    }
+  ]
+}

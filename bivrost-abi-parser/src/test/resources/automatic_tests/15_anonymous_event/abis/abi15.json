@@ -1,0 +1,21 @@
+{
+  "contract_name": "Abi15",
+  "abi": [
+    {
+      "anonymous": true,
+      "constant": true,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "transactionId",
+          "type": "uint256"
+        }
+      ],
+      "name": "executed",
+      "outputs": [
+      ],
+      "payable": false,
+      "type": "event"
+    }
+  ]
+}

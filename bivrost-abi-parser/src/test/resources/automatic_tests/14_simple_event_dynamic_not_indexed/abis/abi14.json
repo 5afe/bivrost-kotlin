@@ -1,0 +1,37 @@
+{
+  "contract_name": "Abi14",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "bytes",
+          "type": "bytes"
+        },
+        {
+          "indexed": false,
+          "name": "string",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "type": "tuple",
+          "name": "tuple",
+          "components": [
+            {
+              "name": "x",
+              "type": "uint256"
+            },
+            {
+              "name": "y",
+              "type": "uint256"
+            }
+          ]
+        }
+      ],
+      "name": "Submission",
+      "type": "event"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "contract_name": "Abi6",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "function",
+      "payable": false
+    }
+  ]
+}

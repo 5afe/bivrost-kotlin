@@ -1,0 +1,22 @@
+{
+  "contract_name": "Abi7",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "function",
+      "outputs": [
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "payable": false
+    }
+  ]
+}
