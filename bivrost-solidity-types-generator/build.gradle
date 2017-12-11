@@ -5,7 +5,7 @@ apply plugin: 'maven'
 sourceCompatibility = 1.8
 
 task runSolidityTypeGenerator(type: JavaExec) {
-    def targetProject = project.parent.childProjects.get("bivrost-solidity-types") ?: this
+    def targetProject = project.parent.childProjects.get("bivrost-solidity-types") ?: project
     def srcDirs = targetProject.sourceSets.main.kotlin.getSrcDirs()
     if (srcDirs.isEmpty()) {
         logger.error("Couldn't find kotlin main source sets")
