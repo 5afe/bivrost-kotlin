@@ -58,7 +58,7 @@ class BivrostPlugin : Plugin<Project> {
                         inputs.files(abiFolder.listFiles())
 
                         doLast {
-                            val packageName = variant.applicationId
+                            val packageName = variant.applicationId.removeSuffix(variant.buildType.applicationIdSuffix ?: "")
                             // We can reuse arrays for all ABIs
                             val arraysMap = AbiParser.ArraysMap(packageName)
 
