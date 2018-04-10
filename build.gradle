@@ -2,12 +2,12 @@ buildscript {
     ext.versions = [
             'minSdk'       : 14,
             'compileSdk'   : 27,
-            'buildTools'   : '27.0.2',
+            'buildTools'   : '27.0.3',
 
-            'kotlin'       : '1.2.0',
+            'kotlin'       : '1.2.31',
             'kotlinPoet'   : '0.6.0',
             'moshi'        : '1.5.0',
-            'androidPlugin': '3.1.0-alpha05',
+            'androidPlugin': '3.1.0',
     ]
 
     ext.deps = [
@@ -52,7 +52,7 @@ subprojects { project ->
 }
 
 static def getKey(String name, String defaultValue = null) {
-    def value  = System.getenv(name)
+    def value = System.getenv(name)
     if (value == null) {
         return defaultValue
     }

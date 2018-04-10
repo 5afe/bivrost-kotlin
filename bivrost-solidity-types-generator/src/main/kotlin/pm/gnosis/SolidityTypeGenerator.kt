@@ -79,6 +79,7 @@ private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map { generateUInt
 private fun generateUInt(className: String, nBits: Int): TypeSpec {
     val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", className))
     return TypeSpec.classBuilder(className)
+            .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
             .companionObject(GeneratorUtils.generateDecoderCompanion(
@@ -96,6 +97,7 @@ private fun generateAddress(): TypeSpec {
     val name = "Address"
     val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", name))
     return TypeSpec.classBuilder(name)
+            .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
             .companionObject(GeneratorUtils.generateDecoderCompanion(
@@ -113,6 +115,7 @@ private fun generateBool(): TypeSpec {
     val name = "Bool"
     val decoderTypeName = ClassName.bestGuess("Decoder")
     return TypeSpec.classBuilder(name)
+            .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("if (%1L) %2T.ONE else %2T.ZERO, %3L", "value", BigInteger::class, "8")
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -137,6 +140,7 @@ private fun generateInts() = (8..256 step 8).map { generateInt("Int$it", it) }.t
 private fun generateInt(className: String, nBits: Int): TypeSpec {
     val decoderTypeName = ParameterizedTypeName.get(SolidityBase.IntBase.Decoder::class.asClassName(), ClassName("", className))
     return TypeSpec.classBuilder(className)
+            .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.IntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
             .companionObject(GeneratorUtils.generateDecoderCompanion(
@@ -212,6 +216,7 @@ private fun generateString(): TypeSpec {
     val superClass = ClassName.bestGuess("Bytes")
     val decoderTypeName = ClassName.bestGuess("Decoder")
     return TypeSpec.classBuilder(name)
+            .addModifiers(KModifier.DATA)
             .superclass(superClass)
             .addSuperclassConstructorParameter("%1L.toByteArray()", "value")
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
