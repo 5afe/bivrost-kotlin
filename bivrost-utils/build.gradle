@@ -4,19 +4,6 @@ apply plugin: 'maven'
 
 sourceCompatibility = 1.8
 
-task runSolidityTypeGenerator(type: JavaExec) {
-    def srcDirs = sourceSets.main.kotlin.getSrcDirs()
-    if (srcDirs.isEmpty()) {
-        logger.error("Couldn't find kotlin main source sets")
-        return
-    }
-
-    def path = "${sourceSets.main.kotlin.getSrcDirs().getAt(0)}"
-    main = 'pm.gnosis.SolidityTypeGenerator'
-    classpath = sourceSets.main.runtimeClasspath
-    args (path, project.group)
-}
-
 dependencies {
 
     implementation project(':bivrost-solidity-types')
@@ -42,4 +29,13 @@ uploadArchives {
             repository(url: uri('../repo'))
         }
     }
+}
+
+task sourcesJar(type: Jar, dependsOn:classes) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
 }
