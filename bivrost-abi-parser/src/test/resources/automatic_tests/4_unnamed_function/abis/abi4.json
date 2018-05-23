@@ -1,5 +1,5 @@
 {
-  "contract_name": "Abi4",
+  "contractName": "Abi4",
   "abi": [
     {
       "constant": true,

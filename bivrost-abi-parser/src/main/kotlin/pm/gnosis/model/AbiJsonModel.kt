@@ -3,7 +3,7 @@ package pm.gnosis.model
 import com.squareup.moshi.Json
 
 class AbiRoot(@Json(name = "abi") val abi: List<AbiElementJson>,
-              @Json(name = "contract_name") val contractName: String)
+              @Json(name = "contractName") val contractName: String)
 
 class AbiElementJson(@Json(name = "constant") val constant: Boolean = false,
                      @Json(name = "inputs") val inputs: List<ParameterJson> = listOf(),

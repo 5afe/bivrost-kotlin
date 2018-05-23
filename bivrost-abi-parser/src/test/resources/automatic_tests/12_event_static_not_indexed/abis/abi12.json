@@ -1,5 +1,5 @@
 {
-  "contract_name": "Abi12",
+  "contractName": "Abi12",
   "abi": [
     {
       "anonymous": false,
