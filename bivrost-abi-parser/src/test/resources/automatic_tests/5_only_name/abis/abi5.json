@@ -1,5 +1,5 @@
 {
-  "contract_name": "Abi5",
+  "contractName": "Abi5",
   "abi": [
     {
       "name": "function"
