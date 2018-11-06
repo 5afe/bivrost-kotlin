@@ -1,6 +1,7 @@
 package expected
 
 import java.lang.IllegalArgumentException
+import java.math.BigInteger
 import kotlin.Boolean
 import kotlin.String
 import kotlin.collections.List
@@ -14,16 +15,15 @@ class Abi14 {
 
             fun decode(topics: List<String>, data: String): Arguments {
                 // Decode topics
-                val topicsSource = SolidityBase.PartitionData(topics)
-                if (topicsSource.consume() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
+                if (topics.first() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
 
                 // Decode data
                 val source = SolidityBase.PartitionData.of(data)
-                source.consume()
-                source.consume()
+                val arg0Offset = BigInteger(source.consume(), 16).intValueExact()
+                val arg0 = Solidity.Bytes.DECODER.decode(source.subData(arg0Offset))
+                val arg1Offset = BigInteger(source.consume(), 16).intValueExact()
+                val arg1 = Solidity.String.DECODER.decode(source.subData(arg1Offset))
                 val arg2 = TupleA.DECODER.decode(source)
-                val arg0 = Solidity.Bytes.DECODER.decode(source)
-                val arg1 = Solidity.String.DECODER.decode(source)
                 return Arguments(arg0, arg1, arg2)
             }
 

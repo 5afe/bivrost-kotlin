@@ -14,7 +14,6 @@ internal object EventParser {
     private const val EVENT_ARGUMENTS_CLASS_NAME = "Arguments"
     private const val DECODE_FUN_NAME = "decode"
     private const val TOPIC_ARG_NAME = "topics"
-    private const val TOPICS_PARTITION_DATA_NAME = "topicsSource"
 
     internal fun generateEventObjects(): TypeSpec? {
         val eventsObject = TypeSpec.objectBuilder(ROOT_OBJECT_NAME)
@@ -85,17 +84,19 @@ internal object EventParser {
     private fun generateTopicsDecoderCodeBlock(indexedParameters: List<ParameterJson>, isAnonymous: Boolean): CodeBlock {
         val codeBlock = CodeBlock.builder()
         codeBlock.addStatement("// Decode topics")
-        codeBlock.addStatement("val $TOPICS_PARTITION_DATA_NAME = %1T($TOPIC_ARG_NAME)", SolidityBase.PartitionData::class)
         if (!isAnonymous) {
-            codeBlock.addStatement("if ($TOPICS_PARTITION_DATA_NAME.consume() != $EVENT_ID_PROPERTY_NAME) throw %1T(\"topics[0] does not match event id\")", IllegalArgumentException::class)
+            codeBlock.addStatement("if ($TOPIC_ARG_NAME.first() != $EVENT_ID_PROPERTY_NAME) throw %1T(\"topics[0] does not match event id\")", IllegalArgumentException::class)
         }
 
         indexedParameters.forEachIndexed { index, topic ->
             val typeHolder = mapType(topic, context)
             if (typeHolder.isHashTopic(topic)) {
-                codeBlock.addStatement("val t${index + 1} = $TOPICS_PARTITION_DATA_NAME.consume()")
+                codeBlock.addStatement("val t${index + 1} = $TOPIC_ARG_NAME[${index + 1}]")
             } else {
-                codeBlock.addStatement("val t${index + 1} = %1T.DECODER.decode($TOPICS_PARTITION_DATA_NAME)", typeHolder.toTypeName())
+                val sourceName = "source${index + 1}"
+                codeBlock
+                    .addStatement("val $sourceName = %1T.of($TOPIC_ARG_NAME[${index + 1}])", SolidityBase.PartitionData::class)
+                    .addStatement("val t${index + 1} = %1T.DECODER.decode(%2L)", typeHolder.toTypeName(), sourceName)
             }
         }
 

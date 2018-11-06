@@ -6,11 +6,13 @@ import com.squareup.moshi.Moshi
 import pm.gnosis.model.*
 import pm.gnosis.utils.generateSolidityMethodId
 import java.io.File
+import java.math.BigInteger
 
 object AbiParser {
     internal const val DECODER_FUN_ARG_NAME = "data"
     internal const val DECODER_VAR_PARTITIONS_NAME = "source"
     internal const val DECODER_VAR_ARG_PREFIX = "arg" //arg0, arg1...
+    internal const val DECODER_VAR_ARG_OFFSET_SUFFIX = "Offset"
     internal const val INDENTATION = "    "
     internal lateinit var context: GeneratorContext
 
@@ -33,9 +35,9 @@ object AbiParser {
 
     class ArraysMap(basePackageName: String, private val map: MutableMap<Int, ClassName> = HashMap()) {
 
-        private val arraysPackageName = basePackageName + ".arrays"
+        private val arraysPackageName = "$basePackageName.arrays"
 
-        fun get(capacity: Int) = map.getOrPut(capacity, { ClassName(arraysPackageName, "Array" + capacity) })
+        fun get(capacity: Int) = map.getOrPut(capacity) { ClassName(arraysPackageName, "Array" + capacity) }
 
         fun generate(output: File) {
             map.forEach {
@@ -44,7 +46,7 @@ object AbiParser {
 
                 val kotlinFile = FileSpec.builder(arraysPackageName, arrayType.simpleName())
 
-                val typeVariable = TypeVariableName.Companion.invoke("T", SolidityBase.Type::class)
+                val typeVariable = TypeVariableName.invoke("T", SolidityBase.Type::class)
                 val itemsType = ParameterizedTypeName.get(List::class.asClassName(), typeVariable)
 
                 val parameterizedClassType = ParameterizedTypeName.get(arrayType, typeVariable)
@@ -138,9 +140,7 @@ object AbiParser {
 
                 //Generate decodings
                 val decodeBlockBuilder = CodeBlock.builder()
-                val locationArgs = ArrayList<Pair<String, TypeHolder>>()
-                generateStaticArgDecoding(typeHolder, decodeBlockBuilder, locationArgs)
-                generateDynamicArgDecoding(locationArgs, decodeBlockBuilder)
+                generateStaticArgDecoding(typeHolder, decodeBlockBuilder)
                 decodeBlockBuilder.addStatement("return %1N(${(0 until typeHolder.entries.size).joinToString(", ") { "arg$it" }})", typeHolder.name)
 
                 builder
@@ -155,9 +155,9 @@ object AbiParser {
             }.toList()
 
 
-    private fun generateStaticArgDecoding(typeHolder: TupleTypeHolder, function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>) {
+    private fun generateStaticArgDecoding(typeHolder: TupleTypeHolder, function: CodeBlock.Builder) {
         typeHolder.entries.forEachIndexed { index, info ->
-            addDecoderStatementForType(function, locationArgs, index, info.second)
+            addDecoderStatementForType(function, index, info.second)
         }
     }
 
@@ -205,10 +205,7 @@ object AbiParser {
     internal fun generateParameterDecoderCode(parameters: List<ParameterJson>): CodeBlock {
         val codeBlock = CodeBlock.builder()
 
-        //Generate decodings
-        val locationArgs = ArrayList<Pair<String, TypeHolder>>()
-        generateStaticArgDecoding(parameters, codeBlock, locationArgs)
-        generateDynamicArgDecoding(locationArgs, codeBlock)
+        generateStaticArgDecoding(parameters, codeBlock)
 
         return codeBlock.build()
     }
@@ -227,37 +224,39 @@ object AbiParser {
         return returnContainerBuilder.primaryConstructor(returnContainerConstructor.build()).build()
     }
 
-    private fun generateStaticArgDecoding(parameters: List<ParameterJson>, function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>) {
+    private fun generateStaticArgDecoding(parameters: List<ParameterJson>, function: CodeBlock.Builder) {
         parameters.forEachIndexed { index, outputJson ->
             val className = mapType(outputJson, context)
-            addDecoderStatementForType(function, locationArgs, index, className)
+            addDecoderStatementForType(function, index, className)
         }
     }
 
-    private fun addDecoderStatementForType(function: CodeBlock.Builder, locationArgs: MutableCollection<Pair<String, TypeHolder>>, index: Int, className: TypeHolder) {
-        when {
-            isSolidityDynamicType(className) -> {
-                locationArgs.add("$index" to className)
-                function.addStatement("$DECODER_VAR_PARTITIONS_NAME.consume()")
-            }
-            isSolidityArray(className) -> {
-                val format = buildArrayDecoder(className, forceStatic = true)
-                function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = ${format.first}.decode(%L)", *format.second.toTypedArray(), DECODER_VAR_PARTITIONS_NAME)
-            }
-            else -> function.addStatement("val $DECODER_VAR_ARG_PREFIX$index = %1T.DECODER.decode($DECODER_VAR_PARTITIONS_NAME)", className.toTypeName())
+    private fun addDecoderStatementForType(function: CodeBlock.Builder, index: Int, className: TypeHolder) {
+        val dynamicValName = "$DECODER_VAR_ARG_PREFIX$index"
+        val source = if (isSolidityDynamicType(className)) {
+            val dynamicValOffsetName = "$dynamicValName$DECODER_VAR_ARG_OFFSET_SUFFIX"
+            function.addStatement(
+                "val $dynamicValOffsetName = %T(%L.consume(), 16).intValueExact()",
+                BigInteger::class.asClassName(), DECODER_VAR_PARTITIONS_NAME
+            )
+            "%L.subData(%L)" to mutableListOf(DECODER_VAR_PARTITIONS_NAME, dynamicValOffsetName)
+        } else {
+            DECODER_VAR_PARTITIONS_NAME to mutableListOf()
         }
-    }
 
-    private fun generateDynamicArgDecoding(locationArgs: List<Pair<String, TypeHolder>>, function: CodeBlock.Builder) {
-        locationArgs.forEach { (argIndex, type) ->
-            val dynamicValName = "$DECODER_VAR_ARG_PREFIX$argIndex"
-
-            if (isSolidityArray(type)) {
-                val format = buildArrayDecoder(type)
-                function.addStatement("val $dynamicValName = ${format.first}.decode(%L)", *format.second.toTypedArray(), DECODER_VAR_PARTITIONS_NAME)
-            } else {
-                function.addStatement("val $dynamicValName = %1T.DECODER.decode(%2L)", type.toTypeName(), DECODER_VAR_PARTITIONS_NAME)
-            }
+        if (isSolidityArray(className)) {
+            val format = buildArrayDecoder(className)
+            function
+                .addStatement(
+                    "val $dynamicValName = ${format.first}.decode(${source.first})",
+                    *format.second.toTypedArray(), *source.second.toTypedArray()
+                )
+        } else {
+            function
+                .addStatement(
+                    "val $dynamicValName = %T.DECODER.decode(${source.first})",
+                    className.toTypeName(), *source.second.toTypedArray()
+                )
         }
     }
 
