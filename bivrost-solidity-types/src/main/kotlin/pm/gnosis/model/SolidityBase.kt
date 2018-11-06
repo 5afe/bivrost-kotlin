@@ -171,9 +171,6 @@ object SolidityBase {
         private var index: Int = 0
 
         fun consume(): String {
-            println("Offset $offset")
-            println("Index $index")
-            println("Data ${cleanData.substring(offset + index * 64, offset + (index + 1) * 64)}")
             return cleanData.substring(offset + index * 64, offset + (index + 1) * 64).apply {
                 index++
             }

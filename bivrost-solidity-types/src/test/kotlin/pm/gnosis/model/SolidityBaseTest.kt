@@ -464,6 +464,23 @@ class SolidityBaseTest {
                 SolidityBase.decodeArray("000000000000000000000000000000000000000000000000000000000000000300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789", SolidityBase::decodeUInt))
     }
 
+    // Web3py and Web3js add an 0-bytes body to empty arrays, we should still correctly decode the data
+    @Test
+    fun testMalformedBytes() {
+        val source = SolidityBase.PartitionData.of(ENCODED_MALFORMED_BYTES_TUPLE)
+        // This would be the code generated for a tuple (bytes, string)
+        val bytesOffset = BigInteger(source.consume(), 16).intValueExact()
+        assertEquals(
+            Solidity.Bytes(byteArrayOf()),
+            Solidity.Bytes.DECODER.decode(source.subData(bytesOffset))
+        )
+        val stringOffset = BigInteger(source.consume(), 16).intValueExact()
+        assertEquals(
+            Solidity.String("Broken"),
+            Solidity.String.DECODER.decode(source.subData(stringOffset))
+        )
+    }
+
     private fun formatClassName(clazz: String): String {
         val index = clazz.lastIndexOf(".")
         return clazz.replaceRange(index, index + 1, "$")
@@ -478,6 +495,23 @@ class SolidityBaseTest {
     }
 
     companion object {
+
+        const val ENCODED_MALFORMED_BYTES_TUPLE = "" +
+                // Location of first empty bytes
+                "0000000000000000000000000000000000000000000000000000000000000040" +
+                // Location of String "Broken"
+                "0000000000000000000000000000000000000000000000000000000000000080" +
+
+                // Length of empty bytes
+                "0000000000000000000000000000000000000000000000000000000000000000" +
+                // Empty body of empty bytes
+                "0000000000000000000000000000000000000000000000000000000000000000" +
+
+                // Length of "Broken"
+                "0000000000000000000000000000000000000000000000000000000000000006" +
+                // Byte string of "Broken"
+                "42726f6b656e0000000000000000000000000000000000000000000000000000"
+
         // Encoded string of ["Hi", "I", "want", "to", "learn", "Solidity"]
         const val ENCODED_STATIC_STRING_ARRAY = "" +
                 // Location of String "Hi"
