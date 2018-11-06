@@ -231,8 +231,11 @@ class AbiParserTest {
                 Solidity.UInt256.DECODER.decode(testData).value,
                 BigInteger("123", 16))
 
-        // Consume location of dynamic uint32 array (we don't need it)
-        testData.consume()
+        // Decode uint32[]
+        val uint32Offset = BigInteger(testData.consume(), 16).intValueExact()
+        assertEquals(
+            SolidityBase.Vector.Decoder(Solidity.UInt32.DECODER).decode(testData.subData(uint32Offset)).items,
+            listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))))
 
         // Decode bytes10
         Assert.assertArrayEquals(
@@ -240,17 +243,10 @@ class AbiParserTest {
                 "1234567890".toByteArray())
 
         // Consume location of bytes (we don't need it)
-        testData.consume()
-
-        // Decode dynamic uint32 array
-        assertEquals(
-                SolidityBase.Vector.Decoder(Solidity.UInt32.DECODER).decode(testData).items,
-                listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))))
-
-        // Decode bytes
+        val bytesOffset = BigInteger(testData.consume(), 16).intValueExact()
         Assert.assertArrayEquals(
-                Solidity.Bytes.DECODER.decode(testData).items,
-                "Hello, world!".toByteArray())
+            Solidity.Bytes.DECODER.decode(testData.subData(bytesOffset)).items,
+            "Hello, world!".toByteArray())
     }
 
     @Test
