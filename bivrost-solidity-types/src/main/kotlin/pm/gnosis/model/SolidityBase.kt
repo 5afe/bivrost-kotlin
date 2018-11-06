@@ -204,10 +204,8 @@ object SolidityBase {
                 // Get offset
                 val offset = BigInteger(source.consume(), 16).intValueExact()
                 // Decode dynamic data at offset
-                println("Parsed Offset int $offset")
                 itemDecoder.decode(source.subData(offset))
             } else {
-                println("Decode static")
                 itemDecoder.decode(source)
             }
         }
