@@ -12,8 +12,8 @@ class Abi15 {
 
             fun decode(topics: List<String>): Arguments {
                 // Decode topics
-                val topicsSource = SolidityBase.PartitionData(topics)
-                val t1 = Solidity.UInt256.DECODER.decode(topicsSource)
+                val source1 = SolidityBase.PartitionData.of(topics[1])
+                val t1 = Solidity.UInt256.DECODER.decode(source1)
                 return Arguments(t1)
             }
 

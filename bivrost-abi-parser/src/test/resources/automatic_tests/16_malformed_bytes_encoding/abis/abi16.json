@@ -1,0 +1,28 @@
+{
+  "contractName": "Abi16",
+  "abi": [
+    {
+      "constant": true,
+      "inputs": [
+        {
+          "name": "c",
+          "type": "tuple",
+          "components": [
+            {
+              "name": "bytesVar",
+              "type": "bytes"
+            },
+            {
+              "name": "stringVar",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "name": "malformed",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    }
+  ]
+}

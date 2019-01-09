@@ -146,9 +146,7 @@ object SolidityBase {
 
             other as StaticBytes
 
-            if (byteArray != other.byteArray) return false
-
-            return true
+            return byteArray.contentEquals(other.byteArray)
         }
 
         override fun hashCode(): Int {
@@ -166,20 +164,27 @@ object SolidityBase {
         }
     }
 
-    class PartitionData(private val partitions: List<String>) {
-        var index: Int = 0
+    class PartitionData(data: String, private val offset: Int = 0) {
+        private val cleanData = data.removePrefix("0x")
+        private var index: Int = 0
 
         fun consume(): String {
-            return partitions[index++].removePrefix("0x")
+            return cleanData.substring(offset + index * 64, offset + (index + 1) * 64).apply {
+                index++
+            }
         }
 
         fun reset() {
             index = 0
         }
 
+        fun subData() = PartitionData(cleanData, offset + index * 64)
+
+        fun subData(bytesOffset: Int) = PartitionData(cleanData, offset + bytesOffset * 2)
+
         companion object {
             fun of(data: String): PartitionData {
-                return PartitionData(partitionData(data))
+                return PartitionData(data)
             }
         }
     }
@@ -192,23 +197,15 @@ object SolidityBase {
     }
 
     fun <T : Type> decodeList(source: PartitionData, capacity: Int, itemDecoder: TypeDecoder<T>): List<T> {
-        val decodeParams = ArrayList<T?>()
-        val dynamicDecoders = LinkedList<TypeDecoder<T>>()
-
-        for (i in 0 until capacity) {
+        return (0 until capacity).map {
             if (itemDecoder.isDynamic()) {
-                // We cannot decode it right away, remember the decoder for later
-                decodeParams.add(null)
-                dynamicDecoders.push(itemDecoder)
-                // consume location of dynamic value
-                source.consume()
+                // Get offset
+                val offset = BigInteger(source.consume(), 16).intValueExact()
+                // Decode dynamic data at offset
+                itemDecoder.decode(source.subData(offset))
             } else {
-                decodeParams += itemDecoder.decode(source)
+                itemDecoder.decode(source)
             }
-        }
-
-        return decodeParams.map {
-            it ?: dynamicDecoders.removeFirst().decode(source)
         }
     }
 
@@ -225,12 +222,7 @@ object SolidityBase {
             if (capacity == 0) {
                 return false
             }
-            items.forEach {
-                if (isDynamic(it)) {
-                    return true
-                }
-            }
-            return false
+            return items.any { isDynamic(it) }
         }
 
         companion object {
@@ -268,7 +260,7 @@ object SolidityBase {
 
             override fun decode(source: PartitionData): Vector<T> {
                 val capacity = decodeUInt(source.consume()).toInt()
-                return Vector(decodeList(source, capacity, itemDecoder))
+                return Vector(decodeList(source.subData(), capacity, itemDecoder))
             }
         }
     }
@@ -317,19 +309,6 @@ object SolidityBase {
         return (type as? Collection<*>)?.isDynamic() ?: false || (type is Vector<*>)
     }
 
-    @Suppress("MemberVisibilityCanPrivate")
-    fun partitionData(data: String): List<String> {
-        var noPrefix = data.removePrefix("0x")
-        if (noPrefix.length.rem(PADDED_HEX_LENGTH) != 0) throw IllegalArgumentException("Data is not a multiple of $PADDED_HEX_LENGTH")
-        val properties = arrayListOf<String>()
-
-        while (noPrefix.length >= PADDED_HEX_LENGTH) {
-            properties.add(noPrefix.subSequence(0, PADDED_HEX_LENGTH).toString())
-            noPrefix = noPrefix.removeRange(0 until PADDED_HEX_LENGTH)
-        }
-        return properties
-    }
-
     fun decodeUInt(data: String): BigInteger {
         return BigInteger(data, 16)
     }
@@ -376,11 +355,11 @@ object SolidityBase {
     fun decodeString(source: PartitionData) =
             decodeBytes(source).toString(Charset.forName("UTF-8"))
 
+    @Deprecated("Deprecated for decodeList")
     fun <T : Any> decodeArray(data: String, itemDecoder: (String) -> T): List<T> {
-        val params = partitionData(data)
-        val contentSize = BigDecimal(BigInteger(params[0])).intValueExact()
-        if (contentSize != params.size - 1) throw IllegalArgumentException("Number of items is different from the actual array size")
+        val params = PartitionData.of(data)
+        val contentSize = BigInteger(params.consume()).intValueExact()
         if (contentSize == 0) return emptyList()
-        return (1 until params.size).map { itemDecoder.invoke(params[it]) }.toList()
+        return (0 until contentSize).map { itemDecoder(params.consume()) }
     }
 }

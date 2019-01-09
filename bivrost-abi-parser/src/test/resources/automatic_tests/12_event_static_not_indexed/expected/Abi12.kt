@@ -13,8 +13,7 @@ class Abi12 {
 
             fun decode(topics: List<String>, data: String): Arguments {
                 // Decode topics
-                val topicsSource = SolidityBase.PartitionData(topics)
-                if (topicsSource.consume() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
+                if (topics.first() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
 
                 // Decode data
                 val source = SolidityBase.PartitionData.of(data)
