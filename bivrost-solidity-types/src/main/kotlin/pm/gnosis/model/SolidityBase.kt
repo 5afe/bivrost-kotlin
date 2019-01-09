@@ -146,9 +146,7 @@ object SolidityBase {
 
             other as StaticBytes
 
-            if (!byteArray.contentEquals(other.byteArray)) return false
-
-            return true
+            return byteArray.contentEquals(other.byteArray)
         }
 
         override fun hashCode(): Int {
@@ -362,6 +360,6 @@ object SolidityBase {
         val params = PartitionData.of(data)
         val contentSize = BigInteger(params.consume()).intValueExact()
         if (contentSize == 0) return emptyList()
-        return (0 until contentSize).map { itemDecoder.invoke(params.consume()) }.toList()
+        return (0 until contentSize).map { itemDecoder(params.consume()) }
     }
 }
