@@ -9,6 +9,7 @@ dependencies {
     compileOnly gradleApi()
 
     implementation project(':bivrost-abi-parser')
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation deps.android.gradlePlugin
 }
 

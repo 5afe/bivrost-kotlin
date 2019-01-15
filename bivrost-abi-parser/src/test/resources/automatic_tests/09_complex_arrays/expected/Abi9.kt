@@ -12,7 +12,11 @@ class Abi9 {
     object Owners {
         const val METHOD_ID: String = "9f767eb7"
 
-        fun encode(c: SolidityBase.Vector<TupleA>, arg2: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>): String = "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(c, arg2)
+        fun encode(c: SolidityBase.Vector<TupleA>, arg2:
+                SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>): String
+                {
+            return "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(c, arg2)
+        }
 
         fun decode(data: String): Return {
             val source = SolidityBase.PartitionData.of(data)
@@ -39,15 +43,18 @@ class Abi9 {
 
         data class Return(val param0: TupleB, val param1: SolidityBase.Vector<TupleB>)
 
-        data class Arguments(val c: SolidityBase.Vector<TupleA>, val param1: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>)
+        data class Arguments(val c: SolidityBase.Vector<TupleA>, val param1:
+                SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>)
     }
 
     data class TupleA(
-            val a: Solidity.UInt256,
-            val b: Solidity.UInt256,
-            val param2: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>
+        val a: Solidity.UInt256,
+        val b: Solidity.UInt256,
+        val param2: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>
     ) : SolidityBase.DynamicType {
-        override fun encode(): String = SolidityBase.encodeFunctionArguments(a, b, param2)
+        override fun encode(): String {
+            return SolidityBase.encodeFunctionArguments(a, b, param2)
+        }
 
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
             override fun isDynamic(): Boolean = true
@@ -59,13 +66,16 @@ class Abi9 {
                 return TupleA(arg0, arg1, arg2)
             }
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }
     }
 
     data class TupleB(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
-        override fun encode(): String = SolidityBase.encodeFunctionArguments(x, y)
+        override fun encode(): String {
+            return SolidityBase.encodeFunctionArguments(x, y)
+        }
 
         class Decoder : SolidityBase.TypeDecoder<TupleB> {
             override fun isDynamic(): Boolean = false
@@ -75,6 +85,7 @@ class Abi9 {
                 return TupleB(arg0, arg1)
             }
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }

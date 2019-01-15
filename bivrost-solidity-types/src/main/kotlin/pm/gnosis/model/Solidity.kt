@@ -7,7 +7,6 @@ import kotlin.ByteArray
 import kotlin.collections.Map
 import pm.gnosis.utils.padEndMultiple
 import pm.gnosis.utils.toHex
-import java.util.*
 
 /**
  * Generated code. Do not modify
@@ -123,687 +122,690 @@ object Solidity {
     data class UInt8(val value: BigInteger) : SolidityBase.UIntBase(value, 8) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt8> =
-                    SolidityBase.UIntBase.Decoder { UInt8(it) }
+                    SolidityBase.UIntBase.Decoder<UInt8>({ UInt8(it) })
         }
     }
 
     data class UInt16(val value: BigInteger) : SolidityBase.UIntBase(value, 16) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt16> =
-                    SolidityBase.UIntBase.Decoder { UInt16(it) }
+                    SolidityBase.UIntBase.Decoder<UInt16>({ UInt16(it) })
         }
     }
 
     data class UInt24(val value: BigInteger) : SolidityBase.UIntBase(value, 24) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt24> =
-                    SolidityBase.UIntBase.Decoder { UInt24(it) }
+                    SolidityBase.UIntBase.Decoder<UInt24>({ UInt24(it) })
         }
     }
 
     data class UInt32(val value: BigInteger) : SolidityBase.UIntBase(value, 32) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt32> =
-                    SolidityBase.UIntBase.Decoder { UInt32(it) }
+                    SolidityBase.UIntBase.Decoder<UInt32>({ UInt32(it) })
         }
     }
 
     data class UInt40(val value: BigInteger) : SolidityBase.UIntBase(value, 40) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt40> =
-                    SolidityBase.UIntBase.Decoder { UInt40(it) }
+                    SolidityBase.UIntBase.Decoder<UInt40>({ UInt40(it) })
         }
     }
 
     data class UInt48(val value: BigInteger) : SolidityBase.UIntBase(value, 48) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt48> =
-                    SolidityBase.UIntBase.Decoder { UInt48(it) }
+                    SolidityBase.UIntBase.Decoder<UInt48>({ UInt48(it) })
         }
     }
 
     data class UInt56(val value: BigInteger) : SolidityBase.UIntBase(value, 56) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt56> =
-                    SolidityBase.UIntBase.Decoder { UInt56(it) }
+                    SolidityBase.UIntBase.Decoder<UInt56>({ UInt56(it) })
         }
     }
 
     data class UInt64(val value: BigInteger) : SolidityBase.UIntBase(value, 64) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt64> =
-                    SolidityBase.UIntBase.Decoder { UInt64(it) }
+                    SolidityBase.UIntBase.Decoder<UInt64>({ UInt64(it) })
         }
     }
 
     data class UInt72(val value: BigInteger) : SolidityBase.UIntBase(value, 72) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt72> =
-                    SolidityBase.UIntBase.Decoder { UInt72(it) }
+                    SolidityBase.UIntBase.Decoder<UInt72>({ UInt72(it) })
         }
     }
 
     data class UInt80(val value: BigInteger) : SolidityBase.UIntBase(value, 80) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt80> =
-                    SolidityBase.UIntBase.Decoder { UInt80(it) }
+                    SolidityBase.UIntBase.Decoder<UInt80>({ UInt80(it) })
         }
     }
 
     data class UInt88(val value: BigInteger) : SolidityBase.UIntBase(value, 88) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt88> =
-                    SolidityBase.UIntBase.Decoder { UInt88(it) }
+                    SolidityBase.UIntBase.Decoder<UInt88>({ UInt88(it) })
         }
     }
 
     data class UInt96(val value: BigInteger) : SolidityBase.UIntBase(value, 96) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt96> =
-                    SolidityBase.UIntBase.Decoder { UInt96(it) }
+                    SolidityBase.UIntBase.Decoder<UInt96>({ UInt96(it) })
         }
     }
 
     data class UInt104(val value: BigInteger) : SolidityBase.UIntBase(value, 104) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt104> =
-                    SolidityBase.UIntBase.Decoder { UInt104(it) }
+                    SolidityBase.UIntBase.Decoder<UInt104>({ UInt104(it) })
         }
     }
 
     data class UInt112(val value: BigInteger) : SolidityBase.UIntBase(value, 112) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt112> =
-                    SolidityBase.UIntBase.Decoder { UInt112(it) }
+                    SolidityBase.UIntBase.Decoder<UInt112>({ UInt112(it) })
         }
     }
 
     data class UInt120(val value: BigInteger) : SolidityBase.UIntBase(value, 120) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt120> =
-                    SolidityBase.UIntBase.Decoder { UInt120(it) }
+                    SolidityBase.UIntBase.Decoder<UInt120>({ UInt120(it) })
         }
     }
 
     data class UInt128(val value: BigInteger) : SolidityBase.UIntBase(value, 128) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt128> =
-                    SolidityBase.UIntBase.Decoder { UInt128(it) }
+                    SolidityBase.UIntBase.Decoder<UInt128>({ UInt128(it) })
         }
     }
 
     data class UInt136(val value: BigInteger) : SolidityBase.UIntBase(value, 136) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt136> =
-                    SolidityBase.UIntBase.Decoder { UInt136(it) }
+                    SolidityBase.UIntBase.Decoder<UInt136>({ UInt136(it) })
         }
     }
 
     data class UInt144(val value: BigInteger) : SolidityBase.UIntBase(value, 144) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt144> =
-                    SolidityBase.UIntBase.Decoder { UInt144(it) }
+                    SolidityBase.UIntBase.Decoder<UInt144>({ UInt144(it) })
         }
     }
 
     data class UInt152(val value: BigInteger) : SolidityBase.UIntBase(value, 152) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt152> =
-                    SolidityBase.UIntBase.Decoder { UInt152(it) }
+                    SolidityBase.UIntBase.Decoder<UInt152>({ UInt152(it) })
         }
     }
 
     data class UInt160(val value: BigInteger) : SolidityBase.UIntBase(value, 160) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt160> =
-                    SolidityBase.UIntBase.Decoder { UInt160(it) }
+                    SolidityBase.UIntBase.Decoder<UInt160>({ UInt160(it) })
         }
     }
 
     data class UInt168(val value: BigInteger) : SolidityBase.UIntBase(value, 168) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt168> =
-                    SolidityBase.UIntBase.Decoder { UInt168(it) }
+                    SolidityBase.UIntBase.Decoder<UInt168>({ UInt168(it) })
         }
     }
 
     data class UInt176(val value: BigInteger) : SolidityBase.UIntBase(value, 176) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt176> =
-                    SolidityBase.UIntBase.Decoder { UInt176(it) }
+                    SolidityBase.UIntBase.Decoder<UInt176>({ UInt176(it) })
         }
     }
 
     data class UInt184(val value: BigInteger) : SolidityBase.UIntBase(value, 184) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt184> =
-                    SolidityBase.UIntBase.Decoder { UInt184(it) }
+                    SolidityBase.UIntBase.Decoder<UInt184>({ UInt184(it) })
         }
     }
 
     data class UInt192(val value: BigInteger) : SolidityBase.UIntBase(value, 192) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt192> =
-                    SolidityBase.UIntBase.Decoder { UInt192(it) }
+                    SolidityBase.UIntBase.Decoder<UInt192>({ UInt192(it) })
         }
     }
 
     data class UInt200(val value: BigInteger) : SolidityBase.UIntBase(value, 200) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt200> =
-                    SolidityBase.UIntBase.Decoder { UInt200(it) }
+                    SolidityBase.UIntBase.Decoder<UInt200>({ UInt200(it) })
         }
     }
 
     data class UInt208(val value: BigInteger) : SolidityBase.UIntBase(value, 208) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt208> =
-                    SolidityBase.UIntBase.Decoder { UInt208(it) }
+                    SolidityBase.UIntBase.Decoder<UInt208>({ UInt208(it) })
         }
     }
 
     data class UInt216(val value: BigInteger) : SolidityBase.UIntBase(value, 216) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt216> =
-                    SolidityBase.UIntBase.Decoder { UInt216(it) }
+                    SolidityBase.UIntBase.Decoder<UInt216>({ UInt216(it) })
         }
     }
 
     data class UInt224(val value: BigInteger) : SolidityBase.UIntBase(value, 224) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt224> =
-                    SolidityBase.UIntBase.Decoder { UInt224(it) }
+                    SolidityBase.UIntBase.Decoder<UInt224>({ UInt224(it) })
         }
     }
 
     data class UInt232(val value: BigInteger) : SolidityBase.UIntBase(value, 232) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt232> =
-                    SolidityBase.UIntBase.Decoder { UInt232(it) }
+                    SolidityBase.UIntBase.Decoder<UInt232>({ UInt232(it) })
         }
     }
 
     data class UInt240(val value: BigInteger) : SolidityBase.UIntBase(value, 240) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt240> =
-                    SolidityBase.UIntBase.Decoder { UInt240(it) }
+                    SolidityBase.UIntBase.Decoder<UInt240>({ UInt240(it) })
         }
     }
 
     data class UInt248(val value: BigInteger) : SolidityBase.UIntBase(value, 248) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt248> =
-                    SolidityBase.UIntBase.Decoder { UInt248(it) }
+                    SolidityBase.UIntBase.Decoder<UInt248>({ UInt248(it) })
         }
     }
 
     data class UInt256(val value: BigInteger) : SolidityBase.UIntBase(value, 256) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<UInt256> =
-                    SolidityBase.UIntBase.Decoder { UInt256(it) }
+                    SolidityBase.UIntBase.Decoder<UInt256>({ UInt256(it) })
         }
     }
 
     data class Int8(val value: BigInteger) : SolidityBase.IntBase(value, 8) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int8> =
-                    SolidityBase.IntBase.Decoder { Int8(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int8> = SolidityBase.IntBase.Decoder<Int8>({
+                    Int8(it) })
         }
     }
 
     data class Int16(val value: BigInteger) : SolidityBase.IntBase(value, 16) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int16> =
-                    SolidityBase.IntBase.Decoder { Int16(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int16> = SolidityBase.IntBase.Decoder<Int16>({
+                    Int16(it) })
         }
     }
 
     data class Int24(val value: BigInteger) : SolidityBase.IntBase(value, 24) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int24> =
-                    SolidityBase.IntBase.Decoder { Int24(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int24> = SolidityBase.IntBase.Decoder<Int24>({
+                    Int24(it) })
         }
     }
 
     data class Int32(val value: BigInteger) : SolidityBase.IntBase(value, 32) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int32> =
-                    SolidityBase.IntBase.Decoder { Int32(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int32> = SolidityBase.IntBase.Decoder<Int32>({
+                    Int32(it) })
         }
     }
 
     data class Int40(val value: BigInteger) : SolidityBase.IntBase(value, 40) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int40> =
-                    SolidityBase.IntBase.Decoder { Int40(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int40> = SolidityBase.IntBase.Decoder<Int40>({
+                    Int40(it) })
         }
     }
 
     data class Int48(val value: BigInteger) : SolidityBase.IntBase(value, 48) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int48> =
-                    SolidityBase.IntBase.Decoder { Int48(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int48> = SolidityBase.IntBase.Decoder<Int48>({
+                    Int48(it) })
         }
     }
 
     data class Int56(val value: BigInteger) : SolidityBase.IntBase(value, 56) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int56> =
-                    SolidityBase.IntBase.Decoder { Int56(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int56> = SolidityBase.IntBase.Decoder<Int56>({
+                    Int56(it) })
         }
     }
 
     data class Int64(val value: BigInteger) : SolidityBase.IntBase(value, 64) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int64> =
-                    SolidityBase.IntBase.Decoder { Int64(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int64> = SolidityBase.IntBase.Decoder<Int64>({
+                    Int64(it) })
         }
     }
 
     data class Int72(val value: BigInteger) : SolidityBase.IntBase(value, 72) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int72> =
-                    SolidityBase.IntBase.Decoder { Int72(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int72> = SolidityBase.IntBase.Decoder<Int72>({
+                    Int72(it) })
         }
     }
 
     data class Int80(val value: BigInteger) : SolidityBase.IntBase(value, 80) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int80> =
-                    SolidityBase.IntBase.Decoder { Int80(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int80> = SolidityBase.IntBase.Decoder<Int80>({
+                    Int80(it) })
         }
     }
 
     data class Int88(val value: BigInteger) : SolidityBase.IntBase(value, 88) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int88> =
-                    SolidityBase.IntBase.Decoder { Int88(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int88> = SolidityBase.IntBase.Decoder<Int88>({
+                    Int88(it) })
         }
     }
 
     data class Int96(val value: BigInteger) : SolidityBase.IntBase(value, 96) {
         companion object {
-            val DECODER: SolidityBase.IntBase.Decoder<Int96> =
-                    SolidityBase.IntBase.Decoder { Int96(it) }
+            val DECODER: SolidityBase.IntBase.Decoder<Int96> = SolidityBase.IntBase.Decoder<Int96>({
+                    Int96(it) })
         }
     }
 
     data class Int104(val value: BigInteger) : SolidityBase.IntBase(value, 104) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int104> =
-                    SolidityBase.IntBase.Decoder { Int104(it) }
+                    SolidityBase.IntBase.Decoder<Int104>({ Int104(it) })
         }
     }
 
     data class Int112(val value: BigInteger) : SolidityBase.IntBase(value, 112) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int112> =
-                    SolidityBase.IntBase.Decoder { Int112(it) }
+                    SolidityBase.IntBase.Decoder<Int112>({ Int112(it) })
         }
     }
 
     data class Int120(val value: BigInteger) : SolidityBase.IntBase(value, 120) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int120> =
-                    SolidityBase.IntBase.Decoder { Int120(it) }
+                    SolidityBase.IntBase.Decoder<Int120>({ Int120(it) })
         }
     }
 
     data class Int128(val value: BigInteger) : SolidityBase.IntBase(value, 128) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int128> =
-                    SolidityBase.IntBase.Decoder { Int128(it) }
+                    SolidityBase.IntBase.Decoder<Int128>({ Int128(it) })
         }
     }
 
     data class Int136(val value: BigInteger) : SolidityBase.IntBase(value, 136) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int136> =
-                    SolidityBase.IntBase.Decoder { Int136(it) }
+                    SolidityBase.IntBase.Decoder<Int136>({ Int136(it) })
         }
     }
 
     data class Int144(val value: BigInteger) : SolidityBase.IntBase(value, 144) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int144> =
-                    SolidityBase.IntBase.Decoder { Int144(it) }
+                    SolidityBase.IntBase.Decoder<Int144>({ Int144(it) })
         }
     }
 
     data class Int152(val value: BigInteger) : SolidityBase.IntBase(value, 152) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int152> =
-                    SolidityBase.IntBase.Decoder { Int152(it) }
+                    SolidityBase.IntBase.Decoder<Int152>({ Int152(it) })
         }
     }
 
     data class Int160(val value: BigInteger) : SolidityBase.IntBase(value, 160) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int160> =
-                    SolidityBase.IntBase.Decoder { Int160(it) }
+                    SolidityBase.IntBase.Decoder<Int160>({ Int160(it) })
         }
     }
 
     data class Int168(val value: BigInteger) : SolidityBase.IntBase(value, 168) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int168> =
-                    SolidityBase.IntBase.Decoder { Int168(it) }
+                    SolidityBase.IntBase.Decoder<Int168>({ Int168(it) })
         }
     }
 
     data class Int176(val value: BigInteger) : SolidityBase.IntBase(value, 176) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int176> =
-                    SolidityBase.IntBase.Decoder { Int176(it) }
+                    SolidityBase.IntBase.Decoder<Int176>({ Int176(it) })
         }
     }
 
     data class Int184(val value: BigInteger) : SolidityBase.IntBase(value, 184) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int184> =
-                    SolidityBase.IntBase.Decoder { Int184(it) }
+                    SolidityBase.IntBase.Decoder<Int184>({ Int184(it) })
         }
     }
 
     data class Int192(val value: BigInteger) : SolidityBase.IntBase(value, 192) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int192> =
-                    SolidityBase.IntBase.Decoder { Int192(it) }
+                    SolidityBase.IntBase.Decoder<Int192>({ Int192(it) })
         }
     }
 
     data class Int200(val value: BigInteger) : SolidityBase.IntBase(value, 200) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int200> =
-                    SolidityBase.IntBase.Decoder { Int200(it) }
+                    SolidityBase.IntBase.Decoder<Int200>({ Int200(it) })
         }
     }
 
     data class Int208(val value: BigInteger) : SolidityBase.IntBase(value, 208) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int208> =
-                    SolidityBase.IntBase.Decoder { Int208(it) }
+                    SolidityBase.IntBase.Decoder<Int208>({ Int208(it) })
         }
     }
 
     data class Int216(val value: BigInteger) : SolidityBase.IntBase(value, 216) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int216> =
-                    SolidityBase.IntBase.Decoder { Int216(it) }
+                    SolidityBase.IntBase.Decoder<Int216>({ Int216(it) })
         }
     }
 
     data class Int224(val value: BigInteger) : SolidityBase.IntBase(value, 224) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int224> =
-                    SolidityBase.IntBase.Decoder { Int224(it) }
+                    SolidityBase.IntBase.Decoder<Int224>({ Int224(it) })
         }
     }
 
     data class Int232(val value: BigInteger) : SolidityBase.IntBase(value, 232) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int232> =
-                    SolidityBase.IntBase.Decoder { Int232(it) }
+                    SolidityBase.IntBase.Decoder<Int232>({ Int232(it) })
         }
     }
 
     data class Int240(val value: BigInteger) : SolidityBase.IntBase(value, 240) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int240> =
-                    SolidityBase.IntBase.Decoder { Int240(it) }
+                    SolidityBase.IntBase.Decoder<Int240>({ Int240(it) })
         }
     }
 
     data class Int248(val value: BigInteger) : SolidityBase.IntBase(value, 248) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int248> =
-                    SolidityBase.IntBase.Decoder { Int248(it) }
+                    SolidityBase.IntBase.Decoder<Int248>({ Int248(it) })
         }
     }
 
     data class Int256(val value: BigInteger) : SolidityBase.IntBase(value, 256) {
         companion object {
             val DECODER: SolidityBase.IntBase.Decoder<Int256> =
-                    SolidityBase.IntBase.Decoder { Int256(it) }
+                    SolidityBase.IntBase.Decoder<Int256>({ Int256(it) })
         }
     }
 
     class Bytes1(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 1) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes1> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes1(it) }, 1)
+                    SolidityBase.StaticBytes.Decoder<Bytes1>({ Bytes1(it) }, 1)
         }
     }
 
     class Bytes2(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 2) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes2> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes2(it) }, 2)
+                    SolidityBase.StaticBytes.Decoder<Bytes2>({ Bytes2(it) }, 2)
         }
     }
 
     class Bytes3(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 3) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes3> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes3(it) }, 3)
+                    SolidityBase.StaticBytes.Decoder<Bytes3>({ Bytes3(it) }, 3)
         }
     }
 
     class Bytes4(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 4) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes4> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes4(it) }, 4)
+                    SolidityBase.StaticBytes.Decoder<Bytes4>({ Bytes4(it) }, 4)
         }
     }
 
     class Bytes5(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 5) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes5> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes5(it) }, 5)
+                    SolidityBase.StaticBytes.Decoder<Bytes5>({ Bytes5(it) }, 5)
         }
     }
 
     class Bytes6(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 6) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes6> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes6(it) }, 6)
+                    SolidityBase.StaticBytes.Decoder<Bytes6>({ Bytes6(it) }, 6)
         }
     }
 
     class Bytes7(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 7) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes7> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes7(it) }, 7)
+                    SolidityBase.StaticBytes.Decoder<Bytes7>({ Bytes7(it) }, 7)
         }
     }
 
     class Bytes8(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 8) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes8> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes8(it) }, 8)
+                    SolidityBase.StaticBytes.Decoder<Bytes8>({ Bytes8(it) }, 8)
         }
     }
 
     class Bytes9(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 9) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes9> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes9(it) }, 9)
+                    SolidityBase.StaticBytes.Decoder<Bytes9>({ Bytes9(it) }, 9)
         }
     }
 
     class Bytes10(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 10) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes10> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes10(it) }, 10)
+                    SolidityBase.StaticBytes.Decoder<Bytes10>({ Bytes10(it) }, 10)
         }
     }
 
     class Bytes11(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 11) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes11> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes11(it) }, 11)
+                    SolidityBase.StaticBytes.Decoder<Bytes11>({ Bytes11(it) }, 11)
         }
     }
 
     class Bytes12(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 12) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes12> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes12(it) }, 12)
+                    SolidityBase.StaticBytes.Decoder<Bytes12>({ Bytes12(it) }, 12)
         }
     }
 
     class Bytes13(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 13) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes13> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes13(it) }, 13)
+                    SolidityBase.StaticBytes.Decoder<Bytes13>({ Bytes13(it) }, 13)
         }
     }
 
     class Bytes14(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 14) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes14> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes14(it) }, 14)
+                    SolidityBase.StaticBytes.Decoder<Bytes14>({ Bytes14(it) }, 14)
         }
     }
 
     class Bytes15(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 15) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes15> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes15(it) }, 15)
+                    SolidityBase.StaticBytes.Decoder<Bytes15>({ Bytes15(it) }, 15)
         }
     }
 
     class Bytes16(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 16) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes16> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes16(it) }, 16)
+                    SolidityBase.StaticBytes.Decoder<Bytes16>({ Bytes16(it) }, 16)
         }
     }
 
     class Bytes17(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 17) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes17> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes17(it) }, 17)
+                    SolidityBase.StaticBytes.Decoder<Bytes17>({ Bytes17(it) }, 17)
         }
     }
 
     class Bytes18(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 18) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes18> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes18(it) }, 18)
+                    SolidityBase.StaticBytes.Decoder<Bytes18>({ Bytes18(it) }, 18)
         }
     }
 
     class Bytes19(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 19) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes19> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes19(it) }, 19)
+                    SolidityBase.StaticBytes.Decoder<Bytes19>({ Bytes19(it) }, 19)
         }
     }
 
     class Bytes20(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 20) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes20> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes20(it) }, 20)
+                    SolidityBase.StaticBytes.Decoder<Bytes20>({ Bytes20(it) }, 20)
         }
     }
 
     class Bytes21(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 21) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes21> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes21(it) }, 21)
+                    SolidityBase.StaticBytes.Decoder<Bytes21>({ Bytes21(it) }, 21)
         }
     }
 
     class Bytes22(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 22) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes22> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes22(it) }, 22)
+                    SolidityBase.StaticBytes.Decoder<Bytes22>({ Bytes22(it) }, 22)
         }
     }
 
     class Bytes23(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 23) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes23> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes23(it) }, 23)
+                    SolidityBase.StaticBytes.Decoder<Bytes23>({ Bytes23(it) }, 23)
         }
     }
 
     class Bytes24(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 24) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes24> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes24(it) }, 24)
+                    SolidityBase.StaticBytes.Decoder<Bytes24>({ Bytes24(it) }, 24)
         }
     }
 
     class Bytes25(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 25) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes25> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes25(it) }, 25)
+                    SolidityBase.StaticBytes.Decoder<Bytes25>({ Bytes25(it) }, 25)
         }
     }
 
     class Bytes26(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 26) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes26> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes26(it) }, 26)
+                    SolidityBase.StaticBytes.Decoder<Bytes26>({ Bytes26(it) }, 26)
         }
     }
 
     class Bytes27(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 27) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes27> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes27(it) }, 27)
+                    SolidityBase.StaticBytes.Decoder<Bytes27>({ Bytes27(it) }, 27)
         }
     }
 
     class Bytes28(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 28) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes28> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes28(it) }, 28)
+                    SolidityBase.StaticBytes.Decoder<Bytes28>({ Bytes28(it) }, 28)
         }
     }
 
     class Bytes29(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 29) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes29> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes29(it) }, 29)
+                    SolidityBase.StaticBytes.Decoder<Bytes29>({ Bytes29(it) }, 29)
         }
     }
 
     class Bytes30(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 30) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes30> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes30(it) }, 30)
+                    SolidityBase.StaticBytes.Decoder<Bytes30>({ Bytes30(it) }, 30)
         }
     }
 
     class Bytes31(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 31) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes31> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes31(it) }, 31)
+                    SolidityBase.StaticBytes.Decoder<Bytes31>({ Bytes31(it) }, 31)
         }
     }
 
     class Bytes32(val bytes: ByteArray) : SolidityBase.StaticBytes(bytes, 32) {
         companion object {
             val DECODER: SolidityBase.StaticBytes.Decoder<Bytes32> =
-                    SolidityBase.StaticBytes.Decoder({ Bytes32(it) }, 32)
+                    SolidityBase.StaticBytes.Decoder<Bytes32>({ Bytes32(it) }, 32)
         }
     }
 
     data class Address(val value: BigInteger) : SolidityBase.UIntBase(value, 160) {
         companion object {
             val DECODER: SolidityBase.UIntBase.Decoder<Address> =
-                    SolidityBase.UIntBase.Decoder { Address(it) }
+                    SolidityBase.UIntBase.Decoder<Address>({ Address(it) })
         }
     }
 
-    data class Bool(val value: Boolean) : SolidityBase.UIntBase(if (value) BigInteger.ONE else BigInteger.ZERO, 8) {
+    data class Bool(val value: Boolean) : SolidityBase.UIntBase(if (value) BigInteger.ONE else
+            BigInteger.ZERO, 8) {
         class Decoder : SolidityBase.TypeDecoder<Bool> {
             override fun isDynamic(): Boolean = false
-            override fun decode(source: SolidityBase.PartitionData): Bool = Bool(SolidityBase.decodeBool(source.consume()))
+            override fun decode(source: SolidityBase.PartitionData): Bool =
+                    Bool(SolidityBase.decodeBool(source.consume()))
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }
@@ -811,7 +813,8 @@ object Solidity {
 
     open class Bytes(val items: ByteArray) : SolidityBase.DynamicType {
         init {
-            if (BigInteger(items.size.toString(10)) > BigInteger.valueOf(2).pow(256)) throw Exception()
+            if (BigInteger(items.size.toString(10)) > BigInteger.valueOf(2).pow(256)) throw
+                    Exception()
         }
 
         override fun encode(): kotlin.String {
@@ -825,18 +828,12 @@ object Solidity {
             return SolidityBase.DynamicType.Parts(length, contents)
         }
 
-        override fun equals(other: Any?): Boolean {
-            return (other as? Bytes)?.run { items.contentEquals(other.items) } ?: super.equals(other)
-        }
-
-        override fun hashCode(): Int {
-            return Arrays.hashCode(items)
-        }
-
         class Decoder : SolidityBase.TypeDecoder<Bytes> {
             override fun isDynamic(): Boolean = true
-            override fun decode(source: SolidityBase.PartitionData): Bytes = Bytes(SolidityBase.decodeBytes(source))
+            override fun decode(source: SolidityBase.PartitionData): Bytes =
+                    Bytes(SolidityBase.decodeBytes(source))
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }
@@ -845,8 +842,10 @@ object Solidity {
     data class String(val value: kotlin.String) : Bytes(value.toByteArray()) {
         class Decoder : SolidityBase.TypeDecoder<String> {
             override fun isDynamic(): Boolean = true
-            override fun decode(source: SolidityBase.PartitionData): String = String(SolidityBase.decodeString(source))
+            override fun decode(source: SolidityBase.PartitionData): String =
+                    String(SolidityBase.decodeString(source))
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }

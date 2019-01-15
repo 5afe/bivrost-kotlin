@@ -10,7 +10,9 @@ class Abi16 {
     object Malformed {
         const val METHOD_ID: String = "a76411a9"
 
-        fun encode(c: TupleA): String = "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(c)
+        fun encode(c: TupleA): String {
+            return "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(c)
+        }
 
         fun decodeArguments(data: String): Arguments {
             val source = SolidityBase.PartitionData.of(data)
@@ -25,8 +27,11 @@ class Abi16 {
         data class Arguments(val c: TupleA)
     }
 
-    data class TupleA(val bytesvar: Solidity.Bytes, val stringvar: Solidity.String) : SolidityBase.DynamicType {
-        override fun encode(): String = SolidityBase.encodeFunctionArguments(bytesvar, stringvar)
+    data class TupleA(val bytesvar: Solidity.Bytes, val stringvar: Solidity.String) :
+            SolidityBase.DynamicType {
+        override fun encode(): String {
+            return SolidityBase.encodeFunctionArguments(bytesvar, stringvar)
+        }
 
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
             override fun isDynamic(): Boolean = true
@@ -38,6 +43,7 @@ class Abi16 {
                 return TupleA(arg0, arg1)
             }
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }
