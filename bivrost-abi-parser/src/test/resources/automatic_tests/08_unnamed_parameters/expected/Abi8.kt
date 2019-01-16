@@ -4,6 +4,7 @@ import java.math.BigInteger
 import kotlin.String
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
+import pm.gnosis.utils.BigIntegerToInt
 
 class Abi8 {
     object Function {
@@ -17,7 +18,7 @@ class Abi8 {
             val source = SolidityBase.PartitionData.of(data)
 
             // Add decoders
-            val arg0Offset = BigInteger(source.consume(), 16).intValueExact()
+            val arg0Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
             val arg0 = Solidity.Bytes.DECODER.decode(source.subData(arg0Offset))
 
             return Return(arg0)
