@@ -5,6 +5,7 @@ import kotlin.Boolean
 import kotlin.String
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
+import pm.gnosis.utils.BigIntegerUtils
 
 class Abi16 {
     object Malformed {
@@ -18,7 +19,7 @@ class Abi16 {
             val source = SolidityBase.PartitionData.of(data)
 
             // Add decoders
-            val arg0Offset = BigInteger(source.consume(), 16).intValueExact()
+            val arg0Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
             val arg0 = TupleA.DECODER.decode(source.subData(arg0Offset))
 
             return Arguments(arg0)
@@ -36,9 +37,9 @@ class Abi16 {
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
             override fun isDynamic(): Boolean = true
             override fun decode(source: SolidityBase.PartitionData): TupleA {
-                val arg0Offset = BigInteger(source.consume(), 16).intValueExact()
+                val arg0Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
                 val arg0 = Solidity.Bytes.DECODER.decode(source.subData(arg0Offset))
-                val arg1Offset = BigInteger(source.consume(), 16).intValueExact()
+                val arg1Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
                 val arg1 = Solidity.String.DECODER.decode(source.subData(arg1Offset))
                 return TupleA(arg0, arg1)
             }
