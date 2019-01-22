@@ -6,6 +6,7 @@ import com.squareup.kotlinpoet.*
 import pm.gnosis.model.SolidityBase
 import java.io.File
 import java.math.BigInteger
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 
 fun main(vararg args: String) {
     args.forEach { println(it.split(File.separator).last()) }
@@ -22,7 +23,7 @@ fun generate(path: String, packageName: String) {
     val kotlinFile = FileSpec.builder(modelPackageName, fileName)
     val solidityGeneratedObject = TypeSpec.objectBuilder(fileName)
 
-    kotlinFile.addStaticImport("pm.gnosis.utils", "padEndMultiple", "toHex")
+    kotlinFile.addImport("pm.gnosis.utils", "padEndMultiple", "toHex")
     solidityGeneratedObject.addKdoc("Generated code. Do not modify\n")
 
     // Generate types
@@ -45,7 +46,7 @@ fun generate(path: String, packageName: String) {
 
     val mapClassName = ClassName("kotlin.collections", "Map")
     val stringClassName = ClassName("kotlin", "String")
-    val mapType = ParameterizedTypeName.get(mapClassName, stringClassName, stringClassName)
+    val mapType = mapClassName.parameterizedBy(stringClassName, stringClassName)
 
     // Generate aliases map
     val aliasesMapContent = arrayOf(
@@ -77,12 +78,12 @@ fun generate(path: String, packageName: String) {
 private fun generateUInts(): List<TypeSpec> = (8..256 step 8).map { generateUInt("UInt$it", it) }.toList()
 
 private fun generateUInt(className: String, nBits: Int): TypeSpec {
-    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", className))
+    val decoderTypeName = SolidityBase.UIntBase.Decoder::class.asClassName().parameterizedBy(ClassName("", className))
     return TypeSpec.classBuilder(className)
             .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -95,12 +96,12 @@ private fun generateUInt(className: String, nBits: Int): TypeSpec {
 
 private fun generateAddress(): TypeSpec {
     val name = "Address"
-    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.UIntBase.Decoder::class.asClassName(), ClassName("", name))
+    val decoderTypeName = SolidityBase.UIntBase.Decoder::class.asClassName().parameterizedBy(ClassName("", name))
     return TypeSpec.classBuilder(name)
             .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.UIntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", "160")
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, name)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -129,7 +130,7 @@ private fun generateBool(): TypeSpec {
                             .build(),
                     false)
             )
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()
@@ -138,12 +139,12 @@ private fun generateBool(): TypeSpec {
 private fun generateInts() = (8..256 step 8).map { generateInt("Int$it", it) }.toList()
 
 private fun generateInt(className: String, nBits: Int): TypeSpec {
-    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.IntBase.Decoder::class.asClassName(), ClassName("", className))
+    val decoderTypeName = SolidityBase.IntBase.Decoder::class.asClassName().parameterizedBy(ClassName("", className))
     return TypeSpec.classBuilder(className)
             .addModifiers(KModifier.DATA)
             .superclass(SolidityBase.IntBase::class)
             .addSuperclassConstructorParameter("%1L, %2L", "value", nBits)
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) })", decoderTypeName, className)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -156,11 +157,11 @@ private fun generateInt(className: String, nBits: Int): TypeSpec {
 
 private fun generateStaticBytes() = (1..32).map {
     val name = "Bytes$it"
-    val decoderTypeName = ParameterizedTypeName.get(SolidityBase.StaticBytes.Decoder::class.asClassName(), ClassName("", name))
+    val decoderTypeName = SolidityBase.StaticBytes.Decoder::class.asClassName().parameterizedBy(ClassName("", name))
     TypeSpec.classBuilder(name)
             .superclass(SolidityBase.StaticBytes::class)
             .addSuperclassConstructorParameter("%1L, %2L", "bytes", it)
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T({ %2L(it) }, %3L)", decoderTypeName, name, it)))
             .primaryConstructor(FunSpec.constructorBuilder().addParameter(
@@ -205,7 +206,7 @@ private fun generateDynamicBytes(): TypeSpec {
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeBytes(source))", name, SolidityBase::class)
                             .build()))
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()
@@ -229,7 +230,7 @@ private fun generateString(): TypeSpec {
                             .addStatement("return %1N(%2T.decodeString(%3L))", name, SolidityBase::class, "source")
                             .build())
             )
-            .companionObject(GeneratorUtils.generateDecoderCompanion(
+            .addType(GeneratorUtils.generateDecoderCompanion(
                     decoderTypeName,
                     CodeBlock.of("%1T()", decoderTypeName)))
             .build()

@@ -8,7 +8,7 @@ dependencies {
 
     implementation project(':bivrost-solidity-types')
 
-    implementation deps.kotlin.stdLibJre8
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
     implementation "com.squareup:kotlinpoet:${versions.kotlinPoet}"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.57'

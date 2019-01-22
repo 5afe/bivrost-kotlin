@@ -6,6 +6,8 @@ class Abi5 {
     object Function {
         const val METHOD_ID: String = "9d96e2df"
 
-        fun encode(): String = "0x" + METHOD_ID
+        fun encode(): String {
+            return "0x" + METHOD_ID
+        }
     }
 }

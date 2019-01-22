@@ -9,11 +9,11 @@ dependencies {
     implementation project(':bivrost-utils')
     implementation project(':bivrost-solidity-types')
 
-    implementation deps.kotlin.stdLibJre8
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 
-    implementation "com.squareup.moshi:moshi:${versions.moshi}"
-    implementation "com.squareup.moshi:moshi-kotlin:${versions.moshi}"
-    implementation "com.squareup:kotlinpoet:${versions.kotlinPoet}"
+    implementation "com.squareup.moshi:moshi:$versions.moshi"
+    implementation "com.squareup.moshi:moshi-kotlin:$versions.moshi"
+    implementation "com.squareup:kotlinpoet:$versions.kotlinPoet"
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.57'
 
     testImplementation group: 'junit', name: 'junit', version: '4.12'

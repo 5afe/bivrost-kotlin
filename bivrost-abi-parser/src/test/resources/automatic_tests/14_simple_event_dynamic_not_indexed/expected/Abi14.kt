@@ -11,7 +11,8 @@ import pm.gnosis.model.SolidityBase
 class Abi14 {
     object Events {
         object Submission {
-            const val EVENT_ID: String = "0c5212e9d002fa3e0c9bd8c78b6d4df3e94f4e956761bd40f0859c979600a2e7"
+            const val EVENT_ID: String =
+                    "0c5212e9d002fa3e0c9bd8c78b6d4df3e94f4e956761bd40f0859c979600a2e7"
 
             fun decode(topics: List<String>, data: String): Arguments {
                 // Decode topics
@@ -28,15 +29,17 @@ class Abi14 {
             }
 
             data class Arguments(
-                    val bytes: Solidity.Bytes,
-                    val string: Solidity.String,
-                    val tuple: TupleA
+                val bytes: Solidity.Bytes,
+                val string: Solidity.String,
+                val tuple: TupleA
             )
         }
     }
 
     data class TupleA(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
-        override fun encode(): String = SolidityBase.encodeFunctionArguments(x, y)
+        override fun encode(): String {
+            return SolidityBase.encodeFunctionArguments(x, y)
+        }
 
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
             override fun isDynamic(): Boolean = false
@@ -46,6 +49,7 @@ class Abi14 {
                 return TupleA(arg0, arg1)
             }
         }
+
         companion object {
             val DECODER: Decoder = Decoder()
         }

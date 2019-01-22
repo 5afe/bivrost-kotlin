@@ -19,7 +19,7 @@ task runSolidityTypeGenerator(type: JavaExec) {
 }
 
 dependencies {
-    implementation deps.kotlin.stdLibJre8
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
 
     implementation project(':bivrost-utils')
     implementation project(':bivrost-solidity-types')

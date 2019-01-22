@@ -1,6 +1,7 @@
 package pm.gnosis
 
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import pm.gnosis.AbiParser.context
 import pm.gnosis.model.AbiElementJson
 import pm.gnosis.model.ParameterJson
@@ -22,8 +23,8 @@ internal object EventParser {
         }
 
         context.root.abi.filter { it.type == ABI_SPEC_EVENT_TYPE }
-                .map { generateEventObject(it) }
-                .forEach { eventsObject.addType(it) }
+            .map { generateEventObject(it) }
+            .forEach { eventsObject.addType(it) }
 
         return eventsObject.build()
     }
@@ -50,7 +51,7 @@ internal object EventParser {
         val topicElements = abiElementJson.inputs.filter { it.indexed }
         val dataElements = abiElementJson.inputs.filter { !it.indexed }
 
-        funSpec.addParameter(TOPIC_ARG_NAME, ParameterizedTypeName.get(List::class, String::class))
+        funSpec.addParameter(TOPIC_ARG_NAME, List::class.asClassName().parameterizedBy(String::class.asClassName()))
         funSpec.addCode(generateTopicsDecoderCodeBlock(topicElements, abiElementJson.anonymous))
 
         if (dataElements.isNotEmpty()) {
@@ -85,18 +86,21 @@ internal object EventParser {
         val codeBlock = CodeBlock.builder()
         codeBlock.addStatement("// Decode topics")
         if (!isAnonymous) {
-            codeBlock.addStatement("if ($TOPIC_ARG_NAME.first() != $EVENT_ID_PROPERTY_NAME) throw %1T(\"topics[0] does not match event id\")", IllegalArgumentException::class)
+            codeBlock.addStatement(
+                "if·($TOPIC_ARG_NAME.first()·!=·$EVENT_ID_PROPERTY_NAME)·throw·%1T(\"topics[0]·does·not·match·event·id\")",
+                IllegalArgumentException::class
+            )
         }
 
         indexedParameters.forEachIndexed { index, topic ->
             val typeHolder = mapType(topic, context)
             if (typeHolder.isHashTopic(topic)) {
-                codeBlock.addStatement("val t${index + 1} = $TOPIC_ARG_NAME[${index + 1}]")
+                codeBlock.addStatement("val·t${index + 1}·=·$TOPIC_ARG_NAME[${index + 1}]")
             } else {
                 val sourceName = "source${index + 1}"
                 codeBlock
-                    .addStatement("val $sourceName = %1T.of($TOPIC_ARG_NAME[${index + 1}])", SolidityBase.PartitionData::class)
-                    .addStatement("val t${index + 1} = %1T.DECODER.decode(%2L)", typeHolder.toTypeName(), sourceName)
+                    .addStatement("val·$sourceName·=·%1T.of($TOPIC_ARG_NAME[${index + 1}])", SolidityBase.PartitionData::class)
+                    .addStatement("val·t${index + 1}·=·%1T.DECODER.decode(%2L)", typeHolder.toTypeName(), sourceName)
             }
         }
 
@@ -108,7 +112,10 @@ internal object EventParser {
 
         codeBlock.apply {
             addStatement("// Decode data")
-            addStatement("val ${AbiParser.DECODER_VAR_PARTITIONS_NAME} = %1T.of(${AbiParser.DECODER_FUN_ARG_NAME})", SolidityBase.PartitionData::class)
+            addStatement(
+                "val·${AbiParser.DECODER_VAR_PARTITIONS_NAME}·=·%1T.of(${AbiParser.DECODER_FUN_ARG_NAME})",
+                SolidityBase.PartitionData::class
+            )
             add(AbiParser.generateParameterDecoderCode(nonIndexedParameters))
         }
 
@@ -138,5 +145,5 @@ internal object EventParser {
 
     // Indexed arrays, strings and bytes and tuples only have the keccak hash
     private fun TypeHolder.isHashTopic(parameterJson: ParameterJson) =
-            parameterJson.indexed && (this is TupleTypeHolder || this is CollectionTypeHolder || isDynamic())
+        parameterJson.indexed && (this is TupleTypeHolder || this is CollectionTypeHolder || isDynamic())
 }

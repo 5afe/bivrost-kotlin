@@ -1,7 +1,7 @@
 package pm.gnosis
 
 import com.squareup.kotlinpoet.ClassName
-import com.squareup.kotlinpoet.ParameterizedTypeName
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asClassName
 import org.bouncycastle.crypto.digests.KeccakDigest
@@ -47,16 +47,17 @@ internal abstract class CollectionTypeHolder(val listType: ClassName, val itemTy
     override fun hash() = generateHash(listOf(listType.toString(), itemType.hash()))
 }
 
-internal class ArrayTypeHolder(arraysMap: AbiParser.ArraysMap, itemType: TypeHolder, val capacity: Int) : CollectionTypeHolder(arraysMap.get(capacity), itemType) {
+internal class ArrayTypeHolder(arraysMap: AbiParser.ArraysMap, itemType: TypeHolder, val capacity: Int) :
+    CollectionTypeHolder(arraysMap.get(capacity), itemType) {
 
-    override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
+    override fun toTypeName() = listType.parameterizedBy(itemType.toTypeName())
 
     override fun isDynamic() = capacity > 0 && itemType.isDynamic()
 }
 
 internal class VectorTypeHolder(itemType: TypeHolder) : CollectionTypeHolder(SolidityBase.Vector::class.asClassName(), itemType) {
 
-    override fun toTypeName() = ParameterizedTypeName.get(listType, itemType.toTypeName())
+    override fun toTypeName() = listType.parameterizedBy(itemType.toTypeName())
 
     override fun isDynamic() = true
 }
@@ -73,7 +74,7 @@ internal class TupleTypeHolder(index: Int, val entries: List<Pair<String, TypeHo
 }
 
 internal fun checkType(type: String): String {
-    return Solidity.aliases.getOrElse(type, { type })
+    return Solidity.aliases.getOrElse(type) { type }
 }
 
 internal fun mapType(parameter: ParameterJson, context: AbiParser.GeneratorContext): TypeHolder {
@@ -82,7 +83,8 @@ internal fun mapType(parameter: ParameterJson, context: AbiParser.GeneratorConte
         throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
     }
     val arrayType = matcher.group(1)
-    val baseType = SimpleTypeHolder.forType(arrayType) ?: generateTuple(arrayType, parameter, context) ?: throw IllegalArgumentException("Unknown parameter ${parameter.type}!")
+    val baseType = SimpleTypeHolder.forType(arrayType) ?: generateTuple(arrayType, parameter, context)
+    ?: throw IllegalArgumentException("Unknown parameter ${parameter.type}!")
     val arrayDef = matcher.group(2)
     if (arrayType.length < parameter.type.length && arrayDef.isNullOrBlank()) {
         throw IllegalArgumentException("Invalid parameter definition: ${parameter.type}!")
@@ -98,7 +100,7 @@ private fun generateTuple(type: String, parameters: ParameterJson, context: AbiP
         Pair(if (param.name.isEmpty()) "param$index" else param.name.toLowerCase(), mapType(param, context))
     }
     val tupleTypeHolder = TupleTypeHolder(context.tuples.size, entries)
-    return context.tuples.getOrPut(tupleTypeHolder.hash(), { tupleTypeHolder })
+    return context.tuples.getOrPut(tupleTypeHolder.hash()) { tupleTypeHolder }
 }
 
 private fun parseArrayDefinition(arrayDef: String, innerType: TypeHolder, context: AbiParser.GeneratorContext): TypeHolder {

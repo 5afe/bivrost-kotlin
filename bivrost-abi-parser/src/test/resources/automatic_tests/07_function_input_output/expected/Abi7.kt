@@ -9,7 +9,9 @@ class Abi7 {
     object Function {
         const val METHOD_ID: String = "06da0736"
 
-        fun encode(owner: Solidity.Address): String = "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(owner)
+        fun encode(owner: Solidity.Address): String {
+            return "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(owner)
+        }
 
         fun decode(data: String): Return {
             val source = SolidityBase.PartitionData.of(data)

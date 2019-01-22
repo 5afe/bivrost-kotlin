@@ -8,7 +8,8 @@ import pm.gnosis.model.SolidityBase
 class Abi15 {
     object Events {
         object Executed {
-            const val EVENT_ID: String = "d3ecebd73eb8f84cd179cd91fe1e27c1a112b3c76ca5ceaca1661a808d6081aa"
+            const val EVENT_ID: String =
+                    "d3ecebd73eb8f84cd179cd91fe1e27c1a112b3c76ca5ceaca1661a808d6081aa"
 
             fun decode(topics: List<String>): Arguments {
                 // Decode topics
