@@ -35,8 +35,8 @@ fun String.hexToByteArray(): ByteArray {
 }
 
 // Compatibility method for pre Java8
-object BigIntegerToInt {
-    fun convert(bigInteger: BigInteger): Int =
+object BigIntegerUtils {
+    fun exact(bigInteger: BigInteger): Int =
         if (bigInteger.bitLength() <= 31) bigInteger.toInt()
         else throw ArithmeticException("BigInteger out of int range")
 }

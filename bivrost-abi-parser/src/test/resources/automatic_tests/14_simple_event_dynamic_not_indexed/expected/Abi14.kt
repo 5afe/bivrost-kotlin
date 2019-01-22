@@ -7,7 +7,7 @@ import kotlin.String
 import kotlin.collections.List
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
-import pm.gnosis.utils.BigIntegerToInt
+import pm.gnosis.utils.BigIntegerUtils
 
 class Abi14 {
     object Events {
@@ -21,9 +21,9 @@ class Abi14 {
 
                 // Decode data
                 val source = SolidityBase.PartitionData.of(data)
-                val arg0Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+                val arg0Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
                 val arg0 = Solidity.Bytes.DECODER.decode(source.subData(arg0Offset))
-                val arg1Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+                val arg1Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
                 val arg1 = Solidity.String.DECODER.decode(source.subData(arg1Offset))
                 val arg2 = TupleA.DECODER.decode(source)
                 return Arguments(arg0, arg1, arg2)

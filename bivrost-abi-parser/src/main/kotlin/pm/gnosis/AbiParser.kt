@@ -5,7 +5,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import pm.gnosis.model.*
-import pm.gnosis.utils.BigIntegerToInt
+import pm.gnosis.utils.BigIntegerUtils
 import pm.gnosis.utils.generateSolidityMethodId
 import java.io.File
 import java.math.BigInteger
@@ -269,8 +269,8 @@ object AbiParser {
         val source = if (isSolidityDynamicType(className)) {
             val dynamicValOffsetName = "$dynamicValName$DECODER_VAR_ARG_OFFSET_SUFFIX"
             function.addStatement(
-                "val·$dynamicValOffsetName·=·%T.convert(%T(%L.consume(),·16))",
-                BigIntegerToInt::class.asClassName(),
+                "val·$dynamicValOffsetName·=·%T.exact(%T(%L.consume(),·16))",
+                BigIntegerUtils::class.asClassName(),
                 BigInteger::class.asClassName(),
                 DECODER_VAR_PARTITIONS_NAME
             )

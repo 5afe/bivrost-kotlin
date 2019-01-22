@@ -7,7 +7,7 @@ import kotlin.Boolean
 import kotlin.String
 import pm.gnosis.model.Solidity
 import pm.gnosis.model.SolidityBase
-import pm.gnosis.utils.BigIntegerToInt
+import pm.gnosis.utils.BigIntegerUtils
 
 class Abi9 {
     object Owners {
@@ -24,7 +24,7 @@ class Abi9 {
 
             // Add decoders
             val arg0 = TupleB.DECODER.decode(source)
-            val arg1Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+            val arg1Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
             val arg1 = SolidityBase.Vector.Decoder(TupleB.DECODER).decode(source.subData(arg1Offset))
 
             return Return(arg0, arg1)
@@ -34,9 +34,9 @@ class Abi9 {
             val source = SolidityBase.PartitionData.of(data)
 
             // Add decoders
-            val arg0Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+            val arg0Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
             val arg0 = SolidityBase.Vector.Decoder(TupleA.DECODER).decode(source.subData(arg0Offset))
-            val arg1Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+            val arg1Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
             val arg1 = SolidityBase.Vector.Decoder(SolidityBase.Vector.Decoder(Array7.Decoder(Array5.Decoder(Solidity.UInt256.DECODER)))).decode(source.subData(arg1Offset))
 
             return Arguments(arg0, arg1)
@@ -62,7 +62,7 @@ class Abi9 {
             override fun decode(source: SolidityBase.PartitionData): TupleA {
                 val arg0 = Solidity.UInt256.DECODER.decode(source)
                 val arg1 = Solidity.UInt256.DECODER.decode(source)
-                val arg2Offset = BigIntegerToInt.convert(BigInteger(source.consume(), 16))
+                val arg2Offset = BigIntegerUtils.exact(BigInteger(source.consume(), 16))
                 val arg2 = SolidityBase.Vector.Decoder(SolidityBase.Vector.Decoder(Array7.Decoder(Array5.Decoder(Solidity.UInt256.DECODER)))).decode(source.subData(arg2Offset))
                 return TupleA(arg0, arg1, arg2)
             }
