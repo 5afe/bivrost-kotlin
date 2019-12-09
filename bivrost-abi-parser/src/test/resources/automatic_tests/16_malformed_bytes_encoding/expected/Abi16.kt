@@ -25,11 +25,15 @@ class Abi16 {
             return Arguments(arg0)
         }
 
-        data class Arguments(val c: TupleA)
+        data class Arguments(
+            val c: TupleA
+        )
     }
 
-    data class TupleA(val bytesvar: Solidity.Bytes, val stringvar: Solidity.String) :
-            SolidityBase.DynamicType {
+    data class TupleA(
+        val bytesvar: Solidity.Bytes,
+        val stringvar: Solidity.String
+    ) : SolidityBase.DynamicType {
         override fun encode(): String {
             return SolidityBase.encodeFunctionArguments(bytesvar, stringvar)
         }

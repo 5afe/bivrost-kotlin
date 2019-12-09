@@ -29,7 +29,10 @@ class Abi13 {
         }
     }
 
-    data class TupleA(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
+    data class TupleA(
+        val x: Solidity.UInt256,
+        val y: Solidity.UInt256
+    ) : SolidityBase.StaticType {
         override fun encode(): String {
             return SolidityBase.encodeFunctionArguments(x, y)
         }

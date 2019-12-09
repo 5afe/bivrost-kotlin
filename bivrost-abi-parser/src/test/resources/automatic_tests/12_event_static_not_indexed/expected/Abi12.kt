@@ -21,7 +21,9 @@ class Abi12 {
                 return Arguments(arg0)
             }
 
-            data class Arguments(val transactionid: Solidity.UInt256)
+            data class Arguments(
+                val transactionid: Solidity.UInt256
+            )
         }
     }
 }

@@ -13,9 +13,9 @@ class Abi9 {
     object Owners {
         const val METHOD_ID: String = "9f767eb7"
 
-        fun encode(c: SolidityBase.Vector<TupleA>, arg2:
-                SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>): String
-                {
+        fun encode(c: SolidityBase.Vector<TupleA>,
+                arg2: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>):
+                String {
             return "0x" + METHOD_ID + pm.gnosis.model.SolidityBase.encodeFunctionArguments(c, arg2)
         }
 
@@ -42,10 +42,15 @@ class Abi9 {
             return Arguments(arg0, arg1)
         }
 
-        data class Return(val param0: TupleB, val param1: SolidityBase.Vector<TupleB>)
+        data class Return(
+            val param0: TupleB,
+            val param1: SolidityBase.Vector<TupleB>
+        )
 
-        data class Arguments(val c: SolidityBase.Vector<TupleA>, val param1:
-                SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>)
+        data class Arguments(
+            val c: SolidityBase.Vector<TupleA>,
+            val param1: SolidityBase.Vector<SolidityBase.Vector<Array7<Array5<Solidity.UInt256>>>>
+        )
     }
 
     data class TupleA(
@@ -77,7 +82,10 @@ class Abi9 {
         }
     }
 
-    data class TupleB(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
+    data class TupleB(
+        val x: Solidity.UInt256,
+        val y: Solidity.UInt256
+    ) : SolidityBase.StaticType {
         override fun encode(): String {
             return SolidityBase.encodeFunctionArguments(x, y)
         }
