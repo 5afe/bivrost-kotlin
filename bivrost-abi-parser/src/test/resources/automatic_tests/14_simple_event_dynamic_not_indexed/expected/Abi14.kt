@@ -1,6 +1,5 @@
 package expected
 
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import kotlin.Boolean
 import kotlin.String
@@ -17,7 +16,7 @@ class Abi14 {
 
             fun decode(topics: List<String>, data: String): Arguments {
                 // Decode topics
-                if (topics.first() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
+                if (topics.first().removePrefix("0x") != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
 
                 // Decode data
                 val source = SolidityBase.PartitionData.of(data)
@@ -37,9 +36,16 @@ class Abi14 {
         }
     }
 
-    data class TupleA(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
+    data class TupleA(
+        val x: Solidity.UInt256,
+        val y: Solidity.UInt256
+    ) : SolidityBase.StaticType {
         override fun encode(): String {
             return SolidityBase.encodeFunctionArguments(x, y)
+        }
+
+        override fun encodePacked(): String {
+            throw UnsupportedOperationException("Structs are  not supported via encodePacked")
         }
 
         class Decoder : SolidityBase.TypeDecoder<TupleA> {

@@ -165,6 +165,7 @@ object AbiParser {
                 .addModifiers(KModifier.DATA)
                 .addSuperinterface(if (typeHolder.isDynamic()) SolidityBase.DynamicType::class else SolidityBase.StaticType::class)
                 .addFunction(generateTupleEncoder(typeHolder))
+                .addFunction(generateTuplePackedEncoder())
                 .addType(
                     GeneratorUtils.generateDecoder(
                         typeHolder.name,
@@ -196,6 +197,15 @@ object AbiParser {
             .addStatement(
                 "return·%T.encodeFunctionArguments(${typeHolder.entries.map { it.first }.joinToString { it }})",
                 SolidityBase::class
+            )
+            .build()
+
+    private fun generateTuplePackedEncoder() =
+        FunSpec.builder("encodePacked")
+            .returns(String::class)
+            .addModifiers(KModifier.OVERRIDE)
+            .addStatement(
+                "throw·UnsupportedOperationException(\"Structs are  not supported via encodePacked\")"
             )
             .build()
 

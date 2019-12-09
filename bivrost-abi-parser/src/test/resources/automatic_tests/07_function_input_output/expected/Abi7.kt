@@ -33,8 +33,12 @@ class Abi7 {
             return Arguments(arg0)
         }
 
-        data class Return(val data: Solidity.Bytes)
+        data class Return(
+            val data: Solidity.Bytes
+        )
 
-        data class Arguments(val owner: Solidity.Address)
+        data class Arguments(
+            val owner: Solidity.Address
+        )
     }
 }

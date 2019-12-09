@@ -1,6 +1,5 @@
 package expected
 
-import java.lang.IllegalArgumentException
 import kotlin.String
 import kotlin.collections.List
 import pm.gnosis.model.Solidity
@@ -14,13 +13,15 @@ class Abi11 {
 
             fun decode(topics: List<String>): Arguments {
                 // Decode topics
-                if (topics.first() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
+                if (topics.first().removePrefix("0x") != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
                 val source1 = SolidityBase.PartitionData.of(topics[1])
                 val t1 = Solidity.UInt256.DECODER.decode(source1)
                 return Arguments(t1)
             }
 
-            data class Arguments(val transactionid: Solidity.UInt256)
+            data class Arguments(
+                val transactionid: Solidity.UInt256
+            )
         }
     }
 }

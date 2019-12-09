@@ -27,6 +27,41 @@ class SolidityBaseTest {
         )
     }
 
+    @Test
+    fun testUIntPackedEncoding() {
+        assertEquals(
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            Solidity.UInt256(BigInteger.ZERO).encodePacked()
+        )
+
+        assertEquals(
+            "0000000000000000000000000000000000000000000000000000000000000001",
+            Solidity.UInt256(BigInteger.ONE).encodePacked()
+        )
+
+        //Max unsigned integer
+        assertEquals(
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            Solidity.UInt256(BigInteger("115792089237316195423570985008687907853269984665640564039457584007913129639935")).encodePacked()
+        )
+
+        assertEquals(
+            "00",
+            Solidity.UInt8(BigInteger.ZERO).encodePacked()
+        )
+
+        assertEquals(
+            "01",
+            Solidity.UInt8(BigInteger.ONE).encodePacked()
+        )
+
+        //Max unsigned integer
+        assertEquals(
+            "ff",
+            Solidity.UInt8(BigInteger("255")).encodePacked()
+        )
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun testNegativeUIntThrowsException() {
         Solidity.UInt256(BigInteger.valueOf(-1L))
@@ -97,6 +132,20 @@ class SolidityBaseTest {
     }
 
     @Test
+    fun testBoolPackedEncoding() {
+        assertEquals(
+            "00",
+            Solidity.Bool(false).encodePacked()
+        )
+
+        assertEquals(
+            "01",
+            Solidity.Bool(true).encodePacked()
+        )
+    }
+
+
+    @Test
     fun testBoolDecoding() {
         assertEquals(
             false,
@@ -147,6 +196,34 @@ class SolidityBaseTest {
         assertEquals(
             "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80",
             Solidity.Int8(BigInteger.valueOf(-128)).encode()
+        )
+    }
+
+    @Test
+    fun testIntPackedEncoding() {
+        assertEquals(
+            "00",
+            Solidity.Int8(BigInteger.ZERO).encodePacked()
+        )
+
+        assertEquals(
+            "01",
+            Solidity.Int8(BigInteger.ONE).encodePacked()
+        )
+
+        assertEquals(
+            "ff",
+            Solidity.Int8(BigInteger.valueOf(-1)).encodePacked()
+        )
+
+        assertEquals(
+            "7f",
+            Solidity.Int8(BigInteger.valueOf(127)).encodePacked()
+        )
+
+        assertEquals(
+            "80",
+            Solidity.Int8(BigInteger.valueOf(-128)).encodePacked()
         )
     }
 
@@ -254,6 +331,29 @@ class SolidityBaseTest {
     }
 
     @Test
+    fun testStaticBytesPackedEncoding() {
+        assertEquals(
+            "00",
+            Solidity.Bytes1(byteArrayOf(0)).encodePacked()
+        )
+
+        assertEquals(
+            "0001",
+            Solidity.Bytes2(byteArrayOf(0, 1)).encodePacked()
+        )
+
+        assertEquals(
+            "000102",
+            Solidity.Bytes3(byteArrayOf(0, 1, 2)).encodePacked()
+        )
+
+        assertEquals(
+            "64617665",
+            Solidity.Bytes4("dave".toByteArray()).encodePacked()
+        )
+    }
+
+    @Test
     fun testStaticBytesDecoding() {
         assertArrayEquals(byteArrayOf(0), SolidityBase.decodeStaticBytes("0000000000000000000000000000000000000000000000000000000000000000", 1))
 
@@ -304,7 +404,7 @@ class SolidityBaseTest {
     }
 
     @Test
-    fun testDynamicArrayEncoding() {
+    fun testVectorEncoding() {
         assertEquals(
             "000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
             SolidityBase.Vector(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))).encode()
@@ -318,6 +418,24 @@ class SolidityBaseTest {
         assertEquals(
             "0000000000000000000000000000000000000000000000000000000000000000",
             SolidityBase.Vector(emptyList()).encode()
+        )
+    }
+
+    @Test
+    fun testVectorPackedEncoding() {
+        assertEquals(
+            "00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
+            SolidityBase.Vector(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16)))).encodePacked()
+        )
+
+        assertEquals(
+            "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
+            SolidityBase.Vector(listOf(Solidity.Bool(true), Solidity.Bool(false))).encodePacked()
+        )
+
+        assertEquals(
+            "",
+            SolidityBase.Vector(emptyList()).encodePacked()
         )
     }
 
@@ -369,6 +487,24 @@ class SolidityBaseTest {
         assertEquals(
             "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             TestArray(listOf(Solidity.Bytes1(kotlin.ByteArray(0)), Solidity.Bytes1(kotlin.ByteArray(0))), 2).encode()
+        )
+    }
+
+    @Test
+    fun testFixedArrayPackedEncoding() {
+        assertEquals(
+            "00000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000789",
+            TestArray(listOf(Solidity.UInt32(BigInteger("456", 16)), Solidity.UInt32(BigInteger("789", 16))), 2).encodePacked()
+        )
+
+        assertEquals(
+            "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000",
+            TestArray(listOf(Solidity.Bool(true), Solidity.Bool(false)), 2).encodePacked()
+        )
+
+        assertEquals(
+            "00000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000",
+            TestArray(listOf(Solidity.Bytes1(byteArrayOf()), Solidity.Bytes1(byteArrayOf(1))), 2).encodePacked()
         )
     }
 
@@ -450,6 +586,34 @@ class SolidityBaseTest {
     }
 
     @Test
+    fun testDynamicBytesPackedEncoding() {
+        assertEquals(
+            "48656c6c6f2c20776f726c6421",
+            Solidity.Bytes("Hello, world!".toByteArray()).encodePacked()
+        )
+
+        assertEquals(
+            "00",
+            Solidity.Bytes(byteArrayOf(0)).encodePacked()
+        )
+
+        assertEquals(
+            "0001",
+            Solidity.Bytes(byteArrayOf(0, 1)).encodePacked()
+        )
+
+        assertEquals(
+            "000102",
+            Solidity.Bytes(byteArrayOf(0, 1, 2)).encodePacked()
+        )
+
+        assertEquals(
+            "64617665",
+            Solidity.Bytes("dave".toByteArray()).encodePacked()
+        )
+    }
+
+    @Test
     fun testDynamicBytesDecoding() {
         assertArrayEquals(
             "Hello, world!".toByteArray(),
@@ -521,7 +685,7 @@ class SolidityBaseTest {
         assertEquals(SolidityBase.Vector.Decoder(Solidity.UInt32.DECODER).decode(source.subData(offsetUint32s)), items[1])
         assertEquals(Solidity.Bytes10.DECODER.decode(source), items[2])
         val offsetBytes = BigInteger(source.consume(), 16).intValueExact()
-        Assert.assertArrayEquals(Solidity.Bytes.DECODER.decode(source.subData(offsetBytes)).items, (items[3] as Solidity.Bytes).items)
+        assertArrayEquals(Solidity.Bytes.DECODER.decode(source.subData(offsetBytes)).items, (items[3] as Solidity.Bytes).items)
     }
 
     @Test
@@ -573,11 +737,37 @@ class SolidityBaseTest {
         }
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun testDynamicVectorPackedEncoding() {
+        val items = listOf(
+            Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
+            Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity")
+        )
+        SolidityBase.Vector(items).encodePacked()
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testDynamicArrayPackedEncoding() {
+        val items = listOf(
+            Solidity.String("Hi"), Solidity.String("I"), Solidity.String("want"),
+            Solidity.String("to"), Solidity.String("learn"), Solidity.String("Solidity")
+        )
+        TestArray(items, 6).encodePacked()
+    }
+
     @Test
     fun testStringEncoding() {
         assertEquals(
             "000000000000000000000000000000000000000000000000000000000000000d48656c6c6f2c20776f726c642100000000000000000000000000000000000000",
             Solidity.String("Hello, world!").encode()
+        )
+    }
+
+    @Test
+    fun testStringPackedEncoding() {
+        assertEquals(
+            "48656c6c6f2c20776f726c6421",
+            Solidity.String("Hello, world!").encodePacked()
         )
     }
 
@@ -598,7 +788,7 @@ class SolidityBaseTest {
         val source = SolidityBase.PartitionData.of(ENCODED_MALFORMED_BYTES_TUPLE)
         // This would be the code generated for a tuple (bytes, string)
         val bytesOffset = BigInteger(source.consume(), 16).intValueExact()
-        Assert.assertArrayEquals(
+        assertArrayEquals(
             Solidity.Bytes(byteArrayOf()).items,
             Solidity.Bytes.DECODER.decode(source.subData(bytesOffset)).items
         )

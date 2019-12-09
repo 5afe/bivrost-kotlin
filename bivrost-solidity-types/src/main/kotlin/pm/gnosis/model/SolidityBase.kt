@@ -7,17 +7,17 @@ import pm.gnosis.utils.toHex
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.charset.Charset
-import java.util.*
 import kotlin.collections.ArrayList
 
 object SolidityBase {
     const val BYTES_PAD = 32
     const val PADDED_HEX_LENGTH = BYTES_PAD * 2
 
-    val dynamicTypes: List<kotlin.String> = listOf("bytes", "string")
+    val dynamicTypes: List<String> = listOf("bytes", "string")
 
     interface Type {
         fun encode(): String
+        fun encodePacked(): String
     }
 
     interface StaticType : Type
@@ -27,6 +27,12 @@ object SolidityBase {
     }
 
     abstract class Collection<out T : Type>(val items: List<T>) : Type {
+
+        override fun encodePacked(): String {
+            if (items.any { isDynamic(it) }) throw IllegalArgumentException("Cannot encode dynamic items packed!")
+            return encodeTuple(items)
+        }
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -45,7 +51,7 @@ object SolidityBase {
         abstract fun isDynamic(): Boolean
     }
 
-    abstract class UIntBase(private val value: BigInteger, bitLength: kotlin.Int) : StaticType {
+    abstract class UIntBase(private val value: BigInteger, private val bitLength: Int) : StaticType {
         init {
             when {
                 bitLength % 8 != 0 -> throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
@@ -57,6 +63,11 @@ object SolidityBase {
         override fun encode(): String {
             val string = value.toString(16)
             return string.padStartMultiple(PADDED_HEX_LENGTH, '0')
+        }
+
+        override fun encodePacked(): String {
+            val string = value.toString(16)
+            return string.padStart(bitLength / 8 * 2, '0')
         }
 
         override fun equals(other: Any?): Boolean {
@@ -86,7 +97,7 @@ object SolidityBase {
 
     }
 
-    abstract class IntBase(private val value: BigInteger, private val bitLength: kotlin.Int) : StaticType {
+    abstract class IntBase(private val value: BigInteger, private val bitLength: Int) : StaticType {
         init {
             if (bitLength % 8 != 0) throw InvalidBitLengthException.NOT_MULTIPLE_OF_EIGHT
             val min = BigInteger.valueOf(2).pow(bitLength - 1).negate()
@@ -95,15 +106,20 @@ object SolidityBase {
             if (value < min || value > max) throw IllegalArgumentException("Value is not within bit range [$min, $max]")
         }
 
-        override fun encode(): String {
+        private fun encodeWithPadding(paddingLength: Int): String {
             return if (value.signum() == -1) {
                 val bits = value.toString(2).removePrefix("-").padStart(bitLength, '0')
                 val x = bits.map { if (it == '0') '1' else '0' }.joinToString("")
-                BigInteger(x, 2).add(BigInteger.ONE).toString(16).padStartMultiple(PADDED_HEX_LENGTH, 'f')
+                BigInteger(x, 2).add(BigInteger.ONE).toString(16).padStartMultiple(paddingLength, 'f')
             } else {
-                value.toString(16).padStartMultiple(PADDED_HEX_LENGTH, '0')
+                value.toString(16).padStartMultiple(paddingLength, '0')
             }
+
         }
+
+        override fun encode(): String = encodeWithPadding(PADDED_HEX_LENGTH)
+
+        override fun encodePacked(): String = encodeWithPadding(bitLength / 8 * 2)
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -131,13 +147,17 @@ object SolidityBase {
         }
     }
 
-    abstract class StaticBytes(val byteArray: ByteArray, nBytes: kotlin.Int) : StaticType {
+    abstract class StaticBytes(val byteArray: ByteArray, nBytes: Int) : StaticType {
         init {
             if (byteArray.size > nBytes) throw IllegalArgumentException("Byte array has ${byteArray.size} bytes. It should have no more than $nBytes bytes.")
         }
 
         override fun encode(): String {
             return byteArray.toHex().padEnd(PADDED_HEX_LENGTH, '0')
+        }
+
+        override fun encodePacked(): String {
+            return byteArray.toHex()
         }
 
         override fun equals(other: Any?): Boolean {

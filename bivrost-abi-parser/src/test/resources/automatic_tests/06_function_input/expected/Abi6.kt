@@ -21,6 +21,8 @@ class Abi6 {
             return Arguments(arg0)
         }
 
-        data class Arguments(val owner: Solidity.Address)
+        data class Arguments(
+            val owner: Solidity.Address
+        )
     }
 }

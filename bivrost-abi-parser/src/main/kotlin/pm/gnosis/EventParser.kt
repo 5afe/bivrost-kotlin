@@ -87,8 +87,7 @@ internal object EventParser {
         codeBlock.addStatement("// Decode topics")
         if (!isAnonymous) {
             codeBlock.addStatement(
-                "if·($TOPIC_ARG_NAME.first()·!=·$EVENT_ID_PROPERTY_NAME)·throw·%1T(\"topics[0]·does·not·match·event·id\")",
-                IllegalArgumentException::class
+                "if·($TOPIC_ARG_NAME.first().removePrefix(\"0x\")·!=·$EVENT_ID_PROPERTY_NAME)·throw·IllegalArgumentException(\"topics[0]·does·not·match·event·id\")"
             )
         }
 

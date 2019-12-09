@@ -1,6 +1,5 @@
 package expected
 
-import java.lang.IllegalArgumentException
 import kotlin.Boolean
 import kotlin.String
 import kotlin.collections.List
@@ -15,7 +14,7 @@ class Abi13 {
 
             fun decode(topics: List<String>): Arguments {
                 // Decode topics
-                if (topics.first() != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
+                if (topics.first().removePrefix("0x") != EVENT_ID) throw IllegalArgumentException("topics[0] does not match event id")
                 val t1 = topics[1]
                 val t2 = topics[2]
                 val t3 = topics[3]
@@ -30,9 +29,16 @@ class Abi13 {
         }
     }
 
-    data class TupleA(val x: Solidity.UInt256, val y: Solidity.UInt256) : SolidityBase.StaticType {
+    data class TupleA(
+        val x: Solidity.UInt256,
+        val y: Solidity.UInt256
+    ) : SolidityBase.StaticType {
         override fun encode(): String {
             return SolidityBase.encodeFunctionArguments(x, y)
+        }
+
+        override fun encodePacked(): String {
+            throw UnsupportedOperationException("Structs are  not supported via encodePacked")
         }
 
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
