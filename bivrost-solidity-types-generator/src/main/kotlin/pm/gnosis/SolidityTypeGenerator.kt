@@ -202,6 +202,13 @@ private fun generateDynamicBytes(): TypeSpec {
                             .addStatement("return %1T(length, contents)", SolidityBase.DynamicType.Parts::class)
                             .build())
                     .build())
+        .addFunction(FunSpec.builder("encodePacked")
+            .addModifiers(KModifier.OVERRIDE)
+            .returns(String::class)
+            .addCode(CodeBlock.builder()
+                .addStatement("return items.toHex()")
+                .build())
+            .build())
             .addType(GeneratorUtils.generateDecoder(name,
                     CodeBlock.builder()
                             .addStatement("return %1N(%2T.decodeBytes(source))", name, SolidityBase::class)

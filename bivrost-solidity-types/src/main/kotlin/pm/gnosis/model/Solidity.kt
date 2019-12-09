@@ -828,6 +828,8 @@ object Solidity {
             return SolidityBase.DynamicType.Parts(length, contents)
         }
 
+        override fun encodePacked(): kotlin.String = items.toHex()
+
         class Decoder : SolidityBase.TypeDecoder<Bytes> {
             override fun isDynamic(): Boolean = true
             override fun decode(source: SolidityBase.PartitionData): Bytes =

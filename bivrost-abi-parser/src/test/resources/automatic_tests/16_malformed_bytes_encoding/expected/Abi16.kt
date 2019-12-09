@@ -34,6 +34,10 @@ class Abi16 {
             return SolidityBase.encodeFunctionArguments(bytesvar, stringvar)
         }
 
+        override fun encodePacked(): String {
+            throw UnsupportedOperationException("Structs are  not supported via encodePacked")
+        }
+
         class Decoder : SolidityBase.TypeDecoder<TupleA> {
             override fun isDynamic(): Boolean = true
             override fun decode(source: SolidityBase.PartitionData): TupleA {
