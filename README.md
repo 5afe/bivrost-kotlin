@@ -11,12 +11,12 @@
 
 * Add classpath dependency:
 ```
-classpath ('com.github.gnosis:bivrost-kotlin:bivrost-gradle-plugin:<version>')
+classpath ('com.github.gnosis.bivrost-kotlin:bivrost-gradle-plugin:<version>')
 ```
 
 * Add runtime dependency:
 ```
-implementation ('com.github.gnosis:abi-kotlin:bivrost-solidity-types:<version>')
+implementation ('com.github.gnosis.abi-kotlin:bivrost-solidity-types:<version>')
 ```
 
 * Apply plugin:
