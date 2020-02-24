@@ -1,5 +1,5 @@
 {
-  "contract_name": "MultiSigWalletWithDailyLimit",
+  "contractName": "MultiSigWalletWithDailyLimit",
   "abi": [
     {
       "constant": true,

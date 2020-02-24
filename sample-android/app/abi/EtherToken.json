@@ -1,5 +1,5 @@
 {
-  "contract_name": "EtherToken",
+  "contractName": "EtherToken",
   "abi": [
     {
       "constant": true,

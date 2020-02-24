@@ -7,6 +7,7 @@ dependencies {
 
     implementation project(':bivrost-abi-parser')
     implementation deps.android.gradlePlugin
+    implementation deps.kotlin.gradlePlugin
 }
 
 sourceSets {
