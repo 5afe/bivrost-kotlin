@@ -46,7 +46,7 @@ class BivrostPlugin : Plugin<Project> {
             val once = AtomicBoolean()
             variant.outputs.all { output ->
 
-                val processResources = output.processResources
+                val processResources = output.processResourcesProvider.get()
                 task.dependsOn(processResources)
 
                 // Though there might be multiple outputs, their R files are all the same. Thus, we only
