@@ -2,21 +2,21 @@
 
 🔥 🌈 Bridge between Solidity Contracts and Kotlin
 
-[![](https://jitpack.io/v/gnosis/bivrost-kotlin.svg)](https://jitpack.io/#gnosis/bivrost-kotlin)
+[![](https://jitpack.io/v/5afe/bivrost-kotlin.svg)](https://jitpack.io/#5afe/bivrost-kotlin)
 [![Build Status](https://travis-ci.org/gnosis/bivrost-kotlin.svg?branch=master)](https://travis-ci.org/gnosis/bivrost-kotlin)
 
 #### Include via jitpack
 
-* Add jitpack repository (see https://www.jitpack.io/#gnosis/bivrost-kotlin)
+* Add jitpack repository (see https://www.jitpack.io/#5afe/bivrost-kotlin)
 
 * Add classpath dependency:
 ```
-classpath ('com.github.gnosis.bivrost-kotlin:bivrost-gradle-plugin:<version>')
+classpath ('com.github.5afe.bivrost-kotlin:bivrost-gradle-plugin:<version>')
 ```
 
 * Add runtime dependency:
 ```
-implementation ('com.github.gnosis.abi-kotlin:bivrost-solidity-types:<version>')
+implementation ('com.github.5afe.abi-kotlin:bivrost-solidity-types:<version>')
 ```
 
 * Apply plugin:
